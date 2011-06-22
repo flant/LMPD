@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import socket, regex
+import socket
 
 oRegs=0
 
@@ -7,7 +7,6 @@ k = 'request=smtpd_access_policy\nprotocol_state=RCPT\nprotocol_name=ESMTP\nclie
 
 s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 s.connect("/home/gyrt/DEV-Code/policyd/policy.sock")
-print regex.cParser(k)
 s.send(k)
 data = s.recv(1024)
 s.close()
