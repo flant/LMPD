@@ -29,7 +29,6 @@ class cWorkerTread(threading.Thread):
 						sResult = sTmp
 				else:
 					if check.cUsers(self.oSqlConn).check(sData["sender"], sData["recipient"]) == "DUNNO":
-						self.oSqlConn.addrule(sData["sender"], sData["recipient"])
 						check.cUsers(self.oSqlConn).addrule(sData["sender"], sData["recipient"])
 						sResult = "DUNNO"
 

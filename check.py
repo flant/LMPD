@@ -27,6 +27,7 @@ class cAddr():
 class cUsers():
 	aUsers = {}
 	def __init__(self, oSqlConnect):
+		self.oSqlConn = oSqlConnect
 		if len(self.__class__.aUsers) == 0:
 			self.__class__.aUsers = oSqlConnect.loaduser()
 	def check(self, sRecipient, sSender):
@@ -42,4 +43,5 @@ class cUsers():
 		return self.__class__.aUsers.has_key(sData)
 
 	def addrule(self, sSender, sRecipient):
+		self.oSqlConn.addrule(sSender, sRecipient)
 		self.__class__.aUsers[sSender][sRecipient] = "OK"
