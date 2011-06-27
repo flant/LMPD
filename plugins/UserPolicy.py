@@ -11,13 +11,13 @@ def loadsql(oSqlConn):
 	aUsers={}
 	aRules={}
 
-	oSqlConn.execute(sSql_1)
-	for row in oSqlConn:
+	oData = oSqlConn.execute(sSql_1)
+	for row in oData:
 		aUsers[str(int(row[0]))] = row[1]
 		aRes[row[1]] = {}
 
-	oSqlConn.execute(sSql_2)
-	for row in oSqlConn:
+	oData = oSqlConn.execute(sSql_2)
+	for row in oData:
 		aTmp = {}
 		aTmp[row[1]] = row[2]
 		aRes[aUsers[str(int(row[0]))]].update(aTmp)
@@ -26,12 +26,12 @@ def loadsql(oSqlConn):
 
 def addrule(oData, oSqlConn):
 	sSql_1 = "SELECT `id_user` FROM `users` WHERE `user` = %s"
-	sSql_2 = "INSERT INTO `white_list_mail` VALUES(NULL, {0}, '{1}', 'OK')"
+	sSql_2 = "INSERT INTO `white_list_mail` VALUES(NULL, {0}, '{1}', {2})"
 
-	oSqlConn.execute(sSql_1, sSender)
-	sTmp = str(int(oSqlConn.fetchone()[0]))
+	oCur = oSqlConn.execute(sSql_1, oData["sender"])
+	sTmp = str(int(oCur.fetchone()[0]))
 
-	oSqlConn.execute(sSql_2.format(sTmp, sRecipient))
+	oSqlConn.execute(sSql_2.format(oData["sender"], oData["recipient"]))
 
 class UserPolicy(Policy.Policy):
 	mutex = multiprocessing.Lock()

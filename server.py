@@ -31,7 +31,7 @@ def main():
 	aFilters = []
 	for sFilter in aImportFilters: #TODO automatic filter load from config
 		globals()[sFilter] = locals()[sFilter] = __import__(sFilter, globals(), locals(), [], -1)
-		oTmp = getattr(locals()[sFilter], sFilter)(locals()[sFilter].loadsql(oDatabase.oSqlCursor), oDatabase)
+		oTmp = getattr(locals()[sFilter], sFilter)(locals()[sFilter].loadsql(oDatabase), oDatabase)
 		aFilters.append(oTmp)
 
 	sDefaultAnswer = oConfig.get("filters_default", False)
@@ -39,10 +39,6 @@ def main():
 		print "Lost fields in filter config. Exiting..."
 		sys.exit(1)
 
-	#oTmp = globals()["AddressPolicy.AddressPolicy"](globals()['AddressPolicy' + '.' +'loadsql'](oDatabase.oSqlCursor), oDatabase)
-	#k = getattr(locals()['AddressPolicy'], 'AddressPolicy')(locals()['AddressPolicy'].loadsql(oDatabase.oSqlCursor), oDatabase)
-	#print k.check({"client_address":'192.168.0.1'})
-	#oTmp = AddressPolicy.AddressPolicy(globals()['AddressPolicy'+'.'+'loadsql'](oDatabase.oSqlCursor), oDatabase)
 	Init.demonize(oConfig)
 
 	while 1:

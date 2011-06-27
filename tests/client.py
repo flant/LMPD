@@ -8,6 +8,6 @@ k = 'request=junk_policy\nprotocol_state=RCPT\nprotocol_name=ESMTP\nclient_addre
 s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 s.connect("/home/gyrt/DEV-Code/policyd/policy.sock")
 s.send(k)
-#data = s.recv(1024)
+data = s.recv(1024)
 s.close()
-#print 'Received', repr(data)
+print 'Received', repr(data)

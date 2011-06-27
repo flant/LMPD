@@ -20,9 +20,11 @@ class Database:
 			while (retry_count):
 				retry_count = retry_count - 1
 				try:
-					oSqlCursor.execute(sData)
+					self.oSqlCursor.execute(sData)
 					break
-				except:
+				except MySQLdb.Error:
 					self.oSqlConnect = MySQLdb.connect(aMysql['host'], aMysql['user'], aMysql['password'], aMysql['dbname'], aMysql['port'])
-					oSqlCursor.execute(sData)
-					
+					self.oSqlCursor = self.oSqlConnect.cursor()
+					self.oSqlCursor.execute(sData)
+
+		return self.oSqlCursor

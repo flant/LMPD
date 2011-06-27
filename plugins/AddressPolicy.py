@@ -5,15 +5,15 @@ import Policy, multiprocessing
 def loadsql(oSqlConn):
 	sSql_1 = "SELECT `mx_addr`, `accept` FROM `white_list_addr`"
 	aRes = {}
-	oSqlConn.execute(sSql_1)
-	for row in oSqlConn:
+	oData = oSqlConn.execute(sSql_1)
+	for row in oData:
 		aRes[row[0]] = row[1]
 	return aRes
 
 def addrule(oData, oSqlConn):
-	sSql_1 = "INSERT INTO `white_list_addr` VALUES(NULL, {0}, 'OK')"
+	sSql_1 = "INSERT INTO `white_list_addr` VALUES(NULL, {0}, {1})"
 
-	oSqlConn.execute(sSql_1.format(oData["client_address"]))
+	oSqlConn.execute(sSql_1.format(oData["address"], oData["answer"]))
 
 class AddressPolicy(Policy.Policy):
 	mutex = multiprocessing.Lock()
@@ -26,3 +26,8 @@ class AddressPolicy(Policy.Policy):
 			return self.aData[sAddr]
 		else:
 			return None
+			
+	def train(self, oData)
+		with mutex:
+			self.aData[oData["address"]] = oData["answer"]
+			addrule(oData, self.oSqlConn)
