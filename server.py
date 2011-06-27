@@ -2,60 +2,59 @@
 
 #Server.py for postfix policy daemon
 
-import socket, os, time, sys, threading, argparse, signal, yaml, MySQLdb, grp, pwd, proto, regex, sysspecif, sqlconn, check
-
-class cWorkerTread(threading.Thread):
-	def __init__(self,oSocket, oSqlConn):
-		threading.Thread.__init__(self)
-		self.daemon = True
-		self.oProtocol = oSocket
-		self.oSqlConn = oSqlConn
-	def run(self):
-		sData = regex.cParser(self.oProtocol.getdata())
-		#TODO whitelist check
-		sResult = "DUNNO"
-		if check.cUsers(self.oSqlConn).ouruser(sData["sender"]) == False:
-			sTmp = check.cDomains(self.oSqlConn).check(sData["client_name"])                
-			if sTmp == "DUNNO":
-				sTmp = check.cAddr(self.oSqlConn).check(sData["client_address"])
-				if sTmp == "DUNNO":
-					sTmp = check.cUsers(self.oSqlConn).check(sData["recipient"], sData["sender"])
-					if sTmp == "DUNNO":
-						sResult = sTmp
-					else:
-						sResult = sTmp
-				else:
-					sResult = sTmp
-			else:
-				sResult = sTmp
-		else:
-			if check.cUsers(self.oSqlConn).check(sData["sender"], sData["recipient"]) == "DUNNO":
-				check.cUsers(self.oSqlConn).addrule(sData["sender"], sData["recipient"])
-				sResult = "DUNNO"
-
-		self.oProtocol.answer(sResult)
-		del self.oProtocol
-		sys.exit(0)
+import os, sys, signal, site
 
 def main():
+	site.addsitedir("./lib", known_paths=None)
+	site.addsitedir("./plugins", known_paths=None)
+	import Analyse, Config, Init, Database, Connection, Policy, Worker
+	oConfig = Config.Config()
 
-	signal.signal(signal.SIGINT, sysspecif.fInt_handler)
+	signal.signal(signal.SIGTERM, lambda x, y: Init.fSIGINThandler(oConfig.get("argv_pid", "/tmp/policyd.pid"), x, y))
+	signal.signal(signal.SIGINT, lambda x, y: Init.fSIGINThandler(oConfig.get("argv_pid", "/tmp/policyd.pid"), x, y))
+	signal.signal(signal.SIGHUP, signal.SIG_IGN)
+
+	Init.baseinit(oConfig)
+	oSocket = Init.createsock(oConfig)
 	
-	oConfig = sysspecif.cConfig()
-	oConfig.applyconfig()
-	oSocket = oConfig.createsock()
+	aMysql = oConfig.get("mysql", False)
+	if aMysql:
+		oDatabase = Database.Database(aMysql)
+	else:
+		print "Lost fields in mysql config. Exiting..."
+		sys.exit(1)
 
-	oSqlConn = sqlconn.cSqlConnection(oConfig["host"], oConfig["user"], oConfig["password"], oConfig["dbname"], oConfig["port"])
-	oDomains = check.cDomains(oSqlConn)
-	oUsers = check.cUsers(oSqlConn)
-	oAddr = check.cAddr(oSqlConn)
+	aImportFilters = oConfig.get("filters_order", False)
+	if aImportFilters:
+		aImportFilters = ["AddressPolicy","DomainPolicy","UserPolicy"]
 
-	oConfig.demonize()
+	aFilters = []
+	for sFilter in aImportFilters: #TODO automatic filter load from config
+		globals()[sFilter] = locals()[sFilter] = __import__(sFilter, globals(), locals(), [], -1)
+		oTmp = getattr(locals()[sFilter], sFilter)(locals()[sFilter].loadsql(oDatabase.oSqlCursor), oDatabase)
+		aFilters.append(oTmp)
+
+	sDefaultAnswer = oConfig.get("filters_default", False)
+	if not sDefaultAnswer:
+		print "Lost fields in filter config. Exiting..."
+		sys.exit(1)
+
+	#oTmp = globals()["AddressPolicy.AddressPolicy"](globals()['AddressPolicy' + '.' +'loadsql'](oDatabase.oSqlCursor), oDatabase)
+	#k = getattr(locals()['AddressPolicy'], 'AddressPolicy')(locals()['AddressPolicy'].loadsql(oDatabase.oSqlCursor), oDatabase)
+	#print k.check({"client_address":'192.168.0.1'})
+	#oTmp = AddressPolicy.AddressPolicy(globals()['AddressPolicy'+'.'+'loadsql'](oDatabase.oSqlCursor), oDatabase)
+	Init.demonize(oConfig)
 
 	while 1:
 		oConn, oAddr = oSocket.accept()
-		tProc = cWorkerTread(proto.cPRProtocol(oConn), oSqlConn)
+		try:
+			oConnection = Connection.Connection(oConn)
+		except Connection.ConnectionError:
+			oConn.close()
+			continue
+		tProc = Worker.WorkerTread(oConnection, aFilters, sDefaultAnswer, oDatabase)
 		tProc.start()
 
 if __name__ == "__main__":
 	main()
+
