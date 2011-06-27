@@ -48,7 +48,7 @@ class UserPolicy(Policy.Policy):
 				return None
 
 	def train(self, oData):
-		with mutex:
+		with self.mutex:
 			addrule(sSender, sRecipient)
 			self.aData[sSender][sRecipient] = "OK"
 

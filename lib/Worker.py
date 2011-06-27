@@ -10,9 +10,12 @@ class WorkerTread(multiprocessing.Process):
 		self.oConnection = oConn
 		self.oSqlConn = oSqlConn
 		self.aFilters = aFilters
+
 	def run(self):
 		sTmp = self.oConnection["request"]
+
 		if sTmp == "smtpd_access_policy":
+
 			for oFilter in self.aFilters:
 				sTmp = oFilter.check(self.oConnection)
 				if sTmp:

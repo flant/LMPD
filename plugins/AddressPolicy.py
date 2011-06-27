@@ -27,7 +27,7 @@ class AddressPolicy(Policy.Policy):
 		else:
 			return None
 			
-	def train(self, oData)
-		with mutex:
+	def train(self, oData):
+		with self.mutex:
 			self.aData[oData["address"]] = oData["answer"]
 			addrule(oData, self.oSqlConn)

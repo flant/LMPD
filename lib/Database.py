@@ -15,7 +15,7 @@ class Database:
 		self.oSqlCursor = self.oSqlConnect.cursor()
 
 	def execute(self, sData):
-		with mutex:
+		with self.mutex:
 			retry_count = self.aMysql['retry_count']
 			while (retry_count):
 				retry_count = retry_count - 1
