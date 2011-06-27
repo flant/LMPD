@@ -1,0 +1,22 @@
+#Зададим MySQL базу и таблицу в ней
+mysql:
+  host: 192.168.0.52
+  port: 3306
+  user: test
+  password: 123qwe
+  dbname: test
+  retry_count: 3
+
+system:
+  user: gyrt
+  group: gyrt
+
+socket:
+  socket: /home/gyrt/DEV-Code/policyd/policy.sock
+
+filters:
+  order:
+    - AddressPolicy
+    - DomainPolicy
+    - UserPolicy
+  default: DUNNO
