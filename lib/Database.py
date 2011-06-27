@@ -3,8 +3,8 @@
 import MySQLdb, multiprocessing
 
 class Database:
-	mutex = multiprocessing.Lock()
 	def __init__(self, aMysql, iPort = 3306):
+		self.mutex = multiprocessing.Lock()
 		try:
 			self.aMysql = aMysql 
 			self.oSqlConnect = MySQLdb.connect(aMysql['host'], aMysql['user'], aMysql['password'], aMysql['dbname'], aMysql['port'])

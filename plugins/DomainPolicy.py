@@ -16,8 +16,8 @@ def addrule(oData, oSqlConn):
 	oSqlConn.execute(sSql_1.format(oData["helo_name"], oData["answer"]))
 
 class DomainPolicy(Policy.Policy):
-	mutex = multiprocessing.Lock()
 	def __init__(self, aData, oSqlConn):
+		self.mutex = multiprocessing.Lock()
 		Policy.Policy.__init__(self, aData, oSqlConn)
 
 	def check(self, oData):

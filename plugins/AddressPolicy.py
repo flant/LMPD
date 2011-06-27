@@ -16,8 +16,8 @@ def addrule(oData, oSqlConn):
 	oSqlConn.execute(sSql_1.format(oData["address"], oData["answer"]))
 
 class AddressPolicy(Policy.Policy):
-	mutex = multiprocessing.Lock()
 	def __init__(self, aData, oSqlConn):
+		self.mutex = multiprocessing.Lock()
 		Policy.Policy.__init__(self, aData, oSqlConn)
 
 	def check(self, oData):
@@ -26,8 +26,3 @@ class AddressPolicy(Policy.Policy):
 			return self.aData[sAddr]
 		else:
 			return None
-			
-	def train(self, oData):
-		with self.mutex:
-			self.aData[oData["address"]] = oData["answer"]
-			addrule(oData, self.oSqlConn)

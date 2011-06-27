@@ -34,8 +34,8 @@ def addrule(oData, oSqlConn):
 	oSqlConn.execute(sSql_2.format(oData["sender"], oData["recipient"]))
 
 class UserPolicy(Policy.Policy):
-	mutex = multiprocessing.Lock()
 	def __init__(self, aData, oSqlConn):
+		self.mutex = multiprocessing.Lock()
 		Policy.Policy.__init__(self, aData, oSqlConn)
 
 	def check(self, oData):
@@ -49,7 +49,7 @@ class UserPolicy(Policy.Policy):
 
 	def train(self, oData):
 		with self.mutex:
-			addrule(sSender, sRecipient)
-			self.aData[sSender][sRecipient] = "OK"
+			addrule(oData, self.oSqlConn)
+			self.aData[sSender][sRecipient] = oData["answer"]
 
 		return None
