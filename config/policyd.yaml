@@ -1,10 +1,10 @@
 #Зададим MySQL базу и таблицу в ней
 mysql:
-  host: 192.168.0.52
+  host: 192.168.0.2
   port: 3306
-  user: test
-  password: 123qwe
-  dbname: test
+  user: postfix
+  password: XUCqVRdE6EZRnrS5
+  dbname: postfix
   retry_count: 3
 
 system:

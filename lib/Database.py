@@ -1,6 +1,6 @@
 #Database connector for policyd
 
-import MySQLdb, multiprocessing
+import MySQLdb, multiprocessing, sys
 
 class Database:
 	def __init__(self, aMysql, iPort = 3306):
