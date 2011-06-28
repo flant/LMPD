@@ -10,30 +10,45 @@ class ConnectionError(Exception):
 		return 'Error: ' + self.value
 
 class Connection(dict):
-	def __init__(self,oSocket):
+	def __init__(self, oSocket):
 		dict.__init__(self)
 		self.oConn_sock = oSocket
-		self.sData = self._fReadSocket()
+
+	def __enter__(self):
+		return self
+
+	def __exit__(self, type, value, traceback):
+		self.close()
+
+	def _fReadSocket(self):
+		sData = str("")
+		while 1:
+			sTmp = self.oConn_sock.recv(100)
+			if not sTmp: return None
+			sData += sTmp
+			if "\n\n" in sTmp:
+				break
+		return sData
+
+	def answer(self, sData):
+		self.oConn_sock.send("action={0}\n\n".format(sData))
+
+	def close(self):
+		self.oConn_sock.close()
+
+	def get_message(self):
+		if len(self) > 0: self.clear()
+		sData = self._fReadSocket()
+		if not sData: return False
 		for key in self._oArr:
-			aTmp = self._oArr[key].findall(self.sData)
+			aTmp = self._oArr[key].findall(sData)
 			if len(aTmp) > 0:
 				self[key] = aTmp[0]
 			else:
 				self[key] = ""
 		if self["request"] == "":
 			raise ConnectionError('No request in Data line')
-	def _fReadSocket(self):
-		sData = str("")
-		while 1:
-			sTmp = self.oConn_sock.recv(100)
-			sData += sTmp
-			if "\n\n" in sTmp:
-				break
-		return sData
-	def answer(self, sData):
-		self.oConn_sock.send("action={0}\n\n".format(sData))
-	def close(self):
-		self.oConn_sock.close()
+		return True
 
 Connection._oArr = {}
 Connection._oArr["request"] = re.compile(r"request=(.*?)\n", re.S) #0

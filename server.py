@@ -43,12 +43,7 @@ def main():
 
 	while 1:
 		oConn, oAddr = oSocket.accept()
-		try:
-			oConnection = Connection.Connection(oConn)
-		except Connection.ConnectionError:
-			oConn.close()
-			continue
-		tProc = Worker.WorkerTread(oConnection, aFilters, sDefaultAnswer, oDatabase)
+		tProc = Worker.WorkerTread(oConn, aFilters, sDefaultAnswer, oDatabase)
 		tProc.start()
 
 if __name__ == "__main__":
