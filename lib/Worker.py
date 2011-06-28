@@ -15,6 +15,7 @@ class WorkerTread(multiprocessing.Process):
 		with Connection.Connection(self.oSocket) as conn:
 			while conn.get_message():
 				sTmp = conn["request"]
+
 				if sTmp == "smtpd_access_policy":
 
 					for oFilter in self.aFilters:

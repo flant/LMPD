@@ -7,7 +7,7 @@ class Database:
 		self.mutex = multiprocessing.Lock()
 		try:
 			self.aMysql = aMysql 
-			self.oSqlConnect = MySQLdb.connect(aMysql['host'], aMysql['user'], aMysql['password'], aMysql['dbname'], aMysql['port'])
+			self.oSqlConnect = MySQLdb.connect(self.aMysql['host'], self.aMysql['user'], self.aMysql['password'], self.aMysql['dbname'], self.aMysql['port'])
 		except:
 				print "Can not connect to MySQL"
 				sys.exit(1)
@@ -23,7 +23,7 @@ class Database:
 					self.oSqlCursor.execute(sData)
 					break
 				except MySQLdb.Error:
-					self.oSqlConnect = MySQLdb.connect(aMysql['host'], aMysql['user'], aMysql['password'], aMysql['dbname'], aMysql['port'])
+					self.oSqlConnect = MySQLdb.connect(self.aMysql['host'], self.aMysql['user'], self.aMysql['password'], self.aMysql['dbname'], self.aMysql['port'])
 					self.oSqlCursor = self.oSqlConnect.cursor()
 					self.oSqlCursor.execute(sData)
 

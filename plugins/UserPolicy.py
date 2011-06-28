@@ -4,8 +4,8 @@ import Policy, multiprocessing
 
 def loadsql(oSqlConn):
 	aRes = {}
-	sSql_1 = "SELECT `id_user`,`user` FROM `users`"
-	sSql_2 = "SELECT `user_id`,	`mail`,	`accept` FROM `white_list_mail`"
+	sSql_1 = "SELECT `id`,`address` FROM `users`"
+	sSql_2 = "SELECT `user_id`, `mail`, `accept` FROM `white_list_mail`"
 
 	aRes={}
 	aUsers={}
