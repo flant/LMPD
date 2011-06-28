@@ -19,7 +19,7 @@ class Config(dict):
 	def __init__(self):
 		dict.__init__(self)
 		oParser = argparse.ArgumentParser(description='Mini whitelisting daemon.')
-		oParser.add_argument('-c', '--config', help='Path to a config file', default='/etc/postfix/policyd.conf')
+		oParser.add_argument('-c', '--config', help='Path to a config file', default='/etc/postfix/policyd.yaml')
 		oParser.add_argument('-p', '--pid', help='Path to a PID file', default='/var/run/policyd.pid')
 		oParser.add_argument('-d', dest='bDaemon', action='store_true', help='Become a daemon', default=False)
 		oArgs = oParser.parse_args()

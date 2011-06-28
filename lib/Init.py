@@ -3,24 +3,26 @@
 import os, pwd, grp, socket, sys
 
 def baseinit(oConfig):
+	os.umask(0111)
+
 	if os.path.exists(oConfig.get("argv_pid", "/tmp/policyd.pid")):
 		print "Another policyd works. Exiting..."
 		sys.exit(1)
-
-	if os.getuid() == 0:
-		try:
-			os.setuid(pwd.getpwnam(oConfig.get("system_user", "postfix"))[2])
-		except KeyError:
-			print "Using existing user"
-		except OSErroras as (errno, strerror):
-			print "OSError error({0}): {1}".format(errno, strerror)
-			sys.exit(1)
 
 	if os.getgid() == 0:
 		try:
 			os.setgid(grp.getgrnam(oConfig.get("system_group", "postfix"))[2])
 		except KeyError:
 			print "Using existing group"
+		except OSErroras as (errno, strerror):
+			print "OSError error({0}): {1}".format(errno, strerror)
+			sys.exit(1)
+
+	if os.getuid() == 0:
+		try:
+			os.setuid(pwd.getpwnam(oConfig.get("system_user", "postfix"))[2])
+		except KeyError:
+			print "Using existing user"
 		except OSErroras as (errno, strerror):
 			print "OSError error({0}): {1}".format(errno, strerror)
 			sys.exit(1)
@@ -59,7 +61,6 @@ def demonize(oConfig):
 
 		os.chdir("/") 
 		os.setsid() 
-		os.umask(022)
 	
 		sys.stdout = open("/dev/null")
 		sys.stderr = open("/dev/null","w")

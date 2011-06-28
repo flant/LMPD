@@ -31,7 +31,7 @@ class Connection(dict):
 				break
 		return sData
 	def answer(self, sData):
-		self.oConn_sock.send("answer={0}\n\n".format(sData))
+		self.oConn_sock.send("action={0}\n\n".format(sData))
 	def close(self):
 		self.oConn_sock.close()
 
