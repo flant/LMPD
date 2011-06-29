@@ -24,7 +24,7 @@ def loadsql(oSqlConn):
 
 	return aRes
 
-def addrule(oData, oSqlConn):
+def addrule(oData, oSqlConn, sAnswer = "OK"):
 	sSql_1 = "SELECT `id` FROM `users` WHERE `address` = '{0}'"
 	sSql_2 = "INSERT INTO `white_list_mail` VALUES(NULL, {0}, '{1}', {2})"
 
@@ -52,11 +52,11 @@ class UserPolicy(Policy.Policy):
 			self.train(oData)
 			return None
 
-	def train(self, oData):
+	def train(self, oData, sAnswer = "OK"):
 		with self.mutex:
 			sRecipient = oData["recipient"]
 			sSender = oData["sender"]
-			addrule(oData, self.oSqlConn)
-			self.aData[sSender][sRecipient] = oData["answer"]
+			addrule(oData, self.oSqlConn, sAnswer)
+			self.aData[sSender][sRecipient] = sAnswer
 
 		return None
