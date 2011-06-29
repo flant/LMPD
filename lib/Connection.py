@@ -72,3 +72,6 @@ Connection._oArr["reverse_client_name"] = re.compile(r"reverse_client_name=(.*?)
 Connection._oArr["helo_name"] = re.compile(r"helo_name=(.*?)\n", re.S) #5
 Connection._oArr["sender"] = re.compile(r"sender=(.*?)\n", re.S) #6
 Connection._oArr["recipient"] = re.compile(r"recipient=(.*?)\n", re.S) #7
+Connection._oArr["sasl_method"]=re.compile(r"sasl_method=(.*?)\n", re.S) #8
+Connection._oArr["sasl_username"]=re.compile(r"sasl_username=(.*?)\n", re.S) #9
+Connection._oArr["sasl_sender"]=re.compile(r"sasl_sender=(.*?)\n", re.S) #10
