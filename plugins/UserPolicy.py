@@ -25,13 +25,13 @@ def loadsql(oSqlConn):
 	return aRes
 
 def addrule(oData, oSqlConn):
-	sSql_1 = "SELECT `id_user` FROM `users` WHERE `user` = %s"
+	sSql_1 = "SELECT `id` FROM `users` WHERE `address` = '{0}'"
 	sSql_2 = "INSERT INTO `white_list_mail` VALUES(NULL, {0}, '{1}', {2})"
 
-	oCur = oSqlConn.execute(sSql_1, oData["sender"])
+	oCur = oSqlConn.execute(sSql_1.format(oData["sender"]))
 	sTmp = str(int(oCur.fetchone()[0]))
 
-	oSqlConn.execute(sSql_2.format(oData["sender"], oData["recipient"]))
+	oSqlConn.execute(sSql_2.format(sTmp, oData["recipient"], "OK"))
 
 class UserPolicy(Policy.Policy):
 	def __init__(self, aData, oSqlConn):
@@ -39,16 +39,23 @@ class UserPolicy(Policy.Policy):
 		Policy.Policy.__init__(self, aData, oSqlConn)
 
 	def check(self, oData):
-		sRecipient = oData["recipient"]
-		sSender = oData["sender"]
-		if self.aData.has_key(sRecipient):
-			if self.aData[sRecipient].has_key(sSender):
-				return self.aData[sRecipient][sSender]
-			else:
-				return None
+		if oData["sasl_method"] = "":
+			sRecipient = oData["recipient"]
+			sSender = oData["sender"]
+			
+			if self.aData.has_key(sRecipient):
+				if self.aData[sRecipient].has_key(sSender):
+					return self.aData[sRecipient][sSender]
+				else:
+					return None
+		else:
+			self.train(oData)
+			return None
 
 	def train(self, oData):
 		with self.mutex:
+			sRecipient = oData["recipient"]
+			sSender = oData["sender"]
 			addrule(oData, self.oSqlConn)
 			self.aData[sSender][sRecipient] = oData["answer"]
 
