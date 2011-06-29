@@ -27,7 +27,7 @@ class WorkerTread(multiprocessing.Process):
 					else:
 						sAnswer = self.sDefaultAnswer
 
-					conn.answer(sAnswer)
+					if not conn.answer(sAnswer): break
 
 				elif sTmp == "junk_policy":
 					pass

@@ -23,7 +23,12 @@ class Connection(dict):
 	def _fReadSocket(self):
 		sData = str("")
 		while 1:
-			sTmp = self.oConn_sock.recv(100)
+
+			try:
+				sTmp = self.oConn_sock.recv(100)
+			except socket.error as (errno, strerror):
+				return None
+
 			if not sTmp: return None
 			sData += sTmp
 			if "\n\n" in sTmp:
@@ -31,10 +36,18 @@ class Connection(dict):
 		return sData
 
 	def answer(self, sData):
-		self.oConn_sock.send("action={0}\n\n".format(sData))
+		try:
+			self.oConn_sock.send("action={0}\n\n".format(sData))
+		except socket.error as (errno, strerror):
+			return False
+
+		return True
 
 	def close(self):
-		self.oConn_sock.close()
+		try:
+			self.oConn_sock.close()
+		except socket.error as (errno, strerror):
+			pass
 
 	def get_message(self):
 		if len(self) > 0: self.clear()
