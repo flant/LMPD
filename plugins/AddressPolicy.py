@@ -1,6 +1,6 @@
 #Class for addresses
 
-import Policy, multiprocessing
+import Policy, threading
 
 def loadsql(oSqlConn):
 	sSql_1 = "SELECT `mx_addr`, `accept` FROM `white_list_addr`"
@@ -17,7 +17,7 @@ def addrule(oData, oSqlConn):
 
 class AddressPolicy(Policy.Policy):
 	def __init__(self, aData, oSqlConn):
-		self.mutex = multiprocessing.Lock()
+		self.mutex = threading.Lock()
 		Policy.Policy.__init__(self, aData, oSqlConn)
 
 	def check(self, oData):

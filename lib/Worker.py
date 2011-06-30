@@ -1,10 +1,10 @@
 #Worker class for policyd
 
-import multiprocessing, sys, Connection
+import threading, sys, Connection
 
-class WorkerTread(multiprocessing.Process):
+class WorkerTread(threading.Thread):
 	def __init__(self, oConn, aFilters, sDefaultAnswer, oSqlConn):
-		multiprocessing.Process.__init__(self)
+		threading.Thread.__init__(self)
 		self.daemon = True
 		self.sDefaultAnswer = sDefaultAnswer
 		self.oSocket = oConn
@@ -15,7 +15,7 @@ class WorkerTread(multiprocessing.Process):
 		with Connection.Connection(self.oSocket) as conn:
 			while conn.get_message():
 				sTmp = conn["request"]
-
+				print conn
 				if sTmp == "smtpd_access_policy":
 
 					for oFilter in self.aFilters:
@@ -26,13 +26,10 @@ class WorkerTread(multiprocessing.Process):
 						sAnswer = sTmp
 					else:
 						sAnswer = self.sDefaultAnswer
-
-					if not conn.answer(sAnswer): break
+					print sAnswer
+					conn.answer(sAnswer)
 
 				elif sTmp == "junk_policy":
 					pass
 				else:
 					pass
-
-		#self.oConnection.close()
-		#sys.exit(0)

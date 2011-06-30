@@ -1,10 +1,10 @@
 #Database connector for policyd
 
-import MySQLdb, multiprocessing, sys
+import MySQLdb, threading, sys
 
 class Database:
 	def __init__(self, aMysql, iPort = 3306):
-		self.mutex = multiprocessing.Lock()
+		self.mutex = threading.Lock()
 		try:
 			self.aMysql = aMysql 
 			self.oSqlConnect = MySQLdb.connect(self.aMysql['host'], self.aMysql['user'], self.aMysql['password'], self.aMysql['dbname'], self.aMysql['port'])

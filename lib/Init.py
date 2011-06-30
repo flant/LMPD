@@ -62,11 +62,12 @@ def demonize(oConfig):
 		os.chdir("/") 
 		os.setsid() 
 	
-		sys.stdout = open("/dev/null")
+		sys.stdin = open("/dev/null")
 		sys.stderr = open("/dev/null","w")
-		sys.stdin = open("/dev/null", "w")
-	else:
-		iPid = os.getpid()
+		sys.stdout = open("/dev/null", "w")
+
+	iPid = os.getpid()
+
 	try:
 		oPidFile = open(oConfig.get("argv_pid", "/tmp/policyd.pid"), "w")
 		oPidFile.write(str(iPid))

@@ -1,6 +1,6 @@
 #Class for domains
 
-import Policy, multiprocessing
+import Policy, threading
 
 def loadsql(oSqlConn):
 	aRes = {}
@@ -26,20 +26,20 @@ def loadsql(oSqlConn):
 
 def addrule(oData, oSqlConn, sAnswer = "OK"):
 	sSql_1 = "SELECT `id` FROM `users` WHERE `address` = '{0}'"
-	sSql_2 = "INSERT INTO `white_list_mail` VALUES(NULL, {0}, '{1}', {2})"
+	sSql_2 = "INSERT INTO `white_list_mail` VALUES(NULL, {0}, '{1}', '{2}')"
 
 	oCur = oSqlConn.execute(sSql_1.format(oData["sender"]))
 	sTmp = str(int(oCur.fetchone()[0]))
 
-	oSqlConn.execute(sSql_2.format(sTmp, oData["recipient"], "OK"))
+	oSqlConn.execute(sSql_2.format(sTmp, oData["recipient"], sAnswer))
 
 class UserPolicy(Policy.Policy):
 	def __init__(self, aData, oSqlConn):
-		self.mutex = multiprocessing.Lock()
+		self.mutex = threading.Lock()
 		Policy.Policy.__init__(self, aData, oSqlConn)
 
 	def check(self, oData):
-		if oData["sasl_method"] = "":
+		if oData["sasl_method"] == "":
 			sRecipient = oData["recipient"]
 			sSender = oData["sender"]
 			
@@ -56,7 +56,10 @@ class UserPolicy(Policy.Policy):
 		with self.mutex:
 			sRecipient = oData["recipient"]
 			sSender = oData["sender"]
-			addrule(oData, self.oSqlConn, sAnswer)
-			self.aData[sSender][sRecipient] = sAnswer
+			if sRecipient != "" or sSender != "":
+				addrule(oData, self.oSqlConn, sAnswer)
+				if not self.aData.has_key(sSender): self.aData[sSender] = {}
+				if not self.aData[sSender].has_key(sRecipient):
+					self.aData[sSender][sRecipient] = sAnswer
 
 		return None
