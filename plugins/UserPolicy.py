@@ -25,13 +25,14 @@ def loadsql(oSqlConn):
 	return aRes
 
 def addrule(oData, oSqlConn, sAnswer = "OK"):
-	sSql_1 = "SELECT `id` FROM `users` WHERE `address` = '{0}'"
-	sSql_2 = "INSERT INTO `white_list_mail` VALUES(NULL, {0}, '{1}', '{2}')"
+	if oData["sender"] != "" and oData["recipient"] != "":
+		sSql_1 = "SELECT `id` FROM `users` WHERE `address` = '{0}'"
+		sSql_2 = "INSERT INTO `white_list_mail` VALUES(NULL, {0}, '{1}', '{2}')"
 
-	oCur = oSqlConn.execute(sSql_1.format(oData["sender"]))
-	sTmp = str(int(oCur.fetchone()[0]))
+		oCur = oSqlConn.execute(sSql_1.format(oData["sender"]))
+		sTmp = str(int(oCur.fetchone()[0]))
 
-	oSqlConn.execute(sSql_2.format(sTmp, oData["recipient"], sAnswer))
+		oSqlConn.execute(sSql_2.format(sTmp, oData["recipient"], sAnswer))
 
 class UserPolicy(Policy.Policy):
 	def __init__(self, aData, oSqlConn):
@@ -56,7 +57,7 @@ class UserPolicy(Policy.Policy):
 		with self.mutex:
 			sRecipient = oData["recipient"]
 			sSender = oData["sender"]
-			if sRecipient != "" or sSender != "":
+			if sRecipient != "" and sSender != "":
 				addrule(oData, self.oSqlConn, sAnswer)
 				if not self.aData.has_key(sSender): self.aData[sSender] = {}
 				if not self.aData[sSender].has_key(sRecipient):
