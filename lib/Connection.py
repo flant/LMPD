@@ -31,7 +31,7 @@ class Connection(dict):
 				self._sTmp = aStr[1]
 				break
 			else:
-				sData += sTmp
+				sData += self._sTmp
 
 			sTmp = self.oConn_sock.recv(100)
 			
