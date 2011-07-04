@@ -33,7 +33,7 @@ class Connection(dict):
 			else:
 				sData += self._sTmp
 
-			sTmp = self.oConn_sock.recv(100)
+			self._sTmp = self.oConn_sock.recv(100)
 			
 		return sData
 
