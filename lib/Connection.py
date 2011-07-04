@@ -1,6 +1,6 @@
 #Postfix Protocol class for policyd
 
-import socket, re
+import socket, re, datatime
 
 class ConnectionError(Exception):
 	def __init__(self, value):
