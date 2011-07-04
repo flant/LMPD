@@ -24,12 +24,9 @@ class Connection(dict):
 		sData = str("")
 		while 1:
 
-			try:
-				sTmp = self.oConn_sock.recv(100)
-			except socket.error as (errno, strerror):
-				return None
+			sTmp = self.oConn_sock.recv(100)
 
-			#if not sTmp: return None
+			if not sTmp: continue
 			sData += sTmp
 			if "\n\n" in sTmp:
 				break
