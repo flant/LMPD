@@ -23,11 +23,10 @@ class Connection(dict):
 
 	def _fReadSocket(self):
 		sData = str("")
-		sTmp = self._sTmp
 		while 1:
 
-			if "\n\n" in sTmp:
-				aStr = sTmp.split("\n\n", 1)
+			if "\n\n" in self._sTmp:
+				aStr = self._sTmp.split("\n\n", 1)
 				sData += aStr[0]
 				self._sTmp = aStr[1]
 				break
