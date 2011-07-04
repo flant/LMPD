@@ -13,6 +13,7 @@ class Connection(dict):
 	def __init__(self, oSocket):
 		dict.__init__(self)
 		self.oConn_sock = oSocket
+		self._sTmp = str("")
 
 	def __enter__(self):
 		return self
@@ -22,14 +23,19 @@ class Connection(dict):
 
 	def _fReadSocket(self):
 		sData = str("")
+		sTmp = self._sTmp
 		while 1:
 
-			sTmp = self.oConn_sock.recv(100)
-
-			if not sTmp: continue
-			sData += sTmp
 			if "\n\n" in sTmp:
+				aStr = sTmp.split("\n\n", 1)
+				sData += aStr[0]
+				self._sTmp = aStr[1]
 				break
+			else:
+				sData += sTmp
+
+			sTmp = self.oConn_sock.recv(100)
+			
 		return sData
 
 	def answer(self, sData):
