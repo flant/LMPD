@@ -15,9 +15,9 @@ class WorkerTread(threading.Thread):
 		with Connection.Connection(self.oSocket) as conn:
 			while conn.get_message():
 				sTmp = conn["request"]
-				print conn
-				if sTmp == "smtpd_access_policy":
 
+				if sTmp == "smtpd_access_policy":
+					#print "Mail from {0} to {1}".format(conn["sender"], conn["recipient"]
 					for oFilter in self.aFilters:
 						sTmp = oFilter.check(conn)
 						if sTmp: break

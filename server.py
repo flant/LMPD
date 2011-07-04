@@ -7,7 +7,7 @@ import os, sys, signal, site
 def main():
 	site.addsitedir("./lib", known_paths=None)
 	site.addsitedir("./plugins", known_paths=None)
-	import Analyse, Config, Init, Database, Connection, Policy, Worker
+	import Analyse, Config, Init, Database, Connection, Policy, Worker, Logger
 	oConfig = Config.Config()
 
 	signal.signal(signal.SIGTERM, lambda x, y: Init.fSIGINThandler(oConfig.get("argv_pid", "/tmp/policyd.pid"), x, y))
@@ -19,7 +19,7 @@ def main():
 	
 	aMysql = oConfig.get("mysql", False)
 	if aMysql:
-		oDatabase = Database.Database(aMysql)
+		oPool = Database.Pool(aMysql)
 	else:
 		print "Lost fields in mysql config. Exiting..."
 		sys.exit(1)
@@ -29,9 +29,9 @@ def main():
 		aImportFilters = ["AddressPolicy","DomainPolicy","UserPolicy"]
 
 	aFilters = []
-	for sFilter in aImportFilters: #TODO automatic filter load from config
+	for sFilter in aImportFilters:
 		globals()[sFilter] = locals()[sFilter] = __import__(sFilter, globals(), locals(), [], -1)
-		oTmp = getattr(locals()[sFilter], sFilter)(locals()[sFilter].loadsql(oDatabase), oDatabase)
+		oTmp = getattr(locals()[sFilter], sFilter)(locals()[sFilter].loadsql(oPool), oPool)
 		aFilters.append(oTmp)
 
 	sDefaultAnswer = oConfig.get("filters_default", False)
@@ -43,7 +43,7 @@ def main():
 
 	while 1:
 		oConn, oAddr = oSocket.accept()
-		tProc = Worker.WorkerTread(oConn, aFilters, sDefaultAnswer, oDatabase)
+		tProc = Worker.WorkerTread(oConn, aFilters, sDefaultAnswer, oPool)
 		tProc.start()
 
 if __name__ == "__main__":

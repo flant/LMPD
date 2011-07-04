@@ -28,22 +28,29 @@ def baseinit(oConfig):
 			sys.exit(1)
 
 def createsock(oConfig):
-	sSockname=oConfig.get("socket_socket","/var/spool/postfix/private/policy.sock")
+	sTmp = oConfig.get("network_type","unix")
+	if sTmp == "unix":
+		oSocket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+		sSockname=oConfig.get("network_socket","/var/spool/postfix/private/policy.sock")
+		if os.path.exists(sSockname):
+			try:
+				os.remove(sSockname)
+			except OSError as (errno, strerror):
+				print "OSError error({0}): {1}".format(errno, strerror)
+				sys.exit(1)
 
-	oSocket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-
-	if os.path.exists(sSockname):
 		try:
-			os.remove(sSockname)
-		except OSError as (errno, strerror):
-			print "OSError error({0}): {1}".format(errno, strerror)
+			oSocket.bind(sSockname)
+		except socket.error as (errno, strerror):
+			print "socket.error error({0}): {1}".format(errno, strerror)
 			sys.exit(1)
-
-	try:
-		oSocket.bind(sSockname)
-	except socket.error as (errno, strerror):
-		print "socket.error error({0}): {1}".format(errno, strerror)
-		sys.exit(1)
+	elif sTmp == "tcp":
+		oSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		try:
+			oSocket.bind(oConfig.get("network_address","0.0.0.0"), oConfig.get("network_port","7000"))
+		except socket.error as (errno, strerror):
+			print "socket.error error({0}): {1}".format(errno, strerror)
+			sys.exit(1)
 
 	oSocket.listen(1)
 	return oSocket

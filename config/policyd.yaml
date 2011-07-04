@@ -6,12 +6,15 @@ mysql:
   password: XUCqVRdE6EZRnrS5
   dbname: postfix
   retry_count: 3
+  pool: 10
+  pooltime: 30
 
 system:
   user: gyrt
   group: gyrt
 
-socket:
+network:
+  type: unix
   socket: /home/gyrt/DEV-Code/policyd/policy.sock
 
 filters:
