@@ -56,7 +56,7 @@ class Connection(dict):
 		for key in self._oArr:
 			aTmp = self._oArr[key].findall(sData)
 			if len(aTmp) > 0:
-				self[key] = aTmp[0]
+				self[key] = aTmp[0].lower()
 			else:
 				self[key] = ""
 		if self["request"] == "":
