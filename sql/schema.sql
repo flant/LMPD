@@ -109,7 +109,7 @@ CREATE TABLE IF NOT EXISTS `white_list_mail` (
   `mail` varchar(255) NOT NULL,
   `accept` varchar(255) NOT NULL DEFAULT 'OK',
   PRIMARY KEY (`id_wl_mail`),
-  UNIQUE KEY `mail` (`mail`)
+  UNIQUE (`user_id`, `mail`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=9 ;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

@@ -26,7 +26,7 @@ class WorkerTread(threading.Thread):
 						sAnswer = sTmp
 					else:
 						sAnswer = self.sDefaultAnswer
-					print sAnswer
+					#print sAnswer
 					conn.answer(sAnswer)
 
 				elif sTmp == "junk_policy":

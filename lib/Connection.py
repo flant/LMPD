@@ -29,7 +29,7 @@ class Connection(dict):
 			except socket.error as (errno, strerror):
 				return None
 
-			if not sTmp: return None
+			#if not sTmp: return None
 			sData += sTmp
 			if "\n\n" in sTmp:
 				break
