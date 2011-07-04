@@ -1,14 +1,14 @@
 #Worker class for policyd
 
-import threading, sys, Connection
+import threading, sys, Connection, PySQLPool
 
 class WorkerTread(threading.Thread):
-	def __init__(self, oConn, aFilters, sDefaultAnswer, oSqlConn):
+	def __init__(self, oConn, aFilters, sDefaultAnswer, oSqlPool):
 		threading.Thread.__init__(self)
 		self.daemon = True
 		self.sDefaultAnswer = sDefaultAnswer
 		self.oSocket = oConn
-		self.oSqlConn = oSqlConn
+		self.oSqlPool = oSqlPool
 		self.aFilters = aFilters
 
 	def run(self):
@@ -17,19 +17,25 @@ class WorkerTread(threading.Thread):
 				sTmp = conn["request"]
 
 				if sTmp == "smtpd_access_policy":
-					#print "Mail from {0} to {1}".format(conn["sender"], conn["recipient"]
-					for oFilter in self.aFilters:
-						sTmp = oFilter.check(conn)
-						if sTmp: break
+					if conn["sender"] != "" and conn["recipient"] != "":
+						#print "Mail from {0} to {1}".format(conn["sender"], conn["recipient"]
+						for oFilter in self.aFilters:
+							sTmp = oFilter.check(conn)
+							if sTmp: break
 
-					if sTmp:
-						sAnswer = sTmp
+						if sTmp:
+							sAnswer = sTmp
+						else:
+							sAnswer = self.sDefaultAnswer
+						#print sAnswer
 					else:
 						sAnswer = self.sDefaultAnswer
-					#print sAnswer
 					conn.answer(sAnswer)
 
 				elif sTmp == "junk_policy":
 					pass
 				else:
 					pass
+
+				PySQLPool.cleanupPool()
+			
