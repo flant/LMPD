@@ -1,6 +1,6 @@
 #Class for addresses
 
-import Policy, threading
+import Policy, threading, Database
 
 def loadsql(oSqlPool):
 	sSql_1 = "SELECT `mx_addr`, `accept` FROM `white_list_addr`"
@@ -8,13 +8,13 @@ def loadsql(oSqlPool):
 	try:
 		with oSqlPool as oSqlConn:
 		
-		oData = oSqlConn.execute(sSql_1)
+			oData = oSqlConn.execute(sSql_1)
 		
-		for row in oData:
-			aRes[row[0]] = row[1].lower()
+			for row in oData:
+				aRes[row[0]] = row[1].lower()
 		
-		oSqlConn.transaction_end()
-	except ExitException as e:
+			oSqlConn.transaction_end()
+	except Database.ExitException as e:
 		pass
 	return aRes
 #Dont need now

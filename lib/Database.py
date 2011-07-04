@@ -19,13 +19,13 @@ class Pool:
 			self.Pool[str(iNum)] = Database(aMysql, str(iNum))
 
 	def __enter__(self):
-		iTime = aMysql["pooltime"]
+		iTime = self.aMysql["pooltime"]
 		while (iTime):
 			if self.Free > 0:
-				for iNum in range(aMysql["pool"]):
+				for iNum in range(self.aMysql["pool"]):
 					if self.Pool[str(iNum)].get_status():
 
-						with mutex:
+						with self.mutex:
 							self.Pool[str(iNum)].switch_status()
 							self.Free -= self.Free
 
@@ -40,7 +40,7 @@ class Pool:
 	def __exit__(self, type, value, traceback):
 		with self.mutex:
 			self.Free += 1
-			self.Pool[value].switch_status()
+			self.Pool[value.value].switch_status()
 
 class Database:
 	def __init__(self, aMysql, sName, iPort = 3306):
@@ -50,8 +50,8 @@ class Database:
 			#self.oSqlConnect.autocommit(True)
 			self.bStatus = True
 			self.sName = sName
-		except:
-				print "Can not connect to MySQL"
+		except MySQLdb.OperationalError as MysqlError:
+				print MysqlError[1]
 				sys.exit(1)
 	def get_status(self):
 		return self.bStatus

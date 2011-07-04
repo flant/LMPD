@@ -1,6 +1,6 @@
 #Class for domains
 
-import Policy, threading
+import Policy, threading, Database
 
 def loadsql(oSqlPool):
 	sSql_1 = "SELECT `dns`, `accept` FROM `white_list_dns`"
@@ -13,7 +13,7 @@ def loadsql(oSqlPool):
 				aRes[row[0]] = row[1].lower()
 			
 			oSqlConn.transaction_end()
-	except ExitException as e:
+	except Database.ExitException as e:
 		pass
 	return aRes
 #Dont need now

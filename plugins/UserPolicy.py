@@ -1,6 +1,6 @@
 #Class for domains
 
-import Policy, threading
+import Policy, threading, Database
 
 def loadsql(oSqlPool):
 	aRes = {}
@@ -24,7 +24,7 @@ def loadsql(oSqlPool):
 				aTmp[row[1].lower()] = row[2]
 				aRes[aUsers[str(int(row[0]))]].update(aTmp)
 				oSqlConn.transaction_end()
-	except ExitException as e:
+	except Database.ExitException as e:
 		pass
 	return aRes
 
@@ -41,7 +41,7 @@ def addrule(oData, oSqlPool, sAnswer = "OK"):
 				#print "sTmp in sql func: ", sTmp
 				oSqlConn.execute(sSql_2.format(sTmp, oData["recipient"], sAnswer))
 				oSqlConn.transaction_end()
-		except ExitException as e:
+		except Database.ExitException as e:
 			pass
 
 class UserPolicy(Policy.Policy):
