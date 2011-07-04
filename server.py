@@ -7,7 +7,8 @@ import os, sys, signal, site
 def main():
 	site.addsitedir("./lib", known_paths=None)
 	site.addsitedir("./plugins", known_paths=None)
-	import Analyse, Config, Init, Database, Connection, Policy, Worker, Logger
+	site.addsitedir("./lib/PySQLPool", known_paths=None)
+	import Analyse, Config, Init, Connection, Policy, Worker, Logger, PySQLPool
 	oConfig = Config.Config()
 
 	signal.signal(signal.SIGTERM, lambda x, y: Init.fSIGINThandler(oConfig.get("argv_pid", "/tmp/policyd.pid"), x, y))
@@ -19,7 +20,8 @@ def main():
 	
 	aMysql = oConfig.get("mysql", False)
 	if aMysql:
-		oPool = Database.Pool(aMysql)
+		PySQLPool.getNewPool().maxActiveConnections = oConfig.get("mysql_pool", 10)
+		oPool = PySQLPool.getNewConnection(username=oConfig.get("mysql_user", "root"), password=oConfig.get("mysql_password", ""), host=oConfig.get("mysql_host", "localhost"), db=oConfig.get("mysql_dbname", "postfix"), port=oConfig.get("mysql_port", 3306))
 	else:
 		print "Lost fields in mysql config. Exiting..."
 		sys.exit(1)

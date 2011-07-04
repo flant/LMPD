@@ -5,9 +5,7 @@ mysql:
   user: mail_ext
   password: prevedpochta
   dbname: mail_ext
-  retry_count: 3
   pool: 10
-  pooltime: 30
 
 system:
   user: gyrt

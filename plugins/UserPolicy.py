@@ -1,6 +1,6 @@
 #Class for domains
 
-import Policy, threading, Database
+import Policy, threading, PySQLPool
 
 def loadsql(oSqlPool):
 	aRes = {}
@@ -10,22 +10,19 @@ def loadsql(oSqlPool):
 	aRes={}
 	aUsers={}
 	aRules={}
-	try:
-		with oSqlPool as oSqlConn:
-			oData = oSqlConn.execute(sSql_1)
-			for row in oData:
-				sTmp = row[1].lower()
-				aUsers[str(int(row[0]))] = sTmp
-				aRes[sTmp] = {}
+	query = PySQLPool.getNewQuery(oSqlPool, True)
+	query.Query(sSql_1)
+	for row in query.record:
+		sTmp = row["address"].lower()
+		aUsers[str(int(row["id"]))] = sTmp
+		aRes[sTmp] = {}
 
-			oData = oSqlConn.execute(sSql_2)
-			for row in oData:
-				aTmp = {}
-				aTmp[row[1].lower()] = row[2]
-				aRes[aUsers[str(int(row[0]))]].update(aTmp)
-				oSqlConn.transaction_end()
-	except Database.ExitException as e:
-		pass
+	query.Query(sSql_2)
+	for row in query.record:
+		aTmp = {}
+		aTmp[row["mail"].lower()] = row["accept"]
+		aRes[aUsers[str(int(row["user_id"]))]].update(aTmp)
+
 	return aRes
 
 def addrule(oData, oSqlPool, sAnswer = "OK"):
@@ -34,15 +31,11 @@ def addrule(oData, oSqlPool, sAnswer = "OK"):
 		sSql_1 = "SELECT `id` FROM `white_list_users` WHERE `address` LIKE '{0}'"
 		sSql_2 = "INSERT IGNORE INTO `white_list_mail` VALUES(NULL, {0}, '{1}', '{2}')"
 
-		try:
-			with oSqlPool as oSqlConn:
-				oData = oSqlConn.execute(sSql_1.format(oData["sender"]))
-				sTmp = str(int(oData.fetchone()[0]))
-				#print "sTmp in sql func: ", sTmp
-				oSqlConn.execute(sSql_2.format(sTmp, oData["recipient"], sAnswer))
-				oSqlConn.transaction_end()
-		except Database.ExitException as e:
-			pass
+		query = PySQLPool.getNewQuery(oSqlPool, True)
+		query.Query(sSql_1.format(oData["sender"]))
+		sTmp = str(int(query.record.fetchone()[0]))
+		#print "sTmp in sql func: ", sTmp
+		query.Query(sSql_2.format(sTmp, oData["recipient"], sAnswer))
 
 class UserPolicy(Policy.Policy):
 	def __init__(self, aData, oSqlPool):

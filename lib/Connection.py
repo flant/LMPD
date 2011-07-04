@@ -44,6 +44,7 @@ class Connection(dict):
 		return True
 
 	def close(self):
+		print "Closing socket"
 		try:
 			self.oConn_sock.close()
 		except socket.error as (errno, strerror):

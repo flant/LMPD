@@ -1,21 +1,17 @@
 #Class for addresses
 
-import Policy, threading, Database
+import Policy, threading, PySQLPool
 
 def loadsql(oSqlPool):
 	sSql_1 = "SELECT `mx_addr`, `accept` FROM `white_list_addr`"
 	aRes = {}
-	try:
-		with oSqlPool as oSqlConn:
-		
-			oData = oSqlConn.execute(sSql_1)
-		
-			for row in oData:
-				aRes[row[0]] = row[1].lower()
-		
-			oSqlConn.transaction_end()
-	except Database.ExitException as e:
-		pass
+
+	query = PySQLPool.getNewQuery(oSqlPool, True)
+	query.Query(sSql_1)		
+
+	for row in query.record:
+		aRes[row[0]] = row[1].lower()
+
 	return aRes
 #Dont need now
 #def addrule(oData, oSqlPool):

@@ -1,20 +1,17 @@
 #Class for domains
 
-import Policy, threading, Database
+import Policy, threading, PySQLPool
 
 def loadsql(oSqlPool):
 	sSql_1 = "SELECT `dns`, `accept` FROM `white_list_dns`"
 	aRes = {}
-	try:
-		with oSqlPool as oSqlConn:
-			oData = oSqlConn.execute(sSql_1)
+
+	query = PySQLPool.getNewQuery(oSqlPool, True)
+	query.Query(sSql_1)
 			
-			for row in oData:
-				aRes[row[0]] = row[1].lower()
+	for row in query.record:
+		aRes[row[0]] = row[1].lower()
 			
-			oSqlConn.transaction_end()
-	except Database.ExitException as e:
-		pass
 	return aRes
 #Dont need now
 #def addrule(oData, oSqlConn):
