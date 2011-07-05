@@ -41,6 +41,7 @@ class UserPolicy(Policy.Policy):
 	def __init__(self, aData, oSqlPool):
 		self.mutex = threading.Lock()
 		Policy.Policy.__init__(self, aData, oSqlPool)
+		self.ConfAliases = self._postconf()
 
 	def check(self, oData):
 		#if oData["recipient"] == "gyrt@list.ru": print oData
@@ -49,11 +50,14 @@ class UserPolicy(Policy.Policy):
 			sSender = oData["sender"]
 			aRecipient = self._postalias(oData["recipient"])
 			for sEmail in aRecipient:
-				sAnswer = self._strict_check(sEmail, sSender)
+				sAnswer = self._strict_check(sEmail.lower(), sSender)
 				if sAnswer: break
 			#TODO рекурсивный алгоритм. Суть такова - передаем массив, а на выходе тоже массив. По идее надо проверять до тех пор, пока не будет
 			#ни одного нусовпадения.
-			return sAnswer
+			if sAnswer:
+				return sAnswer
+			else:
+				return None
 		else:
 			self.train(oData)
 			return None
@@ -65,13 +69,13 @@ class UserPolicy(Policy.Policy):
 			return None
 
 	def _postalias(self, sRecipient):
-		PostAlias = subprocess.Popen(["postalias -q {0} {1}".format(sRecipient, self.Aliases)], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
+		PostAlias = subprocess.Popen(["postalias -q {0} {1}".format(sRecipient, self.ConfAliases)], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
 		sOutput = PostAlias.communicate()[0].strip()
 		aRes = list()
 		if sOutput == sRecipient:
 			return None
 		else:
-			aTestMails = sOutsEmailput.split(",")
+			aTestMails = sOutput.split(",")
 			for sEmail in aTestMails:
 				aAnswer = self._postalias(sEmail)
 				if aAnswer:
@@ -79,6 +83,11 @@ class UserPolicy(Policy.Policy):
 				else:
 					aRes.append(sEmail)
 			return aRes
+
+	def _postconf(self):
+		PostConf = subprocess.Popen(["postconf -h virtual_alias_maps alias_maps"], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
+		Conf = " ".join(PostConf.communicate()[0].strip().split("\n"))
+		return Conf
 
 	def train(self, oData, sAnswer = "OK"):
 		with self.mutex:

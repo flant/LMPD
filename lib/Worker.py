@@ -1,6 +1,6 @@
 #Worker class for policyd
 
-import threading, sys, Connection, PySQLPool
+import threading, sys, Connection, PySQLPool, Init
 
 class WorkerTread(threading.Thread):
 	def __init__(self, oConn, aFilters, sDefaultAnswer, oSqlPool):
