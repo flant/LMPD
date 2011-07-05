@@ -63,6 +63,7 @@ class UserPolicy(Policy.Policy):
 			return self.aData[sRecipient][sSender]
 		else:
 			return None
+
 	def _postalias(self, sRecipient):
 		PostAlias = subprocess.Popen(["postalias -q {0} {1}".format(sRecipient, self.Aliases)], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
 		sOutput = PostAlias.communicate()[0].strip()
