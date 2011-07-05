@@ -1,6 +1,6 @@
 #Class for domains
 
-import Policy, threading, PySQLPool
+import Policy, threading, PySQLPool, subprocess
 
 def loadsql(oSqlPool):
 	aRes = {}
@@ -46,17 +46,38 @@ class UserPolicy(Policy.Policy):
 		#if oData["recipient"] == "gyrt@list.ru": print oData
 			
 		if oData["sasl_username"] == "":
-			sRecipient = oData["recipient"]
 			sSender = oData["sender"]
-			
-			if self.aData.has_key(sRecipient):
-				if self.aData[sRecipient].has_key(sSender):
-					return self.aData[sRecipient][sSender]
-				else:
-					return None
+			aRecipient = self._postalias(oData["recipient"])
+			for sEmail in aRecipient:
+				sAnswer = self._strict_check(sEmail, sSender)
+				if sAnswer: break
+			#TODO рекурсивный алгоритм. Суть такова - передаем массив, а на выходе тоже массив. По идее надо проверять до тех пор, пока не будет
+			#ни одного нусовпадения.
+			return sAnswer
 		else:
 			self.train(oData)
 			return None
+
+	def _strict_check(self, sRecipient, sSender):
+		if self.aData.has_key(sRecipient) and self.aData[sRecipient].has_key(sSender):
+			return self.aData[sRecipient][sSender]
+		else:
+			return None
+	def _postalias(self, sRecipient):
+		PostAlias = subprocess.Popen(["postalias -q {0} {1}".format(sRecipient, self.Aliases)], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
+		sOutput = PostAlias.communicate()[0].strip()
+		aRes = list()
+		if sOutput == sRecipient:
+			return None
+		else:
+			aTestMails = sOutsEmailput.split(",")
+			for sEmail in aTestMails:
+				aAnswer = self._postalias(sEmail)
+				if aAnswer:
+					aRes += aAnswer
+				else:
+					aRes.append(sEmail)
+			return aRes
 
 	def train(self, oData, sAnswer = "OK"):
 		with self.mutex:
@@ -69,5 +90,5 @@ class UserPolicy(Policy.Policy):
 				if not self.aData.has_key(sSender): self.aData[sSender] = {}
 				if not self.aData[sSender].has_key(sRecipient):
 					self.aData[sSender][sRecipient] = sAnswer
-					print self.aData[sSender][sRecipient]
+					#print self.aData[sSender][sRecipient]
 		return None

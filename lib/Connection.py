@@ -1,6 +1,6 @@
 #Postfix Protocol class for policyd
 
-import socket, re, datatime
+import socket, re, time
 
 class ConnectionError(Exception):
 	def __init__(self, value):
@@ -10,8 +10,9 @@ class ConnectionError(Exception):
 		return 'Error: ' + self.value
 
 class Connection(dict):
-	def __init__(self, oSocket):
+	def __init__(self, oSocket, iMaxFails = 300):
 		dict.__init__(self)
+		self._iMaxFails = iMaxFails
 		self.oConn_sock = oSocket
 		self._sTmp = str("")
 
@@ -23,7 +24,8 @@ class Connection(dict):
 
 	def _fReadSocket(self):
 		sData = str("")
-		while 1:
+		iMaxfails = self._iMaxFails
+		while (iMaxfails):
 
 			if "\n\n" in self._sTmp:
 				aStr = self._sTmp.split("\n\n", 1)
@@ -34,7 +36,10 @@ class Connection(dict):
 				sData += self._sTmp
 
 			self._sTmp = self.oConn_sock.recv(100)
-			
+			if not self._sTmp:
+				iMaxfails -= 1
+				time.sleep(1)
+				
 		return sData
 
 	def answer(self, sData):
