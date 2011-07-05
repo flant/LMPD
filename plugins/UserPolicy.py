@@ -49,15 +49,18 @@ class UserPolicy(Policy.Policy):
 		if oData["sasl_username"] == "":
 			sSender = oData["sender"]
 			aRecipient = self._postalias(oData["recipient"])
-			for sEmail in aRecipient:
-				sAnswer = self._strict_check(sEmail.lower(), sSender)
-				if sAnswer: break
-			#TODO рекурсивный алгоритм. Суть такова - передаем массив, а на выходе тоже массив. По идее надо проверять до тех пор, пока не будет
-			#ни одного нусовпадения.
-			if sAnswer:
+			if sAnswer = self._strict_check(oData["recipient"], sSender):
 				return sAnswer
 			else:
-				return None
+				for sEmail in aRecipient:
+					sAnswer = self._strict_check(sEmail.lower(), sSender)
+					if sAnswer: break
+			#TODO рекурсивный алгоритм. Суть такова - передаем массив, а на выходе тоже массив. По идее надо проверять до тех пор, пока не будет
+			#ни одного нусовпадения.
+				if sAnswer:
+					return sAnswer
+				else:
+					return None
 		else:
 			self.train(oData)
 			return None
@@ -70,19 +73,24 @@ class UserPolicy(Policy.Policy):
 
 	def _postalias(self, sRecipient):
 		PostAlias = subprocess.Popen(["postalias -q {0} {1}".format(sRecipient, self.ConfAliases)], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
-		sOutput = PostAlias.communicate()[0].strip()
-		aRes = list()
-		if sOutput == sRecipient:
+		sOutput = PostAlias.communicate()[0].strip().lower()
+        aRes = list()
+		if sOutput == sRecipient.lower().strip() or PostAlias.returncode:
 			return None
 		else:
 			aTestMails = sOutput.split(",")
 			for sEmail in aTestMails:
-				aAnswer = self._postalias(sEmail)
+				aAnswer = postalias(sEmail.strip())
 				if aAnswer:
 					aRes += aAnswer
 				else:
-					aRes.append(sEmail)
-			return aRes
+					if not sEmail in aRes:
+						aRes.append(sEmail.strip())
+		sRes = set(aRes)
+		aRes = list(sRes)
+
+		return aRes
+
 
 	def _postconf(self):
 		PostConf = subprocess.Popen(["postconf -h virtual_alias_maps alias_maps"], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
