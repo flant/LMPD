@@ -94,8 +94,8 @@ class UserPolicy(Policy.Policy):
 
 	def _postconf(self):
 		PostConf = subprocess.Popen(["postconf -h virtual_alias_maps alias_maps"], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
-		Conf = " ".join(PostConf.communicate()[0].strip().split("\n"))
-		return Conf.replace(',', '')
+		Conf = PostConf.communicate()[0].strip().replace("\n", " ").replace(",", "")
+		return Conf
 
 	def train(self, oData, sAnswer = "OK"):
 		with self.mutex:
