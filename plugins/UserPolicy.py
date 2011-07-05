@@ -48,7 +48,7 @@ class UserPolicy(Policy.Policy):
 			
 		if oData["sasl_username"] == "":
 			sSender = oData["sender"]
-			aRecipient = self._postalias(oData["recipient"])
+			aRecipient = list(set(self._postalias(oData["recipient"])))
 			sAnswer = self._strict_check(oData["recipient"], sSender)
 			if sAnswer:
 				return sAnswer
@@ -89,8 +89,6 @@ class UserPolicy(Policy.Policy):
 				else:
 					if not sEmail in aRes:
 						aRes.append(sEmail.strip())
-		sRes = set(aRes)
-		aRes = list(sRes)
 
 		return aRes
 
