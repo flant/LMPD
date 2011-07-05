@@ -83,7 +83,7 @@ class UserPolicy(Policy.Policy):
 		else:
 			aTestMails = sOutput.split(",")
 			for sEmail in aTestMails:
-				aAnswer = _postalias(sEmail.strip(), iDeep + 1)
+				aAnswer = self._postalias(sEmail.strip(), iDeep + 1)
 				if aAnswer:
 					aRes += aAnswer
 				else:
