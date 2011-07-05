@@ -95,6 +95,6 @@ def fSIGINThandler(sPidFile, iSignum, frame):
 	sys.exit(0)
 
 def postconf():
-        PostConf = subprocess.Popen(["postconf -h smtpd_policy_service_max_ttl"], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
-		iDelay = int(PostConf.communicate()[0].strip()[:-1])
-        return iDelay
+	PostConf = subprocess.Popen(["postconf -h smtpd_policy_service_max_ttl"], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
+	iDelay = int(PostConf.communicate()[0].strip()[:-1])
+	return iDelay
