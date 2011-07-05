@@ -72,7 +72,9 @@ class UserPolicy(Policy.Policy):
 		else:
 			return None
 
-	def _postalias(self, sRecipient):
+	def _postalias(self, sRecipient, iDeep = 1):
+		if iDeep > 100:
+			return None
 		PostAlias = subprocess.Popen(["postalias -q {0} {1}".format(sRecipient, self.ConfAliases)], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
 		sOutput = PostAlias.communicate()[0].strip().lower()
         aRes = list()
@@ -81,7 +83,7 @@ class UserPolicy(Policy.Policy):
 		else:
 			aTestMails = sOutput.split(",")
 			for sEmail in aTestMails:
-				aAnswer = postalias(sEmail.strip())
+				aAnswer = _postalias(sEmail.strip(), iDeep + 1)
 				if aAnswer:
 					aRes += aAnswer
 				else:
