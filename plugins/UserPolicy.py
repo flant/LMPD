@@ -27,15 +27,15 @@ def loadsql(oSqlPool):
 
 def addrule(oData, oSqlPool, sAnswer = "OK"):
 	if oData["sender"] != "" and oData["recipient"] != "":
-		#print "Start train sqlfunc"
+		print "Start train sqlfunc"
+		print oData
 		sSql_1 = "SELECT `id` FROM `white_list_users` WHERE `address` LIKE '{0}'"
 		sSql_2 = "INSERT IGNORE INTO `white_list_mail` VALUES(NULL, {0}, '{1}', '{2}')"
 
 		query = PySQLPool.getNewQuery(oSqlPool, True)
 		query.Query(sSql_1.format(oData["sender"]))
-		for row in query.record:
-			sTmp = str(int(row[0]))
-		#print "sTmp in sql func: ", sTmp
+		sTmp = str(int(query.record[0]["id"]))
+		print "sTmp in sql func: ", sTmp
 		query.Query(sSql_2.format(sTmp, oData["recipient"], sAnswer))
 
 class UserPolicy(Policy.Policy):
@@ -104,11 +104,11 @@ class UserPolicy(Policy.Policy):
 			sRecipient = oData["recipient"]
 			sSender = oData["sender"]
 			if sRecipient != "" and sSender != "":
-				#print "Start training"
-				#print oData
-				addrule(oData, self.oSqlPool, sAnswer)
+				print "Start training"
+				print oData
 				if not self.aData.has_key(sSender): self.aData[sSender] = {}
 				if not self.aData[sSender].has_key(sRecipient):
+					addrule(oData, self.oSqlPool, sAnswer)
 					self.aData[sSender][sRecipient] = sAnswer
-					#print self.aData[sSender][sRecipient]
+					print self.aData[sSender][sRecipient]
 		return None

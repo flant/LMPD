@@ -15,9 +15,10 @@ class WorkerTread(threading.Thread):
 		with Connection.Connection(self.oSocket) as conn:
 			while conn.get_message():
 				sTmp = conn["request"]
-
+				#print conn
 				if sTmp == "smtpd_access_policy":
 					if conn["sender"] != "" and conn["recipient"] != "":
+						#print conn
 						if conn["sasl_username"] != "":
 							print "Mail from {0} to {1} with SASL: {2}".format(conn["sender"], conn["recipient"], conn["sasl_username"])
 						for oFilter in self.aFilters:
