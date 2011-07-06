@@ -59,9 +59,12 @@ class Connection(dict):
 			try:
 				self._sTmp = self.oConn_sock.recv(100)
 			except socket.error as (errno, strerror):
+				print "socket.error error({0}): {1}".format(errno, strerror)
+				print "Closing socket with error!"
 				return None
 
 			if not self._sTmp:
+				print "Closing socket with null answer"
 				return None
 				
 		return sData
@@ -75,11 +78,12 @@ class Connection(dict):
 		return True
 
 	def close(self):
-		#print "Closing socket"
+		print "Closing socket now"
 		try:
 			self.oConn_sock.shutdown(socket.SHUT_RDWR)
 			self.oConn_sock.close()
 		except socket.error as (errno, strerror):
+			print "socket.error error({0}): {1}".format(errno, strerror)
 			pass
 
 	def get_message(self):
