@@ -27,7 +27,7 @@ def loadsql(oSqlPool):
 
 def addrule(oData, oSqlPool, sAnswer = "OK"):
 	if oData["sender"] != "" and oData["recipient"] != "":
-		print "Start train sqlfunc"
+		#print "Start train sqlfunc"
 		sSql_1 = "SELECT `id` FROM `white_list_users` WHERE `address` LIKE '{0}'"
 		sSql_2 = "INSERT IGNORE INTO `white_list_mail` VALUES(NULL, {0}, '{1}', '{2}')"
 
@@ -53,12 +53,15 @@ class UserPolicy(Policy.Policy):
 			if sAnswer:
 				return sAnswer
 			else:
-				for sEmail in aRecipient:
-					sAnswer = self._strict_check(sEmail.lower(), sSender)
-					if sAnswer: break
+				if aRecipient:
+					for sEmail in aRecipient:
+						sAnswer = self._strict_check(sEmail.lower(), sSender)
+						if sAnswer: break
 
-				if sAnswer:
-					return sAnswer
+					if sAnswer:
+						return sAnswer
+					else:
+						return None
 				else:
 					return None
 		else:
@@ -71,18 +74,16 @@ class UserPolicy(Policy.Policy):
 		else:
 			return None
 
-	def _postalias(self, sRecipient, iDeep = 1):
-		if iDeep > 20:
-			return None
+	def _postalias(self, sRecipient):
 		PostAlias = subprocess.Popen(["postalias -q {0} {1}".format(sRecipient, self.ConfAliases)], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
 		sOutput = PostAlias.communicate()[0].strip().lower()
-        aRes = list()
+	        aRes = list()
 		if sOutput == sRecipient.lower().strip() or PostAlias.returncode:
 			return None
 		else:
 			aTestMails = sOutput.split(",")
 			for sEmail in aTestMails:
-				aAnswer = self._postalias(sEmail.strip(), iDeep + 1)
+				aAnswer = self._postalias(sEmail.strip())
 				if aAnswer:
 					aRes += aAnswer
 				else:
@@ -90,7 +91,6 @@ class UserPolicy(Policy.Policy):
 						aRes.append(sEmail.strip())
 
 		return aRes
-
 
 	def _postconf(self):
 		PostConf = subprocess.Popen(["postconf -h virtual_alias_maps alias_maps"], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
