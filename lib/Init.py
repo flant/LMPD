@@ -52,6 +52,8 @@ def createsock(oConfig):
 	sTmp = oConfig.get("network_type","unix")
 	if sTmp == "unix":
 		oSocket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+		oSocket.setblocking(1)
+		oSocket.settimeout(None)
 		sSockname=oConfig.get("network_socket","/var/spool/postfix/private/policy.sock")
 		if os.path.exists(sSockname):
 			try:
