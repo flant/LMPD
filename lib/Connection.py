@@ -77,8 +77,8 @@ class Connection(dict):
 	def close(self):
 		#print "Closing socket"
 		try:
-			#self.oConn_sock.close()
 			self.oConn_sock.shutdown(socket.SHUT_RDWR)
+			self.oConn_sock.close()
 		except socket.error as (errno, strerror):
 			pass
 
