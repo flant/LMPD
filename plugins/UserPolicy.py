@@ -73,7 +73,7 @@ class UserPolicy(Policy.Policy):
 			return None
 
 	def _postalias(self, sRecipient, iDeep = 1):
-		if iDeep > 100:
+		if iDeep > 20:
 			return None
 		PostAlias = subprocess.Popen(["postalias -q {0} {1}".format(sRecipient, self.ConfAliases)], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
 		sOutput = PostAlias.communicate()[0].strip().lower()
