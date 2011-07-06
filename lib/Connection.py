@@ -35,7 +35,11 @@ class Connection(dict):
 			else:
 				sData += self._sTmp
 
-			self._sTmp = self.oConn_sock.recv(100)
+			try:
+				self._sTmp = self.oConn_sock.recv(100)
+			except socket.error as (errno, strerror):
+				return None
+
 			if not self._sTmp:
 				return None
 				
