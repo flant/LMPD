@@ -56,8 +56,7 @@ class UserPolicy(Policy.Policy):
 				for sEmail in aRecipient:
 					sAnswer = self._strict_check(sEmail.lower(), sSender)
 					if sAnswer: break
-			#TODO рекурсивный алгоритм. Суть такова - передаем массив, а на выходе тоже массив. По идее надо проверять до тех пор, пока не будет
-			#ни одного нусовпадения.
+
 				if sAnswer:
 					return sAnswer
 				else:
