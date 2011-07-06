@@ -33,7 +33,8 @@ def addrule(oData, oSqlPool, sAnswer = "OK"):
 
 		query = PySQLPool.getNewQuery(oSqlPool, True)
 		query.Query(sSql_1.format(oData["sender"]))
-		sTmp = str(int(query.record.fetchone()[0]))
+		for row in query.record:
+			sTmp = str(int(row[0]))
 		#print "sTmp in sql func: ", sTmp
 		query.Query(sSql_2.format(sTmp, oData["recipient"], sAnswer))
 
