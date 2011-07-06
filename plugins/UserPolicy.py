@@ -48,12 +48,13 @@ class UserPolicy(Policy.Policy):
 			
 		if oData["sasl_username"] == "":
 			sSender = oData["sender"]
-			aRecipient = list(set(self._postalias(oData["recipient"])))
+			aRecipient = self._postalias(oData["recipient"])
 			sAnswer = self._strict_check(oData["recipient"], sSender)
 			if sAnswer:
 				return sAnswer
 			else:
 				if aRecipient:
+					aRecipient = list(set(aRecipient))
 					for sEmail in aRecipient:
 						sAnswer = self._strict_check(sEmail.lower(), sSender)
 						if sAnswer: break
