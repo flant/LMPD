@@ -46,7 +46,11 @@ def main():
 	while 1:
 		oConn, oAddr = oSocket.accept()
 		tProc = Worker.WorkerTread(oConn, aFilters, sDefaultAnswer, oPool)
-		tProc.start()
+		try:
+			tProc.start()
+		except(thread.error):
+			print("Spawned threads : %s. Can not spawn other one" % threading.active_count())
+
 
 if __name__ == "__main__":
 	main()

@@ -10,9 +10,9 @@ class ConnectionError(Exception):
 		return 'Error: ' + self.value
 
 class Connection(dict):
-	def __init__(self, oSocket, iMaxFails = 1000):
+	def __init__(self, oSocket)#, iMaxFails = 1000):
 		dict.__init__(self)
-		self._iMaxFails = iMaxFails
+		#self._iMaxFails = iMaxFails
 		self.oConn_sock = oSocket
 		self._sTmp = str("")
 
@@ -24,8 +24,8 @@ class Connection(dict):
 
 	def _fReadSocket(self):
 		sData = str("")
-		iMaxfails = self._iMaxFails
-		while (iMaxfails):
+		#iMaxfails = self._iMaxFails
+		while (True):
 
 			if "\n\n" in self._sTmp:
 				aStr = self._sTmp.split("\n\n", 1)
@@ -37,8 +37,7 @@ class Connection(dict):
 
 			self._sTmp = self.oConn_sock.recv(100)
 			if not self._sTmp:
-				iMaxfails -= 1
-				time.sleep(1)
+				return None
 				
 		return sData
 
