@@ -10,7 +10,7 @@ class ConnectionError(Exception):
 		return 'Error: ' + self.value
 
 class Connection(dict):
-	def __init__(self, oSocket)#, iMaxFails = 1000):
+	def __init__(self, oSocket): #, iMaxFails = 1000):
 		dict.__init__(self)
 		#self._iMaxFails = iMaxFails
 		self.oConn_sock = oSocket
