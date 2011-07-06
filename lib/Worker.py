@@ -42,9 +42,9 @@ class WorkerTread(threading.Thread):
 						#print conn
 						if conn["sasl_username"] != "":
 							print "Mail from {0} to {1} with SASL: {2}".format(conn["sender"], conn["recipient"], conn["sasl_username"])
-						for oFilter in self.aFilters:
-							sTmp = oFilter.check(conn)
-							if sTmp: break
+							for oFilter in self.aFilters:
+								sTmp = oFilter.check(conn)
+								if sTmp: break
 
 						if sTmp:
 							sAnswer = sTmp
