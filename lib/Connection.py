@@ -38,6 +38,7 @@ class Connection(dict):
 		self._sTmp = str("")
 		self.starttime = time.strftime("%d.%m.%y - %H:%M:%S")
 		self.ms = 0
+		self.lm = self.starttime
 
 	def __enter__(self):
 		return self
