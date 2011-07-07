@@ -21,7 +21,7 @@
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 
-import threading, sys, Connection, PySQLPool, Init
+import threading, sys, Connection, PySQLPool, Init, time
 
 class WorkerTread(threading.Thread):
 	def __init__(self, oConn, aFilters, sDefaultAnswer, oSqlPool):
@@ -31,6 +31,7 @@ class WorkerTread(threading.Thread):
 		self.oSocket = oConn
 		self.oSqlPool = oSqlPool
 		self.aFilters = aFilters
+		self.starttime = time.strftime("%d.%m.%y - %H:%M:%S")
 
 	def run(self):
 		with Connection.Connection(self.oSocket) as conn:
@@ -60,6 +61,8 @@ class WorkerTread(threading.Thread):
 					pass
 				else:
 					pass
-
+				stoptime = time.strftime("%d.%m.%y - %H:%M:%S")
+				print "Process with name {0} started {1}, stopped {2}".format(self.name, self.starttime, stoptime)
 				PySQLPool.cleanupPool()
+				
 			

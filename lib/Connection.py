@@ -36,6 +36,8 @@ class Connection(dict):
 		#self._iMaxFails = iMaxFails
 		self.oConn_sock = oSocket
 		self._sTmp = str("")
+		self.starttime = time.strftime("%d.%m.%y - %H:%M:%S")
+		self.ms = 0
 
 	def __enter__(self):
 		return self
@@ -66,7 +68,8 @@ class Connection(dict):
 			if not self._sTmp:
 				print "Closing socket with null answer"
 				return None
-				
+		self.lm = time.strftime("%d.%m.%y - %H:%M:%S")
+		self.ms += 1
 		return sData
 
 	def answer(self, sData):
@@ -79,6 +82,8 @@ class Connection(dict):
 
 	def close(self):
 		print "Closing socket now"
+		stoptime = time.strftime("%d.%m.%y - %H:%M:%S")
+		print "Connection started {0}, stopped in {1}. Last message in {2}. Processe messages - {3}".format(self.starttime, stoptime, self.lm, self.ms)
 		try:
 			self.oConn_sock.shutdown(socket.SHUT_RDWR)
 			self.oConn_sock.close()
