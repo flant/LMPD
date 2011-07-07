@@ -61,8 +61,9 @@ class WorkerTread(threading.Thread):
 					pass
 				else:
 					pass
-				stoptime = time.strftime("%d.%m.%y - %H:%M:%S")
-				print "Process with name {0} started {1}, stopped {2}".format(self.name, self.starttime, stoptime)
+
 				PySQLPool.cleanupPool()
-				
-			
+
+		stoptime = time.strftime("%d.%m.%y - %H:%M:%S")
+		print "Process with name {0} started {1}, stopped {2}".format(self.name, self.starttime, stoptime)		
+		sys.exit(0)
