@@ -31,8 +31,7 @@ class WorkerTread(threading.Thread):
 		self.oSocket = oConn
 		self.oSqlPool = oSqlPool
 		self.aFilters = aFilters
-		self.starttime = time.strftime("%d.%m.%y - %H:%M:%S")
-
+		self.starttime = time.time()
 	def run(self):
 		with Connection.Connection(self.oSocket) as conn:
 			while conn.get_message():
@@ -64,6 +63,6 @@ class WorkerTread(threading.Thread):
 
 				PySQLPool.cleanupPool()
 
-		stoptime = time.strftime("%d.%m.%y - %H:%M:%S")
-		print "Process with name {0} started {1}, stopped {2}".format(self.name, self.starttime, stoptime)		
+		stoptime = time.time()
+		print "Process with name {0} started {1}, stopped {2}. Working {3} seconds.".format(self.name, time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.starttime)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(stoptime)), stoptime - self.starttime)		
 		sys.exit(0)
