@@ -73,7 +73,7 @@ class Connection(dict):
 				return None
 
 			if self.Debug:
-				self.TmpLogFile.write("Read from socket in thread {0}, message {1}. Recieved data: {2}".format(self.ThreadName, ))
+				self.TmpLogFile.write("Read from socket in thread {0}, message {1}. Recieved data: {2}".format(self.ThreadName, self.ms + 1, self._sTmp))
 
 			if not self._sTmp:
 				if self.Debug:
