@@ -32,7 +32,7 @@ class ConnectionError(Exception):
 
 class Connection(dict):
 	def __init__(self, oSocket, ThreadName, Debug = False):
-		dict.__init__(self):
+		dict.__init__(self)
 		self.ThreadName = ThreadName
 		self.Debug = Debug
 		self.oConn_sock = oSocket
@@ -99,7 +99,7 @@ class Connection(dict):
 			self.TmpLogFile.write("Closing socket now")
 			stoptime = time.time()
 			print "Connection started {0}, stopped in {1}. Last message in {2}. Processe messages - {3}. Working {4} seconds.".format(time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.starttime)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(stoptime)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.lm)), self.ms, (stoptime - self.starttime))
-			self.TmpLogFile.write("Connection started {0}, stopped in {1}. Last message in {2}. Processe messages - {3}. Working {4} seconds.".format(time.strftime(%d.%m.%y - %H:%M:%S", time.localtime(self.starttime)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(stoptime)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.lm)), self.ms, (stoptime - self.starttime))
+			self.TmpLogFile.write("Connection started {0}, stopped in {1}. Last message in {2}. Processe messages - {3}. Working {4} seconds.".format(time.strftime(%d.%m.%y - %H:%M:%S", time.localtime(self.starttime)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(stoptime)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.lm)), self.ms, (stoptime - self.starttime)))
 		try:
 			self.oConn_sock.shutdown(socket.SHUT_RDWR)
 			self.oConn_sock.close()
