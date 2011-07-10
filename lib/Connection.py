@@ -68,21 +68,22 @@ class Connection(dict):
 				if self.Debug:
 					print "socket.error error({0}): {1}".format(errno, strerror)
 					print "Closing socket with error!"
-					self.TmpLogFile.write("socket.error error({0}): {1}".format(errno, strerror))
-					self.TmpLogFile.write("Closing socket with error!")
+					self.TmpLogFile.write("socket.error error({0}): {1}\n".format(errno, strerror))
+					self.TmpLogFile.write("Closing socket with error!\n")
 				return None
 
 			if self.Debug:
-				self.TmpLogFile.write("Read from socket in thread {0}, message {1}. Recieved data: {2}".format(self.ThreadName, self.ms + 1, self._sTmp))
+				self.TmpLogFile.write("Read from socket in thread {0}, message {1}. Recieved data: {2}\n".format(self.ThreadName, self.ms + 1, self._sTmp))
 
 			if not self._sTmp:
 				if self.Debug:
 					print "Closing socket with null answer"
-					self.TmpLogFile.write("Closing socket with null answer")
+					self.TmpLogFile.write("Closing socket with null answer\n")
 				return None
 		if self.Debug:
 			self.lm = time.time()
 			self.ms += 1
+			self.TmpLogFile.write("Get full message number {0}.\n\n\n".format(self.ms))
 		return sData
 
 	def answer(self, sData):
@@ -96,10 +97,10 @@ class Connection(dict):
 	def close(self):
 		if self.Debug:
 			print "Closing socket now"
-			self.TmpLogFile.write("Closing socket now")
+			self.TmpLogFile.write("Closing socket now\n")
 			stoptime = time.time()
 			print "Connection started {0}, stopped in {1}. Last message in {2}. Processe messages - {3}. Working {4} seconds.".format(time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.starttime)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(stoptime)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.lm)), self.ms, (stoptime - self.starttime))
-			self.TmpLogFile.write("Connection started {0}, stopped in {1}. Last message in {2}. Processe messages - {3}. Working {4} seconds.".format(time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.starttime)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(stoptime)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.lm)), self.ms, (stoptime - self.starttime)))
+			self.TmpLogFile.write("Connection started {0}, stopped in {1}. Last message in {2}. Processe messages - {3}. Working {4} seconds.\n\n".format(time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.starttime)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(stoptime)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.lm)), self.ms, (stoptime - self.starttime)))
 		try:
 			self.oConn_sock.shutdown(socket.SHUT_RDWR)
 			self.oConn_sock.close()
