@@ -33,34 +33,34 @@ class WorkerTread(threading.Thread):
 		self.aFilters = aFilters
 		self.starttime = time.time()
 	def run(self):
-		with Connection.Connection(self.oSocket) as conn:
+		with Connection.Connection(self.oSocket, self.name, True) as conn:
 			while conn.get_message():
 				sTmp = conn["request"]
 				#print conn
 				if sTmp == "smtpd_access_policy":
-					if conn["sender"] != "" and conn["recipient"] != "":
+					#if conn["sender"] != "" and conn["recipient"] != "":
 						#print conn
 						#if conn["sasl_username"] != "":
 						#print "Mail from {0} to {1} with SASL: {2}".format(conn["sender"], conn["recipient"], conn["sasl_username"])
-						for oFilter in self.aFilters:
-							sTmp = oFilter.check(conn)
-							if sTmp:
-								break
+					#	for oFilter in self.aFilters:
+					#		sTmp = oFilter.check(conn)
+					#		if sTmp:
+					#			break
 
-						if sTmp:
-							sAnswer = sTmp
-						else:
-							sAnswer = self.sDefaultAnswer
+					#	if sTmp:
+					#		sAnswer = sTmp
+					#	else:
+					#		sAnswer = self.sDefaultAnswer
 						#print sAnswer
-					else:
-						sAnswer = self.sDefaultAnswer
-					conn.answer(sAnswer)
-
+					#else:
+					#	sAnswer = self.sDefaultAnswer
+					#conn.answer(sAnswer)
+					pass
 				elif sTmp == "junk_policy":
 					pass
 				else:
 					pass
-
+				conn.answer(self.sDefaultAnswer)
 				PySQLPool.cleanupPool()
 
 		stoptime = time.time()

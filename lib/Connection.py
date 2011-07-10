@@ -31,14 +31,17 @@ class ConnectionError(Exception):
 		return 'Error: ' + self.value
 
 class Connection(dict):
-	def __init__(self, oSocket): #, iMaxFails = 1000):
-		dict.__init__(self)
-		#self._iMaxFails = iMaxFails
+	def __init__(self, oSocket, ThreadName, Debug = False):
+		dict.__init__(self):
+		self.ThreadName = ThreadName
+		self.Debug = Debug
 		self.oConn_sock = oSocket
 		self._sTmp = str("")
-		self.starttime = time.time()
-		self.ms = 0
-		self.lm = self.starttime
+		if self.Debug:
+			self.starttime = time.time()
+			self.ms = 0
+			self.lm = self.starttime
+			self.TmpLogFile = open("./logs/" + self.ThreadName, "w")
 
 	def __enter__(self):
 		return self
@@ -48,7 +51,7 @@ class Connection(dict):
 
 	def _fReadSocket(self):
 		sData = str("")
-		#iMaxfails = self._iMaxFails
+
 		while (True):
 
 			if "\n\n" in self._sTmp:
@@ -62,15 +65,24 @@ class Connection(dict):
 			try:
 				self._sTmp = self.oConn_sock.recv(100)
 			except socket.error as (errno, strerror):
-				print "socket.error error({0}): {1}".format(errno, strerror)
-				print "Closing socket with error!"
+				if self.Debug:
+					print "socket.error error({0}): {1}".format(errno, strerror)
+					print "Closing socket with error!"
+					self.TmpLogFile.write("socket.error error({0}): {1}".format(errno, strerror))
+					self.TmpLogFile.write("Closing socket with error!")
 				return None
 
+			if self.Debug:
+				self.TmpLogFile.write("Read from socket in thread {0}, message {1}. Recieved data: {2}".format(self.ThreadName, ))
+
 			if not self._sTmp:
-				print "Closing socket with null answer"
+				if self.Debug:
+					print "Closing socket with null answer"
+					self.TmpLogFile.write("Closing socket with null answer")
 				return None
-		self.lm = time.time()
-		self.ms += 1
+		if self.Debug:
+			self.lm = time.time()
+			self.ms += 1
 		return sData
 
 	def answer(self, sData):
@@ -82,14 +94,18 @@ class Connection(dict):
 		return True
 
 	def close(self):
-		print "Closing socket now"
-		stoptime = time.time()
-		print "Connection started {0}, stopped in {1}. Last message in {2}. Processe messages - {3}. Working {4} seconds.".format(time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.starttime)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(stoptime)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.lm)), self.ms, (stoptime - self.starttime))
+		if self.Debug:
+			print "Closing socket now"
+			self.TmpLogFile.write("Closing socket now")
+			stoptime = time.time()
+			print "Connection started {0}, stopped in {1}. Last message in {2}. Processe messages - {3}. Working {4} seconds.".format(time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.starttime)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(stoptime)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.lm)), self.ms, (stoptime - self.starttime))
+			self.TmpLogFile.write("Connection started {0}, stopped in {1}. Last message in {2}. Processe messages - {3}. Working {4} seconds.".format(time.strftime(%d.%m.%y - %H:%M:%S", time.localtime(self.starttime)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(stoptime)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.lm)), self.ms, (stoptime - self.starttime))
 		try:
 			self.oConn_sock.shutdown(socket.SHUT_RDWR)
 			self.oConn_sock.close()
 		except socket.error as (errno, strerror):
-			print "socket.error error({0}): {1}".format(errno, strerror)
+			if self.Debug:
+				print "socket.error error({0}): {1}".format(errno, strerror)
 			pass
 
 	def get_message(self):
