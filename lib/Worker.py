@@ -40,18 +40,18 @@ class WorkerTread(threading.Thread):
 				Answer = self.sDefaultAnswer
 
 				if sTmp == "smtpd_access_policy":
-					#if conn["sender"] != "" and conn["recipient"] != "":
+					if conn["sender"] != "" and conn["recipient"] != "":
 						#print conn
 						#if conn["sasl_username"] != "":
 						#print "Mail from {0} to {1} with SASL: {2}".format(conn["sender"], conn["recipient"], conn["sasl_username"])
-					#	for oFilter in self.aFilters:
-					#		sTmp = oFilter.check(conn)
-					#		if sTmp:
-					#			break
+						for oFilter in self.aFilters:
+							Tmp = oFilter.check(conn)
+							if Tmp:
+								break
 
-					#	if sTmp:
-					#		sAnswer = sTmp
-					pass
+						if sTmp:
+							Answer = Tmp
+
 				elif sTmp == "junk_policy":
 					pass
 				else:
