@@ -107,7 +107,9 @@ class Connection(dict):
 		except socket.error as (errno, strerror):
 			if self.Debug:
 				print "socket.error error({0}): {1}".format(errno, strerror)
-			pass
+				self.TmpLogFile.write("socket.error error({0}): {1}".format(errno, strerror))
+		if self.Debug:
+			self.TmpLogFile.close()
 
 	def get_message(self):
 		if len(self) > 0: self.clear()
