@@ -31,16 +31,16 @@ class ConnectionError(Exception):
 		return 'Error: ' + self.value
 
 class Connection(dict):
-	def __init__(self, oSocket, ThreadName, Debug = False):
+	def __init__(self, Socket, ThreadName, Debug = False):
 		dict.__init__(self)
 		self.ThreadName = ThreadName
 		self.Debug = Debug
-		self.oConn_sock = oSocket
-		self._sTmp = str("")
+		self.Conn_sock = Socket
+		self._Tmp = str("")
 		if self.Debug:
-			self.starttime = time.time()
-			self.ms = 0
-			self.lm = self.starttime
+			self.StartTime = time.time()
+			self.ProcessedMessages = 0
+			self.LastMessageTime = self.StartTime
 			self.TmpLogFile = open("./logs/" + self.ThreadName, "w")
 
 	def __enter__(self):
@@ -50,43 +50,49 @@ class Connection(dict):
 		self.close()
 
 	def _fReadSocket(self):
-		sData = str("")
+		Data = str("")
 
 		while (True):
 
-			if "\n\n" in self._sTmp:
-				aStr = self._sTmp.split("\n\n", 1)
-				sData = aStr[0]
-				self._sTmp = aStr[1]
+			if "\n\n" in self._Tmp:
+				Str = self._Tmp.split("\n\n", 1)
+				Data = Str[0]
+				self._Tmp = Str[1]
 				break
 
 			try:
-				self._sTmp += self.oConn_sock.recv(100)
+				self._Tmp += self.Conn_sock.recv(100)
 			except socket.error as (errno, strerror):
+
 				if self.Debug:
 					print "socket.error error({0}): {1}".format(errno, strerror)
 					print "Closing socket with error!"
 					self.TmpLogFile.write("socket.error error({0}): {1}\n".format(errno, strerror))
 					self.TmpLogFile.write("Closing socket with error!\n")
+
 				return None
 
 			if self.Debug:
-				self.TmpLogFile.write("Read from socket in thread {0}, message {1}. Recieved data: {2}\n".format(self.ThreadName, self.ms + 1, self._sTmp))
+				self.TmpLogFile.write("Read from socket in thread {0}, message {1}. Recieved data: {2}\n".format(self.ThreadName, self.ProcessedMessages + 1, self._Tmp))
 
-			if not self._sTmp:
+			if not self._Tmp:
+
 				if self.Debug:
 					print "Closing socket with null answer"
 					self.TmpLogFile.write("Closing socket with null answer\n")
-				return None
-		if self.Debug:
-			self.lm = time.time()
-			self.ms += 1
-			self.TmpLogFile.write("Get full message number {0}.\n\n\n".format(self.ms))
-		return sData
 
-	def answer(self, sData):
+				return None
+
+		if self.Debug:
+			self.LastMessageTime = time.time()
+			self.ProcessedMessages += 1
+			self.TmpLogFile.write("Get full message number {0}.\n\n\n".format(self.ProcessedMessages))
+
+		return Data
+
+	def answer(self, Data):
 		try:
-			self.oConn_sock.send("action={0}\n\n".format(sData))
+			self.Conn_sock.send("action={0}\n\n".format(Data))
 		except socket.error as (errno, strerror):
 			return False
 
@@ -96,12 +102,12 @@ class Connection(dict):
 		if self.Debug:
 			print "Closing socket now"
 			self.TmpLogFile.write("Closing socket now\n")
-			stoptime = time.time()
-			print "Connection started {0}, stopped in {1}. Last message in {2}. Processe messages - {3}. Working {4} seconds.".format(time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.starttime)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(stoptime)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.lm)), self.ms, (stoptime - self.starttime))
-			self.TmpLogFile.write("Connection started {0}, stopped in {1}. Last message in {2}. Processe messages - {3}. Working {4} seconds.\n\n".format(time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.starttime)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(stoptime)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.lm)), self.ms, (stoptime - self.starttime)))
+			StopTime = time.time()
+			print "Connection started {0}, stopped in {1}. Last message in {2}. Processe messages - {3}. Working {4} seconds.".format(time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.StartTime)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(StopTime)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.LastMessageTime)), self.ProcessedMessages, (StopTime - self.StartTime))
+			self.TmpLogFile.write("Connection started {0}, stopped in {1}. Last message in {2}. Processe messages - {3}. Working {4} seconds.\n\n".format(time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.StartTime)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(StopTime)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.LastMessageTime)), self.ProcessedMessages, (StopTime - self.StartTime)))
 		try:
-			self.oConn_sock.shutdown(socket.SHUT_RDWR)
-			self.oConn_sock.close()
+			self.Conn_sock.shutdown(socket.SHUT_RDWR)
+			self.Conn_sock.close()
 		except socket.error as (errno, strerror):
 			if self.Debug:
 				print "socket.error error({0}): {1}".format(errno, strerror)
@@ -111,27 +117,27 @@ class Connection(dict):
 
 	def get_message(self):
 		if len(self) > 0: self.clear()
-		sData = self._fReadSocket()
-		if not sData: return False
-		for key in self._oArr:
-			aTmp = self._oArr[key].findall(sData)
-			if len(aTmp) > 0:
-				self[key] = aTmp[0].lower()
+		Data = self._fReadSocket()
+		if not Data: return False
+		for key in self._ArrayOfRegexps:
+			Tmp = self._ArrayOfRegexps[key].findall(sData)
+			if len(Tmp) > 0:
+				self[key] = Tmp[0].lower()
 			else:
 				self[key] = ""
 		if self["request"] == "":
 			raise ConnectionError('No request in Data line')
 		return True
 
-Connection._oArr = {}
-Connection._oArr["request"] = re.compile(r"request=(.*?)\n", re.S) #0
-Connection._oArr["protocol_state"] = re.compile(r"protocol_state=(.*?)\n", re.S) #1
-Connection._oArr["client_address"] = re.compile(r"client_address=(.*?)\n", re.S) #2
-Connection._oArr["client_name"] = re.compile(r"client_name=(.*?)\n", re.S) #3
-Connection._oArr["reverse_client_name"] = re.compile(r"reverse_client_name=(.*?)\n", re.S) #4
-Connection._oArr["helo_name"] = re.compile(r"helo_name=(.*?)\n", re.S) #5
-Connection._oArr["sender"] = re.compile(r"sender=(.*?)\n", re.S) #6
-Connection._oArr["recipient"] = re.compile(r"recipient=(.*?)\n", re.S) #7
-Connection._oArr["sasl_method"]=re.compile(r"sasl_method=(.*?)\n", re.S) #8
-Connection._oArr["sasl_username"]=re.compile(r"sasl_username=(.*?)\n", re.S) #9
-Connection._oArr["sasl_sender"]=re.compile(r"sasl_sender=(.*?)\n", re.S) #10
+Connection._ArrayOfRegexps = {}
+Connection._ArrayOfRegexps["request"] = re.compile(r"request=(.*?)\n", re.S) #0
+Connection._ArrayOfRegexps["protocol_state"] = re.compile(r"protocol_state=(.*?)\n", re.S) #1
+Connection._ArrayOfRegexps["client_address"] = re.compile(r"client_address=(.*?)\n", re.S) #2
+Connection._ArrayOfRegexps["client_name"] = re.compile(r"client_name=(.*?)\n", re.S) #3
+Connection._ArrayOfRegexps["reverse_client_name"] = re.compile(r"reverse_client_name=(.*?)\n", re.S) #4
+Connection._ArrayOfRegexps["helo_name"] = re.compile(r"helo_name=(.*?)\n", re.S) #5
+Connection._ArrayOfRegexps["sender"] = re.compile(r"sender=(.*?)\n", re.S) #6
+Connection._ArrayOfRegexps["recipient"] = re.compile(r"recipient=(.*?)\n", re.S) #7
+Connection._ArrayOfRegexps["sasl_method"]=re.compile(r"sasl_method=(.*?)\n", re.S) #8
+Connection._ArrayOfRegexps["sasl_username"]=re.compile(r"sasl_username=(.*?)\n", re.S) #9
+Connection._ArrayOfRegexps["sasl_sender"]=re.compile(r"sasl_sender=(.*?)\n", re.S) #10

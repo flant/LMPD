@@ -23,114 +23,113 @@
 
 import Policy, threading, PySQLPool, subprocess
 
-def loadsql(oSqlPool):
-	aRes = {}
-	sSql_1 = "SELECT `id`,`address` FROM `white_list_users`"
-	sSql_2 = "SELECT `user_id`, `mail`, `accept` FROM `white_list_mail`"
+def loadsql(SqlPool):
+	Sql_1 = "SELECT `id`,`address` FROM `white_list_users`"
+	Sql_2 = "SELECT `user_id`, `mail`, `accept` FROM `white_list_mail`"
 
-	aRes={}
-	aUsers={}
-	aRules={}
-	query = PySQLPool.getNewQuery(oSqlPool, True)
-	query.Query(sSql_1)
+	Res={}
+	Users={}
+	Rules={}
+	query = PySQLPool.getNewQuery(SqlPool, True)
+	query.Query(Sql_1)
 	for row in query.record:
-		sTmp = row["address"].lower()
-		aUsers[str(int(row["id"]))] = sTmp
-		aRes[sTmp] = {}
+		Tmp = row["address"].lower()
+		Users[str(int(row["id"]))] = Tmp
+		Res[sTmp] = {}
 
-	query.Query(sSql_2)
+	query.Query(Sql_2)
 	for row in query.record:
-		aTmp = {}
-		aTmp[row["mail"].lower()] = row["accept"]
-		aRes[aUsers[str(int(row["user_id"]))]].update(aTmp)
+		Tmp = {}
+		Tmp[row["mail"].lower()] = row["accept"]
+		Res[Users[str(int(row["user_id"]))]].update(Tmp)
 
-	return aRes
+	return Res
 
-def addrule(oData, oSqlPool, sAnswer = "OK"):
-	if oData["sasl_username"] != "" and oData["sender"] != "" and oData["recipient"] != "":
+def addrule(Data, SqlPool, Answer = "OK"):
+	if Data["sasl_username"] != "" and Data["sender"] != "" and Data["recipient"] != "":
 		#print "Start train sqlfunc"
 		#print oData
-		sSql_1 = "SELECT `id` FROM `white_list_users` WHERE `address` LIKE '{0}'"
-		sSql_2 = "INSERT IGNORE INTO `white_list_mail` VALUES(NULL, {0}, '{1}', '{2}')"
+		Sql_1 = "SELECT `id` FROM `white_list_users` WHERE `address` LIKE '{0}'"
+		Sql_2 = "INSERT IGNORE INTO `white_list_mail` VALUES(NULL, {0}, '{1}', '{2}')"
 
-		query = PySQLPool.getNewQuery(oSqlPool, True)
-		query.Query(sSql_1.format(oData["sasl_username"]))
+		query = PySQLPool.getNewQuery(SqlPool, True)
+		query.Query(Sql_1.format(Data["sasl_username"]))
 		try:
-			sTmp = str(int(query.record[0]["id"]))
+			Tmp = str(int(query.record[0]["id"]))
 		except IndexError as Err:
 			return None
 		#print "sTmp in sql func: ", sTmp
-		query.Query(sSql_2.format(sTmp, oData["recipient"], sAnswer))
+		query.Query(sSql_2.format(Tmp, Data["recipient"], Answer))
 
 class UserPolicy(Policy.Policy):
-	def __init__(self, aData, oSqlPool):
+	def __init__(self, Data, SqlPool):
 		self.mutex = threading.Lock()
-		Policy.Policy.__init__(self, aData, oSqlPool)
+		Policy.Policy.__init__(self, Data, SqlPool)
 		self.ConfAliases = self._postconf()
 
-	def check(self, oData):
+	def check(self, Data):
 		if oData["sasl_username"] == "":
-			sSender = oData["sender"]
-			aRecipient = self._postalias(oData["recipient"])
-			sAnswer = self._strict_check(oData["recipient"], sSender)
-			if sAnswer:
-				return sAnswer
+			sSender = Data["sender"]
+			Recipient = self._postalias(Data["recipient"])
+			Answer = self._strict_check(Data["recipient"], Sender)
+			if Answer:
+				return Answer
 			else:
-				if aRecipient:
-					aRecipient = list(set(aRecipient))
-					for sEmail in aRecipient:
-						sAnswer = self._strict_check(sEmail.lower(), sSender)
-						if sAnswer: break
+				if Recipient:
+					Recipient = list(set(aRecipient))
+					for Email in Recipient:
+						Answer = self._strict_check(Email.lower(), Sender)
+						if Answer: break
 
-					if sAnswer:
-						return sAnswer
+					if Answer:
+						return Answer
 					else:
 						return None
 				else:
 					return None
 		else:
-			self.train(oData)
+			self.train(Data)
 			return None
 
-	def _strict_check(self, sRecipient, sSender):
-		if self.aData.has_key(sRecipient) and self.aData[sRecipient].has_key(sSender):
-			return self.aData[sRecipient][sSender]
+	def _strict_check(self, Recipient, Sender):
+		if self.Data.has_key(Recipient) and self.Data[Recipient].has_key(Sender):
+			return self.Data[Recipient][Sender]
 		else:
 			return None
 
-	def _postalias(self, sRecipient):
-		PostAlias = subprocess.Popen(["postalias -q {0} {1}".format(sRecipient, self.ConfAliases)], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
-		sOutput = PostAlias.communicate()[0].strip().lower()
-	        aRes = list()
-		if sOutput == sRecipient.lower().strip() or PostAlias.returncode:
+	def _postalias(self, Recipient):
+		PostAlias = subprocess.Popen(["postalias -q {0} {1}".format(Recipient, self.ConfAliases)], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
+		Output = PostAlias.communicate()[0].strip().lower()
+	        Res = list()
+		if Output == Recipient.lower().strip() or PostAlias.returncode:
 			return None
 		else:
-			aTestMails = sOutput.split(",")
-			for sEmail in aTestMails:
-				aAnswer = self._postalias(sEmail.strip())
-				if aAnswer:
-					aRes += aAnswer
+			TestMails = Output.split(",")
+			for Email in TestMails:
+				Answer = self._postalias(Email.strip())
+				if Answer:
+					Res += aAnswer
 				else:
-					if not sEmail in aRes:
-						aRes.append(sEmail.strip())
+					if not Email in Res:
+						Res.append(Email.strip())
 
-		return aRes
+		return Res
 
 	def _postconf(self):
 		PostConf = subprocess.Popen(["postconf -h virtual_alias_maps alias_maps"], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
 		Conf = PostConf.communicate()[0].strip().replace("\n", " ").replace(",", "")
 		return Conf
 
-	def train(self, oData, sAnswer = "OK"):
+	def train(self, Data, Answer = "OK"):
 		with self.mutex:
-			sRecipient = oData["recipient"]
-			sSender = oData["sasl_username"]
-			if sRecipient != "" and sSender != "":
+			Recipient = Data["recipient"]
+			Sender = Data["sasl_username"]
+			if Recipient != "" and Sender != "":
 				#print "Start training"
 				#print oData
-				if not self.aData.has_key(sSender): self.aData[sSender] = {}
-				if not self.aData[sSender].has_key(sRecipient):
-					addrule(oData, self.oSqlPool, sAnswer)
-					self.aData[sSender][sRecipient] = sAnswer
+				if not self.Data.has_key(Sender): self.Data[Sender] = {}
+				if not self.Data[Sender].has_key(Recipient):
+					addrule(Data, self.SqlPool, Answer)
+					self.Data[Sender][Recipient] = Answer
 					#print self.aData[sSender][sRecipient]
 		return None

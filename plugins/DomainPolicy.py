@@ -23,17 +23,18 @@
 
 import Policy, threading, PySQLPool
 
-def loadsql(oSqlPool):
-	sSql_1 = "SELECT `dns`, `accept` FROM `white_list_dns`"
-	aRes = {}
+def loadsql(SqlPool):
+	Sql_1 = "SELECT `dns`, `accept` FROM `white_list_dns`"
+	Res = {}
 
-	query = PySQLPool.getNewQuery(oSqlPool, True)
-	query.Query(sSql_1)
+	query = PySQLPool.getNewQuery(SqlPool, True)
+	query.Query(Sql_1)
 			
 	for row in query.record:
-		aRes[row[0]] = row[1].lower()
+		Res[row[0]] = row[1].lower()
 			
-	return aRes
+	return Res
+
 #Dont need now
 #def addrule(oData, oSqlConn):
 #	sSql_1 = "INSERT INTO `white_list_dns` VALUES(NULL, {0}, {1})"
@@ -41,13 +42,13 @@ def loadsql(oSqlPool):
 #	oSqlConn.execute(sSql_1.format(oData["helo_name"], oData["answer"]))
 
 class DomainPolicy(Policy.Policy):
-	def __init__(self, aData, oSqlPool):
+	def __init__(self, Data, SqlPool):
 		self.mutex = threading.Lock()
-		Policy.Policy.__init__(self, aData, oSqlPool)
+		Policy.Policy.__init__(self, Data, SqlPool)
 
-	def check(self, oData):
-		sDomain = oData["helo_name"]
-		if self.aData.has_key(sDomain):
-			return self.aData[sDomain]
+	def check(self, Data):
+		sDomain = Data["helo_name"]
+		if self.Data.has_key(Domain):
+			return self.Data[Domain]
 		else:
 			return None

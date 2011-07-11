@@ -22,13 +22,13 @@
 #       MA 02110-1301, USA.
 
 class Policy():
-	aData = {}
-	def __init__(self, aData, oSqlPool):
-		self.oSqlPool = oSqlPool
-		self.aData = aData
+	Data = {}
+	def __init__(self, Data, SqlPool):
+		self.SqlPool = SqlPool
+		self.Data = Data
 
-	def train(self, oData):
+	def train(self, Data):
 		return None
 
-	def check(self, oData):
+	def check(self, Data):
 		return None

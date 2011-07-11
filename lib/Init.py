@@ -23,16 +23,16 @@
 
 import os, pwd, grp, socket, sys
 
-def baseinit(oConfig):
+def baseinit(Config):
 	os.umask(0111)
 
-	if os.path.exists(oConfig.get("argv_pid", "/tmp/policyd.pid")):
+	if os.path.exists(Config.get("argv_pid", "/tmp/policyd.pid")):
 		print "Another policyd works. Exiting..."
 		sys.exit(1)
 
 	if os.getgid() == 0:
 		try:
-			os.setgid(grp.getgrnam(oConfig.get("system_group", "postfix"))[2])
+			os.setgid(grp.getgrnam(Config.get("system_group", "postfix"))[2])
 		except KeyError:
 			print "Using existing group"
 		except OSErroras as (errno, strerror):
@@ -41,34 +41,35 @@ def baseinit(oConfig):
 
 	if os.getuid() == 0:
 		try:
-			os.setuid(pwd.getpwnam(oConfig.get("system_user", "postfix"))[2])
+			os.setuid(pwd.getpwnam(Config.get("system_user", "postfix"))[2])
 		except KeyError:
 			print "Using existing user"
 		except OSErroras as (errno, strerror):
 			print "OSError error({0}): {1}".format(errno, strerror)
 			sys.exit(1)
 
-def createsock(oConfig):
-	sTmp = oConfig.get("network_type","unix")
-	if sTmp == "unix":
-		oSocket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-		sSockname=oConfig.get("network_socket","/var/spool/postfix/private/policy.sock")
-		if os.path.exists(sSockname):
+def createsock(Config):
+	Tmp = Config.get("network_type","unix")
+	if Tmp == "unix":
+		Socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+		Sockname=Config.get("network_socket","/var/spool/postfix/private/policy.sock")
+		if os.path.exists(Sockname):
 			try:
-				os.remove(sSockname)
+				os.remove(Sockname)
 			except OSError as (errno, strerror):
 				print "OSError error({0}): {1}".format(errno, strerror)
 				sys.exit(1)
 
 		try:
-			oSocket.bind(sSockname)
+			Socket.bind(Sockname)
 		except socket.error as (errno, strerror):
 			print "socket.error error({0}): {1}".format(errno, strerror)
 			sys.exit(1)
+
 	elif sTmp == "tcp":
-		oSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		try:
-			oSocket.bind(oConfig.get("network_address","0.0.0.0"), oConfig.get("network_port","7000"))
+			Socket.bind(Config.get("network_address","0.0.0.0"), Config.get("network_port","7000"))
 		except socket.error as (errno, strerror):
 			print "socket.error error({0}): {1}".format(errno, strerror)
 			sys.exit(1)
@@ -76,14 +77,14 @@ def createsock(oConfig):
 	oSocket.setblocking(1)
 	oSocket.settimeout(None)
 	oSocket.listen(1)
-	return oSocket
+	return Socket
 
-def demonize(oConfig):
-	if oConfig.get("argv_daemon", False) == True:
+def demonize(Config):
+	if Config.get("argv_daemon", False) == True:
 		try: 
-			iPid = os.fork()
-			if iPid > 0:
-				print "Daemon PID %d" % iPid
+			Pid = os.fork()
+			if Pid > 0:
+				print "Daemon PID %d" % Pid
 				sys.exit(0) 
 		except OSError as (errno, strerror):
 			print "OSError error({0}): {1}".format(errno, strerror)
@@ -96,22 +97,22 @@ def demonize(oConfig):
 		sys.stderr = open("/dev/null","w")
 		sys.stdout = open("/dev/null", "w")
 
-	iPid = os.getpid()
+	Pid = os.getpid()
 
 	try:
-		oPidFile = open(oConfig.get("argv_pid", "/tmp/policyd.pid"), "w")
-		oPidFile.write(str(iPid))
-		oPidFile.close()
+		PidFile = open(Config.get("argv_pid", "/tmp/policyd.pid"), "w")
+		PidFile.write(str(iPid))
+		PidFile.close()
 	except IOError as (errno, strerror):
 		print "I/O error({0}): {1}".format(errno, strerror)
 		sys.exit(1)	
 
-def fSIGINThandler(sPidFile, iSignum, frame):
+def fSIGINThandler(PidFile, Signum, frame):
 	print "Caught SIGNAL 2. Exiting..."
 	
-	if os.path.exists(sPidFile):
+	if os.path.exists(PidFile):
 		try:
-			os.remove(sPidFile)
+			os.remove(PidFile)
 		except OSError as (errno, strerror):
 			print "OSError error({0}): {1}".format(errno, strerror)
 			sys.exit(1)
@@ -119,5 +120,5 @@ def fSIGINThandler(sPidFile, iSignum, frame):
 
 def postconf():
 	PostConf = subprocess.Popen(["postconf -h smtpd_policy_service_max_ttl"], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
-	iDelay = int(PostConf.communicate()[0].strip()[:-1])
-	return iDelay
+	Delay = int(PostConf.communicate()[0].strip()[:-1])
+	return Delay

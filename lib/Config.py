@@ -34,15 +34,15 @@ class ConfigError(Exception):
 class Config(dict):
 	def __init__(self):
 		dict.__init__(self)
-		oParser = argparse.ArgumentParser(description='Mini whitelisting daemon.')
-		oParser.add_argument('-c', '--config', help='Path to a config file', default='/etc/postfix/policyd.yaml')
-		oParser.add_argument('-p', '--pid', help='Path to a PID file', default='/var/run/policyd.pid')
-		oParser.add_argument('-d', dest='bDaemon', action='store_true', help='Become a daemon', default=False)
-		oArgs = oParser.parse_args()
+		Parser = argparse.ArgumentParser(description='Mini whitelisting daemon.')
+		Parser.add_argument('-c', '--config', help='Path to a config file', default='/etc/postfix/policyd.yaml')
+		Parser.add_argument('-p', '--pid', help='Path to a PID file', default='/var/run/policyd.pid')
+		Parser.add_argument('-d', dest='bDaemon', action='store_true', help='Become a daemon', default=False)
+		Args = Parser.parse_args()
 		self["argv"] = {}
-		self["argv"]["config"] = oArgs.config
-		self["argv"]["pid"] = oArgs.pid
-		self["argv"]["daemon"] = oArgs.bDaemon
+		self["argv"]["config"] = Args.config
+		self["argv"]["pid"] = Args.pid
+		self["argv"]["daemon"] = Args.bDaemon
 		if os.path.exists(self["argv"]["config"]):
 			with file(self["argv"]["config"], 'r') as stream:
 				self.update(yaml.load(stream))

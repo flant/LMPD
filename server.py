@@ -29,45 +29,45 @@ def main():
 	site.addsitedir("./plugins", known_paths=None)
 	site.addsitedir("./lib/PySQLPool", known_paths=None)
 	import Analyse, Config, Init, Connection, Policy, Worker, Logger, PySQLPool
-	oConfig = Config.Config()
+	Config = Config.Config()
 
 	signal.signal(signal.SIGTERM, lambda x, y: Init.fSIGINThandler(oConfig.get("argv_pid", "/tmp/policyd.pid"), x, y))
 	signal.signal(signal.SIGINT, lambda x, y: Init.fSIGINThandler(oConfig.get("argv_pid", "/tmp/policyd.pid"), x, y))
 	signal.signal(signal.SIGHUP, signal.SIG_IGN)
 
-	Init.baseinit(oConfig)
-	oSocket = Init.createsock(oConfig)
+	Init.baseinit(Config)
+	Socket = Init.createsock(Config)
 	
-	aMysql = oConfig.get("mysql", False)
-	if aMysql:
-		PySQLPool.getNewPool().maxActiveConnections = oConfig.get("mysql_pool", 10)
-		oPool = PySQLPool.getNewConnection(username=oConfig.get("mysql_user", "root"), password=oConfig.get("mysql_password", ""), host=oConfig.get("mysql_host", "localhost"), db=oConfig.get("mysql_dbname", "postfix"), port=oConfig.get("mysql_port", 3306))
+	Mysql = Config.get("mysql", False)
+	if Mysql:
+		PySQLPool.getNewPool().maxActiveConnections = Config.get("mysql_pool", 10)
+		Pool = PySQLPool.getNewConnection(username=Config.get("mysql_user", "root"), password=Config.get("mysql_password", ""), host=Config.get("mysql_host", "localhost"), db=Config.get("mysql_dbname", "postfix"), port=Config.get("mysql_port", 3306))
 	else:
 		print "Lost fields in mysql config. Exiting..."
 		sys.exit(1)
 
-	aImportFilters = oConfig.get("filters_order", False)
-	if aImportFilters:
-		aImportFilters = ["AddressPolicy","DomainPolicy","UserPolicy"]
+	ImportFilters = Config.get("filters_order", False)
+	if ImportFilters:
+		ImportFilters = ["AddressPolicy","DomainPolicy","UserPolicy"]
 
-	aFilters = []
-	for sFilter in aImportFilters:
-		globals()[sFilter] = locals()[sFilter] = __import__(sFilter, globals(), locals(), [], -1)
-		oTmp = getattr(locals()[sFilter], sFilter)(locals()[sFilter].loadsql(oPool), oPool)
-		aFilters.append(oTmp)
+	Filters = []
+	for Filter in ImportFilters:
+		globals()[Filter] = locals()[Filter] = __import__(Filter, globals(), locals(), [], -1)
+		Tmp = getattr(locals()[Filter], Filter)(locals()[Filter].loadsql(Pool), Pool)
+		Filters.append(Tmp)
 
-	sDefaultAnswer = oConfig.get("filters_default", False)
-	if not sDefaultAnswer:
+	DefaultAnswer = Config.get("filters_default", False)
+	if not DefaultAnswer:
 		print "Lost fields in filter config. Exiting..."
 		sys.exit(1)
 
-	Init.demonize(oConfig)
+	Init.demonize(Config)
 
 	while 1:
-		oConn, oAddr = oSocket.accept()
-		tProc = Worker.WorkerTread(oConn, aFilters, sDefaultAnswer, oPool)
+		Conn, Addr = Socket.accept()
+		Proc = Worker.WorkerTread(Conn, Filters, DefaultAnswer, Pool)
 		try:
-			tProc.start()
+			Proc.start()
 		except(thread.error):
 			print("Spawned threads : %s. Can not spawn other one" % threading.active_count())
 

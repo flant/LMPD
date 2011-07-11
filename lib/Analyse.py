@@ -23,12 +23,12 @@
 
 import re
 
-class cMailPart:
+class MailPart:
 	def __init__(self):
 		pass_
-	def getuser(self, sMail):
-		return self._oReMail.search(sMail).group("user")
-	def getdomain(self, sMail):
-		return self._oReMail.search(sMail).group("domain")
+	def getuser(self, Mail):
+		return self._ReMail.search(Mail).group("user")
+	def getdomain(self, Mail):
+		return self._ReMail.search(Mail).group("domain")
 
-cMailPart._oReMail = re.compile(r"""(?P<user>[a-z0-9_.-\\*]+)@(?P<domain>(?:[a-z0-9-]+\.)+[a-z]{2,6})""", re.I | re.VERBOSE)
+MailPart._ReMail = re.compile(r"""(?P<user>[a-z0-9_.-\\*]+)@(?P<domain>(?:[a-z0-9-]+\.)+[a-z]{2,6})""", re.I | re.VERBOSE)
