@@ -55,15 +55,13 @@ class Connection(dict):
 		while (True):
 
 			if "\n\n" in self._sTmp:
-				StrArray = self._sTmp.split("\n\n", 1)
-				sData += StrArray[0]
-				self._sTmp = StrArray[1]
+				aStr = self._sTmp.split("\n\n", 1)
+				sData = aStr[0]
+				self._sTmp = aStr[1]
 				break
-			else:
-				self._sTmp += Tmp
 
 			try:
-				Tmp = self.oConn_sock.recv(100)
+				self._sTmp += self.oConn_sock.recv(100)
 			except socket.error as (errno, strerror):
 				if self.Debug:
 					print "socket.error error({0}): {1}".format(errno, strerror)
@@ -73,7 +71,7 @@ class Connection(dict):
 				return None
 
 			if self.Debug:
-				self.TmpLogFile.write("Read from socket in thread {0}, message {1}. Recieved data: {2}\n".format(self.ThreadName, self.ms + 1, Tmp))
+				self.TmpLogFile.write("Read from socket in thread {0}, message {1}. Recieved data: {2}\n".format(self.ThreadName, self.ms + 1, self._sTmp))
 
 			if not self._sTmp:
 				if self.Debug:
