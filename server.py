@@ -65,7 +65,7 @@ def main():
 
 	while 1:
 		oConn, oAddr = oSocket.accept()
-		tProc = Worker.WorkerTread(oConn, aFilters, sDefaultAnswer, oPool)
+		tProc = Worker.WorkerTread(oConn, aFilters, sDefaultAnswer, oPool, True)
 		try:
 			tProc.start()
 		except(thread.error):
