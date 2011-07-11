@@ -24,16 +24,19 @@
 import threading, sys, Connection, PySQLPool, Init, time
 
 class WorkerTread(threading.Thread):
-	def __init__(self, oConn, aFilters, sDefaultAnswer, oSqlPool):
+	def __init__(self, oConn, aFilters, sDefaultAnswer, oSqlPool, Debug = False):
 		threading.Thread.__init__(self)
+		self.Debug = Debug
 		self.daemon = True
 		self.sDefaultAnswer = sDefaultAnswer
 		self.oSocket = oConn
 		self.oSqlPool = oSqlPool
 		self.aFilters = aFilters
-		self.starttime = time.time()
+		if self.Debug:
+			self.starttime = time.time()
+
 	def run(self):
-		with Connection.Connection(self.oSocket, self.name, True) as conn:
+		with Connection.Connection(self.oSocket, self.name, self.Debug) as conn:
 			while conn.get_message():
 
 				sTmp = conn["request"]
@@ -41,7 +44,8 @@ class WorkerTread(threading.Thread):
 
 				if sTmp == "smtpd_access_policy":
 					if conn["sender"] != "" and conn["recipient"] != "":
-						#print "Mail from {0} to {1} with SASL: {2}".format(conn["sender"], conn["recipient"], conn["sasl_username"])
+						if self.Debug:
+							print "Mail from {0} to {1} with SASL: {2}".format(conn["sender"], conn["recipient"], conn["sasl_username"])
 						for oFilter in self.aFilters:
 							Tmp = oFilter.check(conn)
 							if Tmp:
@@ -53,11 +57,13 @@ class WorkerTread(threading.Thread):
 				elif sTmp == "junk_policy":
 					pass
 				else:
-					print "Unknown policy!"
+					if self.Debug:
+						print "Unknown policy!"
 					pass
 				conn.answer(Answer)
 				PySQLPool.cleanupPool()
+		if self.Debug:
+			stoptime = time.time()
+			print "Process with name {0} started {1}, stopped {2}. Working {3} seconds.".format(self.name, time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.starttime)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(stoptime)), (stoptime - self.starttime))		
 
-		stoptime = time.time()
-		print "Process with name {0} started {1}, stopped {2}. Working {3} seconds.".format(self.name, time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.starttime)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(stoptime)), (stoptime - self.starttime))		
 		sys.exit(0)
