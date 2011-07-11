@@ -35,8 +35,10 @@ class WorkerTread(threading.Thread):
 	def run(self):
 		with Connection.Connection(self.oSocket, self.name, True) as conn:
 			while conn.get_message():
+
 				sTmp = conn["request"]
-				#print conn
+				Answer = self.sDefaultAnswer
+
 				if sTmp == "smtpd_access_policy":
 					#if conn["sender"] != "" and conn["recipient"] != "":
 						#print conn
@@ -49,18 +51,13 @@ class WorkerTread(threading.Thread):
 
 					#	if sTmp:
 					#		sAnswer = sTmp
-					#	else:
-					#		sAnswer = self.sDefaultAnswer
-						#print sAnswer
-					#else:
-					#	sAnswer = self.sDefaultAnswer
-					#conn.answer(sAnswer)
 					pass
 				elif sTmp == "junk_policy":
 					pass
 				else:
+					print "Unknown policy!"
 					pass
-				conn.answer(self.sDefaultAnswer)
+				conn.answer(Answer)
 				PySQLPool.cleanupPool()
 
 		stoptime = time.time()
