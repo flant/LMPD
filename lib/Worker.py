@@ -51,7 +51,7 @@ class WorkerTread(threading.Thread):
 							if Tmp:
 								break
 
-						if sTmp:
+						if Tmp:
 							Answer = Tmp
 
 				elif sTmp == "junk_policy":
@@ -60,8 +60,13 @@ class WorkerTread(threading.Thread):
 					if self.Debug:
 						print "Unknown policy!"
 					pass
+
+				if self.Debug:
+					print "Answer was: {0}".format(Answer)
+
 				conn.answer(Answer)
 				PySQLPool.cleanupPool()
+
 		if self.Debug:
 			stoptime = time.time()
 			print "Process with name {0} started {1}, stopped {2}. Working {3} seconds.".format(self.name, time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.starttime)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(stoptime)), (stoptime - self.starttime))		
