@@ -20,54 +20,16 @@ SET time_zone = "+00:00";
 -- База данных: `postfix`
 --
 
--- --------------------------------------------------------
-
---
--- Структура таблицы `transport`
---
-
-CREATE TABLE IF NOT EXISTS `transport` (
-  `domain` varchar(128) NOT NULL DEFAULT '',
-  `transport` varchar(128) NOT NULL DEFAULT '',
-  UNIQUE KEY `domain` (`domain`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
 --
 -- Структура таблицы `users`
 --
 
-CREATE TABLE IF NOT EXISTS `users` (
+CREATE TABLE IF NOT EXISTS `white_list_users` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `user` varchar(128) NOT NULL DEFAULT '',
   `address` varchar(128) NOT NULL DEFAULT '',
-  `crypt` varchar(128) NOT NULL DEFAULT '',
-  `clear` varchar(128) NOT NULL DEFAULT '',
-  `name` varchar(128) NOT NULL DEFAULT '',
-  `uid` smallint(5) unsigned NOT NULL DEFAULT '114',
-  `gid` smallint(5) unsigned NOT NULL DEFAULT '125',
-  `home` varchar(128) NOT NULL DEFAULT '/var/mail/postfix/',
-  `domain` varchar(128) NOT NULL DEFAULT '',
-  `maildir` varchar(255) NOT NULL DEFAULT '',
-  `imapok` tinyint(3) unsigned NOT NULL DEFAULT '1',
-  `bool1` tinyint(3) unsigned NOT NULL DEFAULT '1',
-  `bool2` tinyint(3) unsigned NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `user` (`user`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=2 ;
-
--- --------------------------------------------------------
-
---
--- Структура таблицы `virtual`
---
-
-CREATE TABLE IF NOT EXISTS `virtual` (
-  `address` varchar(255) NOT NULL DEFAULT '',
-  `goto` varchar(255) NOT NULL DEFAULT '',
   UNIQUE KEY `address` (`address`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=2 ;
 
 -- --------------------------------------------------------
 
