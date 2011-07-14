@@ -107,9 +107,9 @@ class UserPolicy(Policy.Policy):
 		elif Data["request"] == "junk_policy":
 			if Data["action"] == "0":
 				if not self._strict_check(Data["recipient"], Data["sender"]):
-					
+					self._strict_train(Data["recipient"], Data["sender"])
 			elif Data["action"] == "1":
-				pass
+					self._strict_del(Data["recipient"], Data["sender"])
 			else:
 				return None
 		else:
@@ -144,15 +144,23 @@ class UserPolicy(Policy.Policy):
 		return Conf
 
 	def train(self, Data, Answer = "OK"):
+		Tmp = self._strict_train(Data["sender"], Data["recipient"], Answer)
+		return Tmp
+
+	def _strict_train(self, Sender, Recipient, Answer = "OK"):
 		with self.mutex:
-			Recipient = Data["recipient"]
-			Sender = Data["sasl_username"]
 			if Recipient != "" and Sender != "":
-				#print "Start training"
-				#print oData
 				if not self.Data.has_key(Sender): self.Data[Sender] = {}
 				if not self.Data[Sender].has_key(Recipient):
 					addrule(Data, self.SqlPool, Answer)
 					self.Data[Sender][Recipient] = Answer
-					#print self.aData[sSender][sRecipient]
+		return None
+
+	def _strict_del(self, Sender, Recipient):
+		with self.mutex:
+			if Recipient != "" and Sender != "":
+				if not self.Data.has_key(Sender): self.Data[Sender] = {}
+				if not self.Data[Sender].has_key(Recipient):
+					delrule(Data, self.SqlPool, Answer)
+					del self.Data[Sender][Recipient]
 		return None
