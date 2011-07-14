@@ -141,3 +141,4 @@ Connection._ArrayOfRegexps["recipient"] = re.compile(r"recipient=(.*?)\n", re.S)
 Connection._ArrayOfRegexps["sasl_method"]=re.compile(r"sasl_method=(.*?)\n", re.S) #8
 Connection._ArrayOfRegexps["sasl_username"]=re.compile(r"sasl_username=(.*?)\n", re.S) #9
 Connection._ArrayOfRegexps["sasl_sender"]=re.compile(r"sasl_sender=(.*?)\n", re.S) #10
+Connection._ArrayOfRegexps["action"]=re.compile(r"action=(.*?)\n", re.S) #11

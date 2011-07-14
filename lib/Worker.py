@@ -39,34 +39,24 @@ class WorkerTread(threading.Thread):
 		with Connection.Connection(self.oSocket, self.name, self.Debug) as conn:
 			while conn.get_message():
 
-				sTmp = conn["request"]
 				Answer = self.sDefaultAnswer
 
-				if sTmp == "smtpd_access_policy":
-					if conn["sender"] != "" and conn["recipient"] != "":
-						if self.Debug:
-							print "Mail from {0} to {1} with SASL: {2}".format(conn["sender"], conn["recipient"], conn["sasl_username"])
-						for oFilter in self.aFilters:
-							Tmp = oFilter.check(conn)
-							if Tmp:
-								break
-
-						if Tmp:
-							Answer = Tmp
-
-						if self.Debug:
-							print "Answer was: {0}".format(Answer)
-
-						conn.answer(Answer)
-
-				elif sTmp == "junk_policy":
-					for oFilter in self.aFilters:
-							oFilter.check(conn)
-				else:
+				if conn["sender"] != "" and conn["recipient"] != "":
 					if self.Debug:
-						print "Unknown policy!"
-					pass
+						print "Mail from {0} to {1} with SASL: {2}".format(conn["sender"], conn["recipient"], conn["sasl_username"])
+					for oFilter in self.aFilters:
+						Tmp = oFilter.check(conn)
+						if Tmp:
+							break
 
+					if Tmp:
+						Answer = Tmp
+
+					if self.Debug:
+						print "Answer was: {0}".format(Answer)
+
+					if Data["request"] == "smtpd_access_policy":
+						conn.answer(Answer)
 				PySQLPool.cleanupPool()
 
 		if self.Debug:

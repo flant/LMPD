@@ -81,29 +81,33 @@ class UserPolicy(Policy.Policy):
 		self.ConfAliases = self._postconf()
 
 	def check(self, Data):
-		if oData["sasl_username"] == "":
-			sSender = Data["sender"]
-			Recipient = self._postalias(Data["recipient"])
-			Answer = self._strict_check(Data["recipient"], Sender)
-			if Answer:
-				return Answer
-			else:
-				if Recipient:
-					Recipient = list(set(aRecipient))
-					for Email in Recipient:
-						Answer = self._strict_check(Email.lower(), Sender)
-						if Answer: break
+		if Data["request"] == "smtpd_access_policy":
+			if Data["sasl_username"] == "":
+				sSender = Data["sender"]
+				Recipient = self._postalias(Data["recipient"])
+				Answer = self._strict_check(Data["recipient"], Sender)
+				if Answer:
+					return Answer
+				else:
+					if Recipient:
+						Recipient = list(set(aRecipient))
+						for Email in Recipient:
+							Answer = self._strict_check(Email.lower(), Sender)
+							if Answer: break
 
-					if Answer:
-						return Answer
+						if Answer:
+							return Answer
+						else:
+							return None
 					else:
 						return None
-				else:
-					return None
+			else:
+				self.train(Data)
+				return None
+		elif Data["request"] == "smtpd_access_policy":
+			pass
 		else:
-			self.train(Data)
 			return None
-
 	def _strict_check(self, Recipient, Sender):
 		if self.Data.has_key(Recipient) and self.Data[Recipient].has_key(Sender):
 			return self.Data[Recipient][Sender]
