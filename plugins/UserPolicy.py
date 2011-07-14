@@ -63,7 +63,7 @@ def addrule(Data, SqlPool, Answer = "OK"):
 
 def delrule(Data, SqlPool):
 	Sql_1 = "SELECT `id` FROM `white_list_users` WHERE `address` LIKE '{0}'"
-	Sql_2 = "IDELETE `white_list_mail` WHERE `user_id` = '{0}' AND `mail` = '{1}'"
+	Sql_2 = "DELETE `white_list_mail` WHERE `user_id` = '{0}' AND `mail` = '{1}'"
 	if Data["sender"] != "" and Data["recipient"] != "":
 		query = PySQLPool.getNewQuery(SqlPool, True)
 		query.Query(Sql_1.format(Data["recipient"]))
@@ -104,8 +104,14 @@ class UserPolicy(Policy.Policy):
 			else:
 				self.train(Data)
 				return None
-		elif Data["request"] == "smtpd_access_policy":
-			pass
+		elif Data["request"] == "junk_policy":
+			if Data["action"] == "0":
+				if not self._strict_check(Data["recipient"], Data["sender"]):
+					
+			elif Data["action"] == "1":
+				pass
+			else:
+				return None
 		else:
 			return None
 	def _strict_check(self, Recipient, Sender):
