@@ -1,0 +1,10 @@
+
+This file contains just some notes/thoughts on various implementation issues
+for other backends or different things.
+
+
+Full-message availability
+
+Pristine retraining or SpamAssassin retraining might need the full message
+available. This can easily be implemented since the backend is passed each
+struct mail *mail that is moved. For an example see the pipe backend.

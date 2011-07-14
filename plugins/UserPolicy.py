@@ -61,6 +61,19 @@ def addrule(Data, SqlPool, Answer = "OK"):
 		#print "sTmp in sql func: ", sTmp
 		query.Query(sSql_2.format(Tmp, Data["recipient"], Answer))
 
+def delrule(Data, SqlPool):
+	Sql_1 = "SELECT `id` FROM `white_list_users` WHERE `address` LIKE '{0}'"
+	Sql_2 = "IDELETE `white_list_mail` WHERE `user_id` = '{0}' AND `mail` = '{1}'"
+	if Data["sender"] != "" and Data["recipient"] != "":
+		query = PySQLPool.getNewQuery(SqlPool, True)
+		query.Query(Sql_1.format(Data["recipient"]))
+		try:
+			Tmp = str(int(query.record[0]["id"]))
+		except IndexError as Err:
+			return None
+		
+		query.Query(sSql_2.format(Tmp, Data["sender"]))
+
 class UserPolicy(Policy.Policy):
 	def __init__(self, Data, SqlPool):
 		self.mutex = threading.Lock()

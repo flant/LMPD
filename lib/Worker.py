@@ -54,17 +54,19 @@ class WorkerTread(threading.Thread):
 						if Tmp:
 							Answer = Tmp
 
+						if self.Debug:
+							print "Answer was: {0}".format(Answer)
+
+						conn.answer(Answer)
+
 				elif sTmp == "junk_policy":
-					pass
+					for oFilter in self.aFilters:
+							oFilter.check(conn)
 				else:
 					if self.Debug:
 						print "Unknown policy!"
 					pass
 
-				if self.Debug:
-					print "Answer was: {0}".format(Answer)
-
-				conn.answer(Answer)
 				PySQLPool.cleanupPool()
 
 		if self.Debug:
