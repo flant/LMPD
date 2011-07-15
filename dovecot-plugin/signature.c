@@ -73,11 +73,11 @@ int signature_extract_to_list(struct mailbox_transaction_context *t,
 	while (signatures[1])
 		signatures++;
 		
-	while (from[1])
-		from++;
+	//while (from[1])
+	//	from++;
 	
-	while (to[1])
-		to++;
+	//while (to[1])
+	//	to++;
 
 	item = i_new(struct siglist, 1);
 	item->next = *list;

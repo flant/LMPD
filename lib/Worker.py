@@ -55,8 +55,8 @@ class WorkerTread(threading.Thread):
 					if self.Debug:
 						print "Answer was: {0}".format(Answer)
 
-					if Data["request"] == "smtpd_access_policy":
-						conn.answer(Answer)
+				if Data["request"] == "smtpd_access_policy":
+					conn.answer(Answer)
 				PySQLPool.cleanupPool()
 
 		if self.Debug:

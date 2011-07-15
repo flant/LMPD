@@ -114,6 +114,7 @@ class UserPolicy(Policy.Policy):
 				return None
 		else:
 			return None
+
 	def _strict_check(self, Recipient, Sender):
 		if self.Data.has_key(Recipient) and self.Data[Recipient].has_key(Sender):
 			return self.Data[Recipient][Sender]
@@ -161,6 +162,6 @@ class UserPolicy(Policy.Policy):
 			if Recipient != "" and Sender != "":
 				if not self.Data.has_key(Sender): self.Data[Sender] = {}
 				if not self.Data[Sender].has_key(Recipient):
-					delrule(Data, self.SqlPool, Answer)
+					delrule(Data, self.SqlPool)
 					del self.Data[Sender][Recipient]
 		return None
