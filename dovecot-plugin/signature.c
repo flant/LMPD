@@ -6,7 +6,7 @@
 
 const char *signature_hdr = "X-DSPAM-Signature";
 const char *from_hdr = "From";
-const char *to_hdr = "To";
+const char *to_hdr = "Delivered-To";
 static int signature_nosig_ignore = 0;
 
 void signature_init(void)
