@@ -22,10 +22,13 @@
 #include <stdlib.h>
 #include <sys/wait.h>
 #include <fcntl.h>
-#include <sys/types.h> 
+#include <sys/types.h>
+#include <sys/un.h>
 #include <sys/socket.h>
 #include <string.h>
-
+#include <stdio.h>
+#include <netinet/in.h>
+#include <netdb.h>
 #include "lib.h"
 #include "mail-storage-private.h"
 
@@ -34,7 +37,7 @@
 
 static const char *dspam_binary = "/usr/bin/dspam";
 static const char *dspam_result_header = NULL;
-static const char *policyd_port = "7000";
+static uint16_t policyd_port = 7000;
 static const char *policyd_address = "127.0.0.1";
 static const char *policyd_socket_type = "unix";
 static const char *policyd_socket_name = "/var/spool/postfix/private/policy.sock";
@@ -53,55 +56,58 @@ static int call_dspam(const char *signature, const char *from, const char *to, e
 
 	int sockfd;
 	char str[1024];
-	struct sockaddr_in serv_addr;
-	long nHostAddress;
-	struct hostent *server;
 	struct sockaddr_un serv_unix_addr;
+	struct sockaddr_in serv_inet_addr;
+	struct hostent *server;
 
 	if (strcmp(policyd_socket_type, "unix") == 0) {
-		
+
 		sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
-		if (sockfd < 0) { 
-			debug("ERROR opening policy socket");
-			return -1;
-		}
-		
-		serv_unix_addr.sun_family = AF_UNIX;
-		strcpy(serv_unix_addr.sun_path, policyd_socket_name);
-		
-		if (connect(sockfd, (struct sockaddr *) &serv_unix_addr, sizeof(struct sockaddr_un)) < 0)
-	} else {
-		
-		sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 		if (sockfd < 0) {
 			debug("ERROR opening policy socket");
 			return -1;
 		}
+
+		serv_unix_addr.sun_family = AF_UNIX;
+		strcpy(serv_unix_addr.sun_path, policyd_socket_name);
+
+		if (connect(sockfd, (struct sockaddr *) &serv_unix_addr, sizeof(serv_unix_addr)) < 0) {
+			debug("Socket connection problem.");
+			return -1;
+		}
+	} else {
+
+		sockfd = socket(AF_INET, SOCK_STREAM, 0);
+		if (sockfd < 0) {
+			debug("ERROR opening policy socket");
+			return -1;
+		}
+
 		server = gethostbyname(policyd_address);
 		if (server == NULL) {
 			debug("ERROR, no such host");
 			return -1;
 		}
-		memcpy(&nHostAddress,pHostInfo->h_addr,pHostInfo->h_length);
 
-		serv_addr.sin_addr.s_addr=nHostAddress;
-		serv_addr.sin_port=htons(policyd_port);
-		serv_addr.sin_family=AF_INET;
+		memcpy(&serv_inet_addr.sin_addr, server->h_addr_list[0],server->h_length);
 
-		if(connect(sockfd,(struct sockaddr*)&serv_addr,sizeof(serv_addr)) < 0) {
+		serv_inet_addr.sin_port=htons(policyd_port);
+		serv_inet_addr.sin_family=AF_INET;
+
+		if(connect(sockfd,(struct sockaddr*)&serv_inet_addr,sizeof(serv_inet_addr)) < 0) {
 			debug("Socket connection problem");
 			return -1;
 		}
 	}
 
 	sprintf(str, "request=junk_policy\nsender=%s\nrecipient=%s\naction=%d\n\n", from, to, wanted);
-	
-	if (send(sockfd, str, strlen(str)) < 0) {
+
+	if (send(sockfd, str, strlen(str), 0) < 0) {
 		debug("Socket send data problem");
 	}
-	
-	close(sockfd)
-	
+
+	close(sockfd);
+
 	sign_arg = t_strconcat("--signature=", signature, NULL);
 	switch (wanted) {
 	case CLASS_NOTSPAM:
@@ -286,17 +292,17 @@ static void backend_init(pool_t pool)
 	const char *tmp;
 	int i;
 
-
-	tmp = get_setting("POLICYD_ENABLE")
+	tmp = get_setting("POLICYD_ENABLE");
 	if (tmp)
 		policyd_bool = atoi(tmp);
 	debug("policyd set to %s\n", policyd_socket_type);
-	if (policyd_bool == 1) { 
-		tmp = get_setting("POLICYD_SOCKET_TYPE")
+
+	if (policyd_bool == 1) {
+		tmp = get_setting("POLICYD_SOCKET_TYPE");
 		if (tmp)
 			policyd_socket_type = tmp;
 		debug("policyd socket type set to %s\n", policyd_socket_type);
-	
+
 		if (strcmp(policyd_socket_type, "unix") == 0) {
 			tmp = get_setting("POLICYD_SOCKET_NAME");
 			if (tmp)
@@ -310,11 +316,11 @@ static void backend_init(pool_t pool)
 				debug("policyd address set to %s\n", policyd_socket_name);
 				tmp = get_setting("POLICYD_PORT");
 				if (tmp)
-					policyd_port = tmp;
-				debug("policyd port set to %s\n", policyd_socket_name);
+					policyd_port = atoi(tmp);
+				debug("policyd port set to %d\n", policyd_port);
 			} else {
-				policyd_bool = 0
-				debug("policyd set to %s\n", policyd_bool);
+				policyd_bool = 0;
+				debug("policyd set to %d\n", policyd_bool);
 			}
 		}
 	}

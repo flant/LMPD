@@ -32,6 +32,10 @@ int signature_extract_to_list(struct mailbox_transaction_context *t,
 			      enum classification wanted)
 {
 	const char *const *signatures;
+
+	const char *const *from;
+	const char *const *to;
+
 	struct siglist *item;
 
 	signatures = get_mail_headers(mail, signature_hdr); //Reference to this func
@@ -83,8 +87,8 @@ int signature_extract_to_list(struct mailbox_transaction_context *t,
 	item->next = *list;
 	item->wanted = wanted;
 	item->sig = i_strdup(signatures[0]);
-	item->from = i_strdup(from[0])
-	item->to = i_strdup(to[0])
+	item->from = i_strdup(from[0]);
+	item->to = i_strdup(to[0]);
 
 	*list = item;
 
