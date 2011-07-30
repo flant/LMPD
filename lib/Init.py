@@ -74,9 +74,9 @@ def createsock(Config):
 			print "socket.error error({0}): {1}".format(errno, strerror)
 			sys.exit(1)
 
-	oSocket.setblocking(1)
-	oSocket.settimeout(None)
-	oSocket.listen(1)
+	Socket.setblocking(1)
+	Socket.settimeout(None)
+	Socket.listen(1)
 	return Socket
 
 def demonize(Config):
@@ -101,7 +101,7 @@ def demonize(Config):
 
 	try:
 		PidFile = open(Config.get("argv_pid", "/tmp/policyd.pid"), "w")
-		PidFile.write(str(iPid))
+		PidFile.write(str(Pid))
 		PidFile.close()
 	except IOError as (errno, strerror):
 		print "I/O error({0}): {1}".format(errno, strerror)

@@ -47,7 +47,7 @@ class DomainPolicy(Policy.Policy):
 		Policy.Policy.__init__(self, Data, SqlPool)
 
 	def check(self, Data):
-		sDomain = Data["helo_name"]
+		Domain = Data["helo_name"]
 		if self.Data.has_key(Domain):
 			return self.Data[Domain]
 		else:

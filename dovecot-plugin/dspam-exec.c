@@ -35,6 +35,8 @@
 #include "antispam-plugin.h"
 #include "signature.h"
 
+#define BUFSIZE 1024
+
 static const char *dspam_binary = "/usr/bin/dspam";
 static const char *dspam_result_header = NULL;
 static uint16_t policyd_port = 7000;
@@ -42,7 +44,7 @@ static const char *policyd_address = "127.0.0.1";
 static const char *policyd_socket_type = "unix";
 static const char *policyd_socket_name = "/var/spool/postfix/private/policy.sock";
 static char **dspam_result_bl = NULL;
-static int policyd_bool = 1;
+static int policyd_bool = 0;
 static int dspam_result_bl_num = 0;
 static char **extra_args = NULL;
 static int extra_args_num = 0;
@@ -55,10 +57,15 @@ static int call_dspam(const char *signature, const char *from, const char *to, e
 	int pipes[2];
 
 	int sockfd;
-	char str[1024];
+	int fstbracket, scndbracket;
+	char str[4*BUFSIZE];
+	char tmp[BUFSIZE];
 	struct sockaddr_un serv_unix_addr;
 	struct sockaddr_in serv_inet_addr;
 	struct hostent *server;
+
+	memset(tmp, 0, BUFSIZE);
+	memset(str, 0, 4*BUFSIZE);
 
 	if (strcmp(policyd_socket_type, "unix") == 0) {
 
@@ -100,7 +107,11 @@ static int call_dspam(const char *signature, const char *from, const char *to, e
 		}
 	}
 
-	sprintf(str, "request=junk_policy\nsender=%s\nrecipient=%s\naction=%d\n\n", from, to, wanted);
+	fstbracket = strcspn (from,"<") + 1;
+	scndbracket = strcspn (from,">");
+	strncpy(tmp, from+fstbracket, scndbracket - fstbracket);
+
+	sprintf(str, "request=junk_policy\nsender=%s\nrecipient=%s\naction=%d\n\n", tmp, to, wanted);
 
 	if (send(sockfd, str, strlen(str), 0) < 0) {
 		debug("Socket send data problem");

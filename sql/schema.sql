@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS `white_list_users` (
   `address` varchar(128) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
   UNIQUE KEY `address` (`address`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=2 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=2 ;
 
 -- --------------------------------------------------------
 
@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS `white_list_addr` (
   `accept` varchar(255) NOT NULL DEFAULT 'OK',
   PRIMARY KEY (`id_wl_arrd`),
   UNIQUE KEY `mx_addr` (`mx_addr`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=3 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=3 ;
 
 -- --------------------------------------------------------
 
@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS `white_list_dns` (
   `accept` varchar(255) NOT NULL DEFAULT 'OK',
   PRIMARY KEY (`id_wl_dns`),
   UNIQUE KEY `dns` (`dns`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=3 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=3 ;
 
 -- --------------------------------------------------------
 
@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS `white_list_mail` (
   `accept` varchar(255) NOT NULL DEFAULT 'OK',
   PRIMARY KEY (`id_wl_mail`),
   UNIQUE (`user_id`, `mail`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=9 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=9 ;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

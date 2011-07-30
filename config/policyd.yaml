@@ -1,15 +1,15 @@
 #Зададим MySQL базу и таблицу в ней
 mysql:
-  host: 172.27.1.2
+  host: 127.0.0.1
   port: 3306
-  user: mail_ext
-  password: prevedpochta
-  dbname: mail_ext
+  user: postfix
+  password: 5xMZosHi
+  dbname: mail
   pool: 10
 
 system:
-  user: gyrt
-  group: gyrt
+  user: postfix
+  group: 
 
 network:
   type: unix

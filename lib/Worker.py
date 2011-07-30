@@ -24,28 +24,28 @@
 import threading, sys, Connection, PySQLPool, Init, time
 
 class WorkerTread(threading.Thread):
-	def __init__(self, oConn, aFilters, sDefaultAnswer, oSqlPool, Debug = False):
+	def __init__(self, Conn, Filters, DefaultAnswer, SqlPool, Debug = False):
 		threading.Thread.__init__(self)
 		self.Debug = Debug
 		self.daemon = True
-		self.sDefaultAnswer = sDefaultAnswer
-		self.oSocket = oConn
-		self.oSqlPool = oSqlPool
-		self.aFilters = aFilters
+		self.DefaultAnswer = DefaultAnswer
+		self.Socket = Conn
+		self.SqlPool = SqlPool
+		self.Filters = Filters
 		if self.Debug:
 			self.starttime = time.time()
 
 	def run(self):
-		with Connection.Connection(self.oSocket, self.name, self.Debug) as conn:
+		with Connection.Connection(self.Socket, self.name, self.Debug) as conn:
 			while conn.get_message():
 
-				Answer = self.sDefaultAnswer
+				Answer = self.DefaultAnswer
 
 				if conn["sender"] != "" and conn["recipient"] != "":
 					if self.Debug:
 						print "Mail from {0} to {1} with SASL: {2}".format(conn["sender"], conn["recipient"], conn["sasl_username"])
-					for oFilter in self.aFilters:
-						Tmp = oFilter.check(conn)
+					for Filter in self.Filters:
+						Tmp = Filter.check(conn)
 						if Tmp:
 							break
 
@@ -55,8 +55,9 @@ class WorkerTread(threading.Thread):
 					if self.Debug:
 						print "Answer was: {0}".format(Answer)
 
-				if Data["request"] == "smtpd_access_policy":
+				if conn["request"] == "smtpd_access_policy":
 					conn.answer(Answer)
+
 				PySQLPool.cleanupPool()
 
 		if self.Debug:

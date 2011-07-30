@@ -31,8 +31,8 @@ def main():
 	import Analyse, Config, Init, Connection, Policy, Worker, Logger, PySQLPool
 	Config = Config.Config()
 
-	signal.signal(signal.SIGTERM, lambda x, y: Init.fSIGINThandler(oConfig.get("argv_pid", "/tmp/policyd.pid"), x, y))
-	signal.signal(signal.SIGINT, lambda x, y: Init.fSIGINThandler(oConfig.get("argv_pid", "/tmp/policyd.pid"), x, y))
+	signal.signal(signal.SIGTERM, lambda x, y: Init.fSIGINThandler(Config.get("argv_pid", "/tmp/policyd.pid"), x, y))
+	signal.signal(signal.SIGINT, lambda x, y: Init.fSIGINThandler(Config.get("argv_pid", "/tmp/policyd.pid"), x, y))
 	signal.signal(signal.SIGHUP, signal.SIG_IGN)
 
 	Init.baseinit(Config)

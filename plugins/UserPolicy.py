@@ -24,7 +24,7 @@
 import Policy, threading, PySQLPool, subprocess
 
 def loadsql(SqlPool):
-	Sql_1 = "SELECT `id`,`address` FROM `white_list_users`"
+	Sql_1 = "SELECT `id`,`username` FROM `users`"
 	Sql_2 = "SELECT `user_id`, `mail`, `accept` FROM `white_list_mail`"
 
 	Res={}
@@ -33,9 +33,9 @@ def loadsql(SqlPool):
 	query = PySQLPool.getNewQuery(SqlPool, True)
 	query.Query(Sql_1)
 	for row in query.record:
-		Tmp = row["address"].lower()
+		Tmp = row["username"].lower()
 		Users[str(int(row["id"]))] = Tmp
-		Res[sTmp] = {}
+		Res[Tmp] = {}
 
 	query.Query(Sql_2)
 	for row in query.record:
@@ -49,7 +49,7 @@ def addrule(Data, SqlPool, Answer = "OK"):
 	if Data["sasl_username"] != "" and Data["sender"] != "" and Data["recipient"] != "":
 		#print "Start train sqlfunc"
 		#print oData
-		Sql_1 = "SELECT `id` FROM `white_list_users` WHERE `address` LIKE '{0}'"
+		Sql_1 = "SELECT `id` FROM `users` WHERE `username` LIKE '{0}'"
 		Sql_2 = "INSERT IGNORE INTO `white_list_mail` VALUES(NULL, {0}, '{1}', '{2}')"
 
 		query = PySQLPool.getNewQuery(SqlPool, True)
@@ -59,10 +59,10 @@ def addrule(Data, SqlPool, Answer = "OK"):
 		except IndexError as Err:
 			return None
 		#print "sTmp in sql func: ", sTmp
-		query.Query(sSql_2.format(Tmp, Data["recipient"], Answer))
+		query.Query(Sql_2.format(Tmp, Data["recipient"], Answer))
 
 def delrule(Data, SqlPool):
-	Sql_1 = "SELECT `id` FROM `white_list_users` WHERE `address` LIKE '{0}'"
+	Sql_1 = "SELECT `id` FROM `users` WHERE `username` LIKE '{0}'"
 	Sql_2 = "DELETE `white_list_mail` WHERE `user_id` = '{0}' AND `mail` = '{1}'"
 	if Data["sender"] != "" and Data["recipient"] != "":
 		query = PySQLPool.getNewQuery(SqlPool, True)
@@ -83,7 +83,7 @@ class UserPolicy(Policy.Policy):
 	def check(self, Data):
 		if Data["request"] == "smtpd_access_policy":
 			if Data["sasl_username"] == "":
-				sSender = Data["sender"]
+				Sender = Data["sender"]
 				Recipient = self._postalias(Data["recipient"])
 				Answer = self._strict_check(Data["recipient"], Sender)
 				if Answer:
@@ -145,10 +145,14 @@ class UserPolicy(Policy.Policy):
 		return Conf
 
 	def train(self, Data, Answer = "OK"):
-		Tmp = self._strict_train(Data["sender"], Data["recipient"], Answer)
+		Tmp = self._strict_train(Data , Answer)
 		return Tmp
 
-	def _strict_train(self, Sender, Recipient, Answer = "OK"):
+	def _strict_train(self, Data, Answer = "OK"):
+
+		Recipient = Data["recipient"]
+		Sender = Data["sender"]
+
 		with self.mutex:
 			if Recipient != "" and Sender != "":
 				if not self.Data.has_key(Sender): self.Data[Sender] = {}
@@ -157,7 +161,11 @@ class UserPolicy(Policy.Policy):
 					self.Data[Sender][Recipient] = Answer
 		return None
 
-	def _strict_del(self, Sender, Recipient):
+	def _strict_del(self, Data):
+
+		Recipient = Data["recipient"]
+		Sender = Data["sender"]
+
 		with self.mutex:
 			if Recipient != "" and Sender != "":
 				if not self.Data.has_key(Sender): self.Data[Sender] = {}

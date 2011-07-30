@@ -120,7 +120,7 @@ class Connection(dict):
 		Data = self._fReadSocket()
 		if not Data: return False
 		for key in self._ArrayOfRegexps:
-			Tmp = self._ArrayOfRegexps[key].findall(sData)
+			Tmp = self._ArrayOfRegexps[key].findall(Data)
 			if len(Tmp) > 0:
 				self[key] = Tmp[0].lower()
 			else:
