@@ -56,7 +56,7 @@ int signature_extract_to_list(struct mailbox_transaction_context *t,
 		if (!signature_nosig_ignore) {
 			mail_storage_set_error(t->box->storage,
 					       ME(NOTPOSSIBLE)
-					       "antispam signature not found");
+					       "recipient not found");
 			return -1;
 		} else {
 			return 0;
@@ -67,7 +67,7 @@ int signature_extract_to_list(struct mailbox_transaction_context *t,
 		if (!signature_nosig_ignore) {
 			mail_storage_set_error(t->box->storage,
 					       ME(NOTPOSSIBLE)
-					       "antispam signature not found");
+					       "sender not found");
 			return -1;
 		} else {
 			return 0;
@@ -76,10 +76,10 @@ int signature_extract_to_list(struct mailbox_transaction_context *t,
 
 	while (signatures[1])
 		signatures++;
-		
+
 	//while (from[1])
 	//	from++;
-	
+
 	//while (to[1])
 	//	to++;
 

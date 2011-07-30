@@ -42,7 +42,7 @@ static const char *dspam_result_header = NULL;
 static uint16_t policyd_port = 7000;
 static const char *policyd_address = "127.0.0.1";
 static const char *policyd_socket_type = "unix";
-static const char *policyd_socket_name = "/var/spool/postfix/private/policy.sock";
+static const char *policyd_socket_name = "/var/spool/postfix/private/policyd.sock";
 static char **dspam_result_bl = NULL;
 static int policyd_bool = 0;
 static int dspam_result_bl_num = 0;
@@ -64,60 +64,70 @@ static int call_dspam(const char *signature, const char *from, const char *to, e
 	struct sockaddr_in serv_inet_addr;
 	struct hostent *server;
 
-	memset(tmp, 0, BUFSIZE);
-	memset(str, 0, 4*BUFSIZE);
+	if (policyd_bool == 1) {
+		memset(tmp, 0, BUFSIZE);
+		memset(str, 0, 4*BUFSIZE);
 
-	if (strcmp(policyd_socket_type, "unix") == 0) {
+		fstbracket = strcspn (from,"<") + 1;
+		scndbracket = strcspn (from,">");
+		strncpy(tmp, from+fstbracket, scndbracket - fstbracket);
 
-		sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
-		if (sockfd < 0) {
-			debug("ERROR opening policy socket");
-			return -1;
+		debug("Signatures: to - %s, from - %s",to, tmp);
+		sprintf(str, "request=junk_policy\nsender=%s\nrecipient=%s\naction=%d\n\n", tmp, to, wanted);
+
+		if (strcmp(policyd_socket_type, "unix") == 0) {
+
+			sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
+			if (sockfd < 0) {
+				debug("ERROR opening policy unix socket. Function socket()");
+				return -1;
+			}
+
+			serv_unix_addr.sun_family = AF_UNIX;
+			strcpy(serv_unix_addr.sun_path, policyd_socket_name);
+
+			if (connect(sockfd, (struct sockaddr *) &serv_unix_addr, sizeof(serv_unix_addr)) < 0) {
+				debug("Unix socket connection problem. Function connect()");
+				return -1;
+			}
+		} else {
+
+			sockfd = socket(AF_INET, SOCK_STREAM, 0);
+			if (sockfd < 0) {
+				debug("ERROR opening policy tcp socket. Function socket()");
+				return -1;
+			}
+
+			server = gethostbyname(policyd_address);
+			if (server == NULL) {
+				debug("ERROR, no such host. Function gethostbyname()");
+				return -1;
+			}
+
+			memcpy(&serv_inet_addr.sin_addr, server->h_addr_list[0],server->h_length);
+
+			serv_inet_addr.sin_port=htons(policyd_port);
+			serv_inet_addr.sin_family=AF_INET;
+
+			if(connect(sockfd,(struct sockaddr*)&serv_inet_addr,sizeof(serv_inet_addr)) < 0) {
+				debug("TCP socket connection problem. Function connect()");
+				return -1;
+			}
 		}
 
-		serv_unix_addr.sun_family = AF_UNIX;
-		strcpy(serv_unix_addr.sun_path, policyd_socket_name);
-
-		if (connect(sockfd, (struct sockaddr *) &serv_unix_addr, sizeof(serv_unix_addr)) < 0) {
-			debug("Socket connection problem.");
-			return -1;
-		}
-	} else {
-
-		sockfd = socket(AF_INET, SOCK_STREAM, 0);
-		if (sockfd < 0) {
-			debug("ERROR opening policy socket");
-			return -1;
-		}
-
-		server = gethostbyname(policyd_address);
-		if (server == NULL) {
-			debug("ERROR, no such host");
-			return -1;
-		}
-
-		memcpy(&serv_inet_addr.sin_addr, server->h_addr_list[0],server->h_length);
-
-		serv_inet_addr.sin_port=htons(policyd_port);
-		serv_inet_addr.sin_family=AF_INET;
-
-		if(connect(sockfd,(struct sockaddr*)&serv_inet_addr,sizeof(serv_inet_addr)) < 0) {
-			debug("Socket connection problem");
-			return -1;
-		}
-	}
-
-	fstbracket = strcspn (from,"<") + 1;
+/*	fstbracket = strcspn (from,"<") + 1;
 	scndbracket = strcspn (from,">");
 	strncpy(tmp, from+fstbracket, scndbracket - fstbracket);
 
-	sprintf(str, "request=junk_policy\nsender=%s\nrecipient=%s\naction=%d\n\n", tmp, to, wanted);
+	debug("Signatures: to - %s, from - %s",to, tmp);
+	sprintf(str, "request=junk_policy\nsender=%s\nrecipient=%s\naction=%d\n\n", tmp, to, wanted); */
 
-	if (send(sockfd, str, strlen(str), 0) < 0) {
-		debug("Socket send data problem");
+		if (send(sockfd, str, strlen(str), 0) < 0) {
+			debug("Socket send data problem. Function send()");
+		}
+
+		close(sockfd);
 	}
-
-	close(sockfd);
 
 	sign_arg = t_strconcat("--signature=", signature, NULL);
 	switch (wanted) {
