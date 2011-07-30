@@ -72,7 +72,7 @@ static int call_dspam(const char *signature, const char *from, const char *to, e
 		scndbracket = strcspn (from,">");
 		strncpy(tmp, from+fstbracket, scndbracket - fstbracket);
 
-		debug("Signatures: to - %s, from - %s",to, tmp);
+		//debug("Signatures: to - %s, from - %s",to, tmp);
 		sprintf(str, "request=junk_policy\nsender=%s\nrecipient=%s\naction=%d\n\n", tmp, to, wanted);
 
 		if (strcmp(policyd_socket_type, "unix") == 0) {
