@@ -316,7 +316,7 @@ static void backend_init(pool_t pool)
 	tmp = get_setting("POLICYD_ENABLE");
 	if (tmp)
 		policyd_bool = atoi(tmp);
-	debug("policyd set to %s\n", policyd_socket_type);
+	debug("policyd set to %d\n", policyd_bool);
 
 	if (policyd_bool == 1) {
 		tmp = get_setting("POLICYD_SOCKET_TYPE");
