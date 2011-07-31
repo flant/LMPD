@@ -57,7 +57,7 @@ static int call_dspam(const char *signature, const char *from, const char *to, e
 	int pipes[2];
 
 	int sockfd;
-	int fstbracket, scndbracket;
+	size_t fstbracket, scndbracket;
 	char str[4*BUFSIZE];
 	char tmp[BUFSIZE];
 	struct sockaddr_un serv_unix_addr;
@@ -70,9 +70,20 @@ static int call_dspam(const char *signature, const char *from, const char *to, e
 
 		fstbracket = strcspn (from,"<") + 1;
 		scndbracket = strcspn (from,">");
+
+		if ((scndbracket - fstbracket - 1) > BUFSIZE) {
+			debug("Too long 'from' field for tmp buffer with size %d", BUFSIZE);
+			return -1;
+		}
+
 		strncpy(tmp, from+fstbracket, scndbracket - fstbracket);
 
-		//debug("Signatures: to - %s, from - %s",to, tmp);
+		if ((strlen(tmp) + strlen(to) + 1 + 46) > 4*BUFSIZE) {
+			//46 - size of sprintf template
+			debug("Too long string for str buffer with size %d", 4*BUFSIZE);
+                        return -1;
+		}
+
 		sprintf(str, "request=junk_policy\nsender=%s\nrecipient=%s\naction=%d\n\n", tmp, to, wanted);
 
 		if (strcmp(policyd_socket_type, "unix") == 0) {
