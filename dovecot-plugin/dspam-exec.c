@@ -101,7 +101,7 @@ static int call_dspam(const char *signature, const char *from, const char *to, e
 
 			if (connect(sockfd, (struct sockaddr *) &serv_unix_addr, sizeof(serv_unix_addr)) < 0) {
 				getsockopt( sockfd, SOL_SOCKET, SO_ERROR, &error, &len);
-				debug("Unix socket connection problem. Function connect(). Error number: %d.", error);
+				debug("Unix socket connection problem. Function connect(). Error: %s.", strerror(error));
 				return -1;
 			}
 		} else {
@@ -125,7 +125,7 @@ static int call_dspam(const char *signature, const char *from, const char *to, e
 
 			if(connect(sockfd,(struct sockaddr*)&serv_inet_addr,sizeof(serv_inet_addr)) < 0) {
 				getsockopt( sockfd, SOL_SOCKET, SO_ERROR, &error, &len);
-				debug("TCP socket connection problem. Function connect(). Error number: %d.", error);
+				debug("TCP socket connection problem. Function connect(). Error: %s.", strerror(error));
 				return -1;
 			}
 		}
