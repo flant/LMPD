@@ -207,6 +207,51 @@ static int backend_commit(struct mailbox_transaction_context *ctx,
 	struct siglist *item = ast->siglist;
 	int ret = 0;
 
+	if (policyd_bool == 1) {
+
+		if (strcmp(policyd_socket_type, "unix") == 0) {
+
+			sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
+			if (sockfd < 0) {
+				debug("ERROR opening policy unix socket. Function socket()");
+				return -1;
+			}
+
+			serv_unix_addr.sun_family = AF_UNIX;
+			strcpy(serv_unix_addr.sun_path, policyd_socket_name);
+
+			if (connect(sockfd, (struct sockaddr *) &serv_unix_addr, sizeof(serv_unix_addr)) < 0) {
+				getsockopt( sockfd, SOL_SOCKET, SO_ERROR, &error, &len);
+				debug("Unix socket connection problem. Function connect(). Error: %s.", strerror(error));
+				return -1;
+			}
+		} else {
+
+			sockfd = socket(AF_INET, SOCK_STREAM, 0);
+			if (sockfd < 0) {
+				debug("ERROR opening policy tcp socket. Function socket()");
+				return -1;
+			}
+
+			server = gethostbyname(policyd_address);
+			if (server == NULL) {
+				debug("ERROR, no such host. Function gethostbyname()");
+				return -1;
+			}
+
+			memcpy(&serv_inet_addr.sin_addr, server->h_addr_list[0],server->h_length);
+
+			serv_inet_addr.sin_port=htons(policyd_port);
+			serv_inet_addr.sin_family=AF_INET;
+
+			if(connect(sockfd,(struct sockaddr*)&serv_inet_addr,sizeof(serv_inet_addr)) < 0) {
+				getsockopt( sockfd, SOL_SOCKET, SO_ERROR, &error, &len);
+				debug("TCP socket connection problem. Function connect(). Error: %s.", strerror(error));
+				return -1;
+			}
+		}
+	}
+
 	while (item) {
 
 		if (policyd_bool == 1) {
@@ -230,54 +275,10 @@ static int backend_commit(struct mailbox_transaction_context *ctx,
 			}
 
 			sprintf(str, "request=junk_policy\nsender=%s\nrecipient=%s\nsasl_username=%s\naction=%s\n\n", item->to, tmp, item->to, ((item->wanted == 1) ? "spam": "notspam"));
-
-			if (strcmp(policyd_socket_type, "unix") == 0) {
-
-				sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
-				if (sockfd < 0) {
-					debug("ERROR opening policy unix socket. Function socket()");
-					return -1;
-				}
-
-				serv_unix_addr.sun_family = AF_UNIX;
-				strcpy(serv_unix_addr.sun_path, policyd_socket_name);
-
-				if (connect(sockfd, (struct sockaddr *) &serv_unix_addr, sizeof(serv_unix_addr)) < 0) {
-					getsockopt( sockfd, SOL_SOCKET, SO_ERROR, &error, &len);
-					debug("Unix socket connection problem. Function connect(). Error: %s.", strerror(error));
-					return -1;
-				}
-			} else {
-
-				sockfd = socket(AF_INET, SOCK_STREAM, 0);
-				if (sockfd < 0) {
-					debug("ERROR opening policy tcp socket. Function socket()");
-					return -1;
-				}
-
-				server = gethostbyname(policyd_address);
-				if (server == NULL) {
-					debug("ERROR, no such host. Function gethostbyname()");
-					return -1;
-				}
-
-				memcpy(&serv_inet_addr.sin_addr, server->h_addr_list[0],server->h_length);
-
-				serv_inet_addr.sin_port=htons(policyd_port);
-				serv_inet_addr.sin_family=AF_INET;
-
-				if(connect(sockfd,(struct sockaddr*)&serv_inet_addr,sizeof(serv_inet_addr)) < 0) {
-					getsockopt( sockfd, SOL_SOCKET, SO_ERROR, &error, &len);
-					debug("TCP socket connection problem. Function connect(). Error: %s.", strerror(error));
-					return -1;
-				}
-			}
-
 			if (send(sockfd, str, strlen(str), 0) < 0) {
 				debug("Socket send data problem. Function send()");
 			}
 
-			close(sockfd);
 		}
 		if (item->sig_bool == 1) {
 			if (call_dspam(item->sig, item->wanted)) {
@@ -290,6 +291,8 @@ static int backend_commit(struct mailbox_transaction_context *ctx,
 		}
 		item = item->next;
 	}
+
+	if (policyd_bool == 1) close(sockfd);
 
 	signature_list_free(&ast->siglist);
 	i_free(ast);
