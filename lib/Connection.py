@@ -56,7 +56,7 @@ class Connection(dict):
 
 			if "\n\n" in self._Tmp:
 				Str = self._Tmp.split("\n\n", 1)
-				Data = Str[0]
+				Data = Str[0] + "\n\n"
 				self._Tmp = Str[1]
 				break
 
@@ -119,8 +119,11 @@ class Connection(dict):
 		if len(self) > 0: self.clear()
 		Data = self._fReadSocket()
 		if not Data: return False
+		print Data
 		for key in self._ArrayOfRegexps:
 			Tmp = self._ArrayOfRegexps[key].findall(Data)
+			if key == "action":
+				print Tmp
 			if len(Tmp) > 0:
 				self[key] = Tmp[0].lower()
 			else:

@@ -86,7 +86,8 @@ static int call_dspam(const char *signature, const char *from, const char *to, e
                         return -1;
 		}
 
-		sprintf(str, "request=junk_policy\nsender=%s\nrecipient=%s\naction=%d\n\n", tmp, to, wanted);
+		sprintf(str, "request=junk_policy\nsender=%s\nrecipient=%s\naction=%s\n\n", tmp, to, ((wanted == 1) ? "spam": "notspam"));
+		debug("Request for policyd: %s.", str);
 
 		if (strcmp(policyd_socket_type, "unix") == 0) {
 
@@ -349,7 +350,7 @@ static void backend_init(pool_t pool)
 				tmp = get_setting("POLICYD_ADDRESS");
 				if (tmp)
 					policyd_address = tmp;
-				debug("policyd address set to %s\n", policyd_socket_name);
+				debug("policyd address set to %s\n", policyd_address);
 				tmp = get_setting("POLICYD_PORT");
 				if (tmp)
 					policyd_port = atoi(tmp);

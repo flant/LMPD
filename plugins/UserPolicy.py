@@ -105,11 +105,13 @@ class UserPolicy(Policy.Policy):
 				self.train(Data)
 				return None
 		elif Data["request"] == "junk_policy":
-			if Data["action"] == "0":
+			print Data
+			if Data["action"] == "notspam":
 				if not self._strict_check(Data["recipient"], Data["sender"]):
-					self._strict_train(Data["recipient"], Data["sender"])
-			elif Data["action"] == "1":
-					self._strict_del(Data["recipient"], Data["sender"])
+					self._strict_train(Data)
+			elif Data["action"] == "spam":
+				if self._strict_check(Data["recipient"], Data["sender"]):
+					self._strict_del(Data)
 			else:
 				return None
 		else:
@@ -169,7 +171,7 @@ class UserPolicy(Policy.Policy):
 		with self.mutex:
 			if Recipient != "" and Sender != "":
 				if not self.Data.has_key(Sender): self.Data[Sender] = {}
-				if not self.Data[Sender].has_key(Recipient):
+				if self.Data[Sender].has_key(Recipient):
 					delrule(Data, self.SqlPool)
 					del self.Data[Sender][Recipient]
 		return None
