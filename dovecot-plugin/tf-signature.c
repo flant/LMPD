@@ -5,6 +5,8 @@
 #include "mail-storage-private.h"
 
 const char *signature_hdr = "X-DSPAM-Signature";
+const char *from_hdr = "From";
+const char *to_hdr = "Delivered-To";
 static int signature_nosig_ignore = 0;
 
 void signature_init(void)
@@ -30,14 +32,46 @@ int signature_extract_to_list(struct mailbox_transaction_context *t,
 			      enum classification wanted)
 {
 	const char *const *signatures;
+
+	const char *const *from;
+	const char *const *to;
+	uint8_t sig_bool;
+
 	struct siglist *item;
 
-	signatures = get_mail_headers(mail, signature_hdr);
+	signatures = get_mail_headers(mail, signature_hdr); //Reference to this func
+	from = get_mail_headers(mail, from_hdr);
+	to = get_mail_headers(mail, to_hdr);
 	if (!signatures || !signatures[0]) {
-		if (!signature_nosig_ignore) {
+/*		if (!signature_nosig_ignore) {
 			mail_storage_set_error(t->box->storage,
 					       ME(NOTPOSSIBLE)
 					       "antispam signature not found");
+			return -1;
+		} else {
+			return 0;
+		} */
+		sig_bool = 0;
+	} else {
+		sig_bool = 1;
+	}
+
+	if (!to || !to[0]) {
+		if (!signature_nosig_ignore) {
+			mail_storage_set_error(t->box->storage,
+					       ME(NOTPOSSIBLE)
+					       "recipient not found");
+			return -1;
+		} else {
+			return 0;
+		}
+	}
+
+	if (!from || !from[0]) {
+		if (!signature_nosig_ignore) {
+			mail_storage_set_error(t->box->storage,
+					       ME(NOTPOSSIBLE)
+					       "sender not found");
 			return -1;
 		} else {
 			return 0;
@@ -47,10 +81,19 @@ int signature_extract_to_list(struct mailbox_transaction_context *t,
 	while (signatures[1])
 		signatures++;
 
+	//while (from[1])
+	//	from++;
+
+	//while (to[1])
+	//	to++;
+
 	item = i_new(struct siglist, 1);
 	item->next = *list;
 	item->wanted = wanted;
 	item->sig = i_strdup(signatures[0]);
+	item->from = i_strdup(from[0]);
+	item->sig_bool = sig_bool;
+	item->to = i_strdup(to[0]);
 
 	*list = item;
 
@@ -63,6 +106,7 @@ int signature_extract(struct mailbox_transaction_context *t,
 	const char *const *signatures;
 
 	signatures = get_mail_headers(mail, signature_hdr);
+
 	if (!signatures || !signatures[0]) {
 		if (!signature_nosig_ignore) {
 			mail_storage_set_error(t->box->storage,
@@ -94,6 +138,8 @@ void signature_list_free(struct siglist **list)
 	while (item) {
 		next = item->next;
 		i_free(item->sig);
+		i_free(item->from);
+		i_free(item->to);
 		i_free(item);
 		item = next;
 		if (item)

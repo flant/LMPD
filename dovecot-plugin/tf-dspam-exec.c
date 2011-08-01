@@ -22,16 +22,29 @@
 #include <stdlib.h>
 #include <sys/wait.h>
 #include <fcntl.h>
-
+#include <sys/types.h>
+#include <sys/un.h>
+#include <sys/socket.h>
+#include <string.h>
+#include <stdio.h>
+#include <netinet/in.h>
+#include <netdb.h>
 #include "lib.h"
 #include "mail-storage-private.h"
 
 #include "antispam-plugin.h"
 #include "signature.h"
 
+#define BUFSIZE 1024
+
 static const char *dspam_binary = "/usr/bin/dspam";
 static const char *dspam_result_header = NULL;
+static uint16_t policyd_port = 7000;
+static const char *policyd_address = "127.0.0.1";
+static const char *policyd_socket_type = "unix";
+static const char *policyd_socket_name = "/var/spool/postfix/private/policyd.sock";
 static char **dspam_result_bl = NULL;
+static int policyd_bool = 0;
 static int dspam_result_bl_num = 0;
 static char **extra_args = NULL;
 static int extra_args_num = 0;
@@ -180,19 +193,106 @@ static void backend_rollback(struct antispam_transaction_context *ast)
 static int backend_commit(struct mailbox_transaction_context *ctx,
 			  struct antispam_transaction_context *ast)
 {
+
+	int sockfd;
+	int error;
+	socklen_t len = sizeof(error);
+	size_t fstbracket, scndbracket;
+	char str[4*BUFSIZE];
+	char tmp[BUFSIZE];
+	struct sockaddr_un serv_unix_addr;
+	struct sockaddr_in serv_inet_addr;
+	struct hostent *server;
+
 	struct siglist *item = ast->siglist;
 	int ret = 0;
 
+	if (policyd_bool == 1) {
+
+		if (strcmp(policyd_socket_type, "unix") == 0) {
+
+			sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
+			if (sockfd < 0) {
+				debug("ERROR opening policy unix socket. Function socket()");
+				return -1;
+			}
+
+			serv_unix_addr.sun_family = AF_UNIX;
+			strcpy(serv_unix_addr.sun_path, policyd_socket_name);
+
+			if (connect(sockfd, (struct sockaddr *) &serv_unix_addr, sizeof(serv_unix_addr)) < 0) {
+				getsockopt( sockfd, SOL_SOCKET, SO_ERROR, &error, &len);
+				debug("Unix socket connection problem. Function connect(). Error: %s.", strerror(error));
+				return -1;
+			}
+		} else {
+
+			sockfd = socket(AF_INET, SOCK_STREAM, 0);
+			if (sockfd < 0) {
+				debug("ERROR opening policy tcp socket. Function socket()");
+				return -1;
+			}
+
+			server = gethostbyname(policyd_address);
+			if (server == NULL) {
+				debug("ERROR, no such host. Function gethostbyname()");
+				return -1;
+			}
+
+			memcpy(&serv_inet_addr.sin_addr, server->h_addr_list[0],server->h_length);
+
+			serv_inet_addr.sin_port=htons(policyd_port);
+			serv_inet_addr.sin_family=AF_INET;
+
+			if(connect(sockfd,(struct sockaddr*)&serv_inet_addr,sizeof(serv_inet_addr)) < 0) {
+				getsockopt( sockfd, SOL_SOCKET, SO_ERROR, &error, &len);
+				debug("TCP socket connection problem. Function connect(). Error: %s.", strerror(error));
+				return -1;
+			}
+		}
+	}
+
 	while (item) {
-		if (call_dspam(item->sig, item->wanted)) {
-			ret = -1;
-			mail_storage_set_error(ctx->box->storage,
-					       ME(NOTPOSSIBLE)
-					       "Failed to call dspam");
-			break;
+
+		if (policyd_bool == 1) {
+			memset(tmp, 0, BUFSIZE);
+			memset(str, 0, 4*BUFSIZE);
+
+			fstbracket = strcspn (item->from,"<") + 1;
+			scndbracket = strcspn (item->from,">");
+
+			if ((scndbracket - fstbracket - 1) > BUFSIZE) {
+				debug("Too long 'from' field for tmp buffer with size %d", BUFSIZE);
+				return -1;
+			}
+
+			strncpy(tmp, item->from+fstbracket, scndbracket - fstbracket);
+
+			if ((strlen(tmp) + strlen(item->to) + 1 + 70) > 4*BUFSIZE) {
+				//70 - size of sprintf template
+				debug("Too long string for str buffer with size %d", 4*BUFSIZE);
+				return -1;
+			}
+
+			sprintf(str, "request=junk_policy\nsender=%s\nrecipient=%s\nsasl_username=%s\naction=%s\n\n", item->to, tmp, item->to, ((item->wanted == 1) ? "spam": "notspam"));
+			if (send(sockfd, str, strlen(str), 0) < 0) {
+				debug("Socket send data problem. Function send()");
+			}
+
+		}
+		if (item->sig_bool == 1) {
+			if (call_dspam(item->sig, item->wanted)) {
+				ret = -1;
+				mail_storage_set_error(ctx->box->storage,
+							ME(NOTPOSSIBLE)
+							"Failed to call dspam");
+				break;
+			}
 		}
 		item = item->next;
 	}
+
+	if (policyd_bool == 1) close(sockfd);
 
 	signature_list_free(&ast->siglist);
 	i_free(ast);
@@ -226,6 +326,39 @@ static void backend_init(pool_t pool)
 {
 	const char *tmp;
 	int i;
+
+	tmp = get_setting("POLICYD_ENABLE");
+	if (tmp)
+		policyd_bool = atoi(tmp);
+	debug("policyd set to %d\n", policyd_bool);
+
+	if (policyd_bool == 1) {
+		tmp = get_setting("POLICYD_SOCKET_TYPE");
+		if (tmp)
+			policyd_socket_type = tmp;
+		debug("policyd socket type set to %s\n", policyd_socket_type);
+
+		if (strcmp(policyd_socket_type, "unix") == 0) {
+			tmp = get_setting("POLICYD_SOCKET_NAME");
+			if (tmp)
+				policyd_socket_name = tmp;
+			debug("policyd socket set to %s\n", policyd_socket_name);
+		} else {
+			if (strcmp(policyd_socket_type, "tcp") == 0) {
+				tmp = get_setting("POLICYD_ADDRESS");
+				if (tmp)
+					policyd_address = tmp;
+				debug("policyd address set to %s\n", policyd_address);
+				tmp = get_setting("POLICYD_PORT");
+				if (tmp)
+					policyd_port = atoi(tmp);
+				debug("policyd port set to %d\n", policyd_port);
+			} else {
+				policyd_bool = 0;
+				debug("policyd set to %d\n", policyd_bool);
+			}
+		}
+	}
 
 	tmp = get_setting("DSPAM_BINARY");
 	if (tmp)
