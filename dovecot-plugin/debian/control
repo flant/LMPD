@@ -1,0 +1,29 @@
+Source: dovecot-antispam
+Section: mail
+Priority: optional
+Maintainer: Ron Lee <ron@debian.org>
+Build-Depends: debhelper (>= 5), dovecot-dev
+Standards-Version: 3.8.2.0
+Homepage: http://johannes.sipsolutions.net/Projects/dovecot-antispam
+Vcs-Git: git://git.debian.org/users/ron/dovecot-antispam.git
+Vcs-Browser: http://git.debian.org/?p=users/ron/dovecot-antispam.git;a=summary
+
+Package: dovecot-antispam
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, dovecot-imapd
+Description: a Dovecot plugin that helps train spam filters
+ dovecot-antispam provides a plugin for the Dovecot IMAP server that
+ helps train spam filters. It watches designated spam folders and
+ trains mail as spam or non-spam when it moves in or out of those
+ folders respectively.  This avoids the problem of needing additional
+ folders to track correctly and incorrectly classified spam and non-spam.
+ .
+ dovecot-antispam supports dspam, crm114, and generic training by
+ mailing spam and non-spam to training addresses.  For crm114, it
+ supports folders for the additional "unsure" classification, and
+ trains when moving from there to spam or normal folders.
+ .
+ Note that dovecot-antispam needs the type of spam filter configured at
+ compile time.  It supports building with a custom name, specifically
+ to allow installing multiple variations simultaneously.  This package
+ is built to use the mailtrain backend.

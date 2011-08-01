@@ -1,0 +1,33 @@
+This package was debianized by Jonny Lamb <jonny@debian.org> on
+Wed, 18 Feb 2009 15:07:27 +0000.
+
+A tarball was created from a git snapshot of:
+ http://git.sipsolutions.net/dovecot-antispam.git
+
+Upstream Author:
+ Johannes Berg <johannes@sipsolutions.net>
+ Frank Cusack
+ Benedikt Boehm
+ Andreas Schneider
+
+Files: *
+Copyright:
+ Copyright 2004-2008 Johannes Berg <johannes@sipsolutions.net>
+ Copyright 2006 Frank Cusack
+License: GPL-2
+ On Debian systems, the complete text of the GNU General Public
+ License can be found in the file `/usr/share/common-licenses/GPL-2'.
+
+Files: antispam-storage-*
+Copyright:
+ Copyright 2007-2008 Johannes Berg <johannes@sipsolutions.net>
+ Copyright (C) 2005 Timo Sirainen
+License: GPL-2
+ On Debian systems, the complete text of the GNU General Public
+ License can be found in the file `/usr/share/common-licenses/GPL-2'.
+
+Files: debian/*
+Copyright: Copyright 2009 Jonny Lamb <jonny@debian.org>
+License: GPL-2
+ On Debian systems, the complete text of the GNU General Public
+ License can be found in the file `/usr/share/common-licenses/GPL-2'.
