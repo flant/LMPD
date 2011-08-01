@@ -116,18 +116,22 @@ class Connection(dict):
 			self.TmpLogFile.close()
 
 	def get_message(self):
+
 		if len(self) > 0: self.clear()
+
 		Data = self._fReadSocket()
+
 		if not Data: return False
-		print Data
+
 		for key in self._ArrayOfRegexps:
+
 			Tmp = self._ArrayOfRegexps[key].findall(Data)
-			if key == "action":
-				print Tmp
+
 			if len(Tmp) > 0:
 				self[key] = Tmp[0].lower()
 			else:
 				self[key] = ""
+
 		if self["request"] == "":
 			raise ConnectionError('No request in Data line')
 		return True

@@ -47,8 +47,7 @@ def loadsql(SqlPool):
 
 def addrule(Data, SqlPool, Answer = "OK"):
 	if Data["sasl_username"] != "" and Data["sender"] != "" and Data["recipient"] != "":
-		#print "Start train sqlfunc"
-		#print oData
+
 		Sql_1 = "SELECT `id` FROM `users` WHERE `username` LIKE '{0}'"
 		Sql_2 = "INSERT IGNORE INTO `white_list_mail` VALUES(NULL, {0}, '{1}', '{2}')"
 
@@ -58,21 +57,22 @@ def addrule(Data, SqlPool, Answer = "OK"):
 			Tmp = str(int(query.record[0]["id"]))
 		except IndexError as Err:
 			return None
-		#print "sTmp in sql func: ", sTmp
+
 		query.Query(Sql_2.format(Tmp, Data["recipient"], Answer))
 
 def delrule(Data, SqlPool):
 	Sql_1 = "SELECT `id` FROM `users` WHERE `username` LIKE '{0}'"
-	Sql_2 = "DELETE `white_list_mail` WHERE `user_id` = '{0}' AND `mail` = '{1}'"
+	Sql_2 = "DELETE FROM `white_list_mail` WHERE `user_id` = '{0}' AND `mail` = '{1}'"
+
 	if Data["sender"] != "" and Data["recipient"] != "":
 		query = PySQLPool.getNewQuery(SqlPool, True)
-		query.Query(Sql_1.format(Data["recipient"]))
+		query.Query(Sql_1.format(Data["sender"]))
 		try:
 			Tmp = str(int(query.record[0]["id"]))
 		except IndexError as Err:
 			return None
-		
-		query.Query(sSql_2.format(Tmp, Data["sender"]))
+
+		query.Query(Sql_2.format(Tmp, Data["recipient"]))
 
 class UserPolicy(Policy.Policy):
 	def __init__(self, Data, SqlPool):
@@ -105,12 +105,13 @@ class UserPolicy(Policy.Policy):
 				self.train(Data)
 				return None
 		elif Data["request"] == "junk_policy":
-			print Data
+
 			if Data["action"] == "notspam":
-				if not self._strict_check(Data["recipient"], Data["sender"]):
+				if not self._strict_check(Data["sender"], Data["recipient"]):
 					self._strict_train(Data)
+
 			elif Data["action"] == "spam":
-				if self._strict_check(Data["recipient"], Data["sender"]):
+				if self._strict_check(Data["sender"], Data["recipient"]):
 					self._strict_del(Data)
 			else:
 				return None
@@ -151,16 +152,19 @@ class UserPolicy(Policy.Policy):
 		return Tmp
 
 	def _strict_train(self, Data, Answer = "OK"):
-
+		print Data
 		Recipient = Data["recipient"]
 		Sender = Data["sender"]
 
 		with self.mutex:
 			if Recipient != "" and Sender != "":
 				if not self.Data.has_key(Sender): self.Data[Sender] = {}
+				
 				if not self.Data[Sender].has_key(Recipient):
+
 					addrule(Data, self.SqlPool, Answer)
 					self.Data[Sender][Recipient] = Answer
+
 		return None
 
 	def _strict_del(self, Data):
@@ -170,8 +174,10 @@ class UserPolicy(Policy.Policy):
 
 		with self.mutex:
 			if Recipient != "" and Sender != "":
+
 				if not self.Data.has_key(Sender): self.Data[Sender] = {}
 				if self.Data[Sender].has_key(Recipient):
+
 					delrule(Data, self.SqlPool)
 					del self.Data[Sender][Recipient]
 		return None

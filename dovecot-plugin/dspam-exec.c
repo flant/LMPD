@@ -80,13 +80,13 @@ static int call_dspam(const char *signature, const char *from, const char *to, e
 
 		strncpy(tmp, from+fstbracket, scndbracket - fstbracket);
 
-		if ((strlen(tmp) + strlen(to) + 1 + 46) > 4*BUFSIZE) {
-			//46 - size of sprintf template
+		if ((strlen(tmp) + strlen(to) + 1 + 70) > 4*BUFSIZE) {
+			//70 - size of sprintf template
 			debug("Too long string for str buffer with size %d", 4*BUFSIZE);
                         return -1;
 		}
 
-		sprintf(str, "request=junk_policy\nsender=%s\nrecipient=%s\naction=%s\n\n", tmp, to, ((wanted == 1) ? "spam": "notspam"));
+		sprintf(str, "request=junk_policy\nsender=%s\nrecipient=%s\nsasl_username=%s\naction=%s\n\n", to, tmp, to, ((wanted == 1) ? "spam": "notspam"));
 		debug("Request for policyd: %s.", str);
 
 		if (strcmp(policyd_socket_type, "unix") == 0) {
