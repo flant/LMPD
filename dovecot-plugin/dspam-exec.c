@@ -221,9 +221,9 @@ static int backend_commit(struct mailbox_transaction_context *ctx,
 				return -1;
 			}
 
-			strncpy(tmp, from+fstbracket, scndbracket - fstbracket);
+			strncpy(tmp, item->from+fstbracket, scndbracket - fstbracket);
 
-			if ((strlen(tmp) + strlen(to) + 1 + 70) > 4*BUFSIZE) {
+			if ((strlen(tmp) + strlen(item->to) + 1 + 70) > 4*BUFSIZE) {
 				//70 - size of sprintf template
 				debug("Too long string for str buffer with size %d", 4*BUFSIZE);
 				return -1;
