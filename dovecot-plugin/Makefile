@@ -24,7 +24,7 @@ INCS += -I$(DOVECOT)/src/imap/
 # output name
 LIBRARY_NAME ?= lib90_$(PLUGINNAME)_plugin.so
 objs = antispam-storage.o antispam-plugin.o debug.o
-objs += dspam-exec.o signature-log.o crm114-exec.o pipe.o spool2dir.o signature.o
+objs += dspam-exec.o signature-log.o crm114-exec.o pipe.o spool2dir.o signature.o tfdspam-exec.o tfsignature.o
 
 # main make rules
 LOCALCFLAGS += -fPIC -shared -Wall -Wextra -DPLUGINNAME=$(PLUGINNAME)

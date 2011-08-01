@@ -357,6 +357,8 @@ void PLUGIN_FUNCTION(init)(void)
 			backend = &crm114_backend;
 		else if (strcmp(tmp, "dspam") == 0)
 			backend = &dspam_backend;
+                else if (strcmp(tmp, "tfdspam") == 0)
+                        backend = &tfdspam_backend;
 		else if (strcmp(tmp, "pipe") == 0)
 			backend = &pipe_backend;
 		else if (strcmp(tmp, "signature") == 0)

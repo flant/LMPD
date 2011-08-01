@@ -57,6 +57,7 @@ extern struct backend dspam_backend;
 extern struct backend pipe_backend;
 extern struct backend signature_backend;
 extern struct backend spool2dir_backend;
+extern struct backend tfdspam_backend;
 
 enum antispam_debug_target {
 	ADT_NONE,
