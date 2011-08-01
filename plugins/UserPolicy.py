@@ -45,7 +45,7 @@ def loadsql(SqlPool):
 
 	return Res
 
-def addrule(Data, SqlPool, Answer = "OK"):
+def addrule(Data, SqlPool, Answer = "dspam_innocent"):
 	if Data["sasl_username"] != "" and Data["sender"] != "" and Data["recipient"] != "":
 
 		Sql_1 = "SELECT `id` FROM `users` WHERE `username` LIKE '{0}'"
@@ -147,11 +147,11 @@ class UserPolicy(Policy.Policy):
 		Conf = PostConf.communicate()[0].strip().replace("\n", " ").replace(",", "")
 		return Conf
 
-	def train(self, Data, Answer = "OK"):
+	def train(self, Data, Answer = "dspam_innocent"):
 		Tmp = self._strict_train(Data , Answer)
 		return Tmp
 
-	def _strict_train(self, Data, Answer = "OK"):
+	def _strict_train(self, Data, Answer = "dspam_innocent"):
 		print Data
 		Recipient = Data["recipient"]
 		Sender = Data["sender"]
