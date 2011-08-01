@@ -3,6 +3,7 @@
 
 #include "lib.h"
 #include "client.h"
+#include <stdint.h>
 
 #include "antispam-plugin.h"
 
@@ -11,6 +12,7 @@ struct siglist {
 	char *sig;
 	char *from;
 	char *to;
+	uint8_t sig_bool;
 	enum classification wanted;
 };
 

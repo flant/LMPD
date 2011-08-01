@@ -49,100 +49,12 @@ static int dspam_result_bl_num = 0;
 static char **extra_args = NULL;
 static int extra_args_num = 0;
 
-static int call_dspam(const char *signature, const char *from, const char *to, enum classification wanted)
+static int call_dspam(const char *signature, enum classification wanted)
 {
 	pid_t pid;
 	const char *class_arg;
 	const char *sign_arg;
 	int pipes[2];
-
-	int sockfd;
-	int error;
-	socklen_t len = sizeof(error);
-	size_t fstbracket, scndbracket;
-	char str[4*BUFSIZE];
-	char tmp[BUFSIZE];
-	struct sockaddr_un serv_unix_addr;
-	struct sockaddr_in serv_inet_addr;
-	struct hostent *server;
-
-	if (policyd_bool == 1) {
-		memset(tmp, 0, BUFSIZE);
-		memset(str, 0, 4*BUFSIZE);
-
-		fstbracket = strcspn (from,"<") + 1;
-		scndbracket = strcspn (from,">");
-
-		if ((scndbracket - fstbracket - 1) > BUFSIZE) {
-			debug("Too long 'from' field for tmp buffer with size %d", BUFSIZE);
-			return -1;
-		}
-
-		strncpy(tmp, from+fstbracket, scndbracket - fstbracket);
-
-		if ((strlen(tmp) + strlen(to) + 1 + 70) > 4*BUFSIZE) {
-			//70 - size of sprintf template
-			debug("Too long string for str buffer with size %d", 4*BUFSIZE);
-                        return -1;
-		}
-
-		sprintf(str, "request=junk_policy\nsender=%s\nrecipient=%s\nsasl_username=%s\naction=%s\n\n", to, tmp, to, ((wanted == 1) ? "spam": "notspam"));
-
-		if (strcmp(policyd_socket_type, "unix") == 0) {
-
-			sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
-			if (sockfd < 0) {
-				debug("ERROR opening policy unix socket. Function socket()");
-				return -1;
-			}
-
-			serv_unix_addr.sun_family = AF_UNIX;
-			strcpy(serv_unix_addr.sun_path, policyd_socket_name);
-
-			if (connect(sockfd, (struct sockaddr *) &serv_unix_addr, sizeof(serv_unix_addr)) < 0) {
-				getsockopt( sockfd, SOL_SOCKET, SO_ERROR, &error, &len);
-				debug("Unix socket connection problem. Function connect(). Error: %s.", strerror(error));
-				return -1;
-			}
-		} else {
-
-			sockfd = socket(AF_INET, SOCK_STREAM, 0);
-			if (sockfd < 0) {
-				debug("ERROR opening policy tcp socket. Function socket()");
-				return -1;
-			}
-
-			server = gethostbyname(policyd_address);
-			if (server == NULL) {
-				debug("ERROR, no such host. Function gethostbyname()");
-				return -1;
-			}
-
-			memcpy(&serv_inet_addr.sin_addr, server->h_addr_list[0],server->h_length);
-
-			serv_inet_addr.sin_port=htons(policyd_port);
-			serv_inet_addr.sin_family=AF_INET;
-
-			if(connect(sockfd,(struct sockaddr*)&serv_inet_addr,sizeof(serv_inet_addr)) < 0) {
-				getsockopt( sockfd, SOL_SOCKET, SO_ERROR, &error, &len);
-				debug("TCP socket connection problem. Function connect(). Error: %s.", strerror(error));
-				return -1;
-			}
-		}
-
-/*	fstbracket = strcspn (from,"<") + 1;
-	scndbracket = strcspn (from,">");
-	strncpy(tmp, from+fstbracket, scndbracket - fstbracket);
-
-	debug("Signatures: to - %s, from - %s",to, tmp);
-	sprintf(str, "request=junk_policy\nsender=%s\nrecipient=%s\naction=%d\n\n", tmp, to, wanted); */
-
-		if (send(sockfd, str, strlen(str), 0) < 0) {
-			debug("Socket send data problem. Function send()");
-		}
-
-		close(sockfd);
-	}
 
 	sign_arg = t_strconcat("--signature=", signature, NULL);
 	switch (wanted) {
@@ -281,16 +193,100 @@ static void backend_rollback(struct antispam_transaction_context *ast)
 static int backend_commit(struct mailbox_transaction_context *ctx,
 			  struct antispam_transaction_context *ast)
 {
+
+	int sockfd;
+	int error;
+	socklen_t len = sizeof(error);
+	size_t fstbracket, scndbracket;
+	char str[4*BUFSIZE];
+	char tmp[BUFSIZE];
+	struct sockaddr_un serv_unix_addr;
+	struct sockaddr_in serv_inet_addr;
+	struct hostent *server;
+
 	struct siglist *item = ast->siglist;
 	int ret = 0;
 
 	while (item) {
-		if (call_dspam(item->sig, item->from, item->to, item->wanted)) {
-			ret = -1;
-			mail_storage_set_error(ctx->box->storage,
-					       ME(NOTPOSSIBLE)
-					       "Failed to call dspam");
-			break;
+
+		if (policyd_bool == 1) {
+			memset(tmp, 0, BUFSIZE);
+			memset(str, 0, 4*BUFSIZE);
+
+			fstbracket = strcspn (item->from,"<") + 1;
+			scndbracket = strcspn (item->from,">");
+
+			if ((scndbracket - fstbracket - 1) > BUFSIZE) {
+				debug("Too long 'from' field for tmp buffer with size %d", BUFSIZE);
+				return -1;
+			}
+
+			strncpy(tmp, from+fstbracket, scndbracket - fstbracket);
+
+			if ((strlen(tmp) + strlen(to) + 1 + 70) > 4*BUFSIZE) {
+				//70 - size of sprintf template
+				debug("Too long string for str buffer with size %d", 4*BUFSIZE);
+				return -1;
+			}
+
+			sprintf(str, "request=junk_policy\nsender=%s\nrecipient=%s\nsasl_username=%s\naction=%s\n\n", item->to, tmp, item->to, ((item->wanted == 1) ? "spam": "notspam"));
+
+			if (strcmp(policyd_socket_type, "unix") == 0) {
+
+				sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
+				if (sockfd < 0) {
+					debug("ERROR opening policy unix socket. Function socket()");
+					return -1;
+				}
+
+				serv_unix_addr.sun_family = AF_UNIX;
+				strcpy(serv_unix_addr.sun_path, policyd_socket_name);
+
+				if (connect(sockfd, (struct sockaddr *) &serv_unix_addr, sizeof(serv_unix_addr)) < 0) {
+					getsockopt( sockfd, SOL_SOCKET, SO_ERROR, &error, &len);
+					debug("Unix socket connection problem. Function connect(). Error: %s.", strerror(error));
+					return -1;
+				}
+			} else {
+
+				sockfd = socket(AF_INET, SOCK_STREAM, 0);
+				if (sockfd < 0) {
+					debug("ERROR opening policy tcp socket. Function socket()");
+					return -1;
+				}
+
+				server = gethostbyname(policyd_address);
+				if (server == NULL) {
+					debug("ERROR, no such host. Function gethostbyname()");
+					return -1;
+				}
+
+				memcpy(&serv_inet_addr.sin_addr, server->h_addr_list[0],server->h_length);
+
+				serv_inet_addr.sin_port=htons(policyd_port);
+				serv_inet_addr.sin_family=AF_INET;
+
+				if(connect(sockfd,(struct sockaddr*)&serv_inet_addr,sizeof(serv_inet_addr)) < 0) {
+					getsockopt( sockfd, SOL_SOCKET, SO_ERROR, &error, &len);
+					debug("TCP socket connection problem. Function connect(). Error: %s.", strerror(error));
+					return -1;
+				}
+			}
+
+			if (send(sockfd, str, strlen(str), 0) < 0) {
+				debug("Socket send data problem. Function send()");
+			}
+
+			close(sockfd);
+		}
+		if (item->sig_bool == 1) {
+			if (call_dspam(item->sig, item->wanted)) {
+				ret = -1;
+				mail_storage_set_error(ctx->box->storage,
+							ME(NOTPOSSIBLE)
+							"Failed to call dspam");
+				break;
+			}
 		}
 		item = item->next;
 	}

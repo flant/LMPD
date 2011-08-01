@@ -35,6 +35,7 @@ int signature_extract_to_list(struct mailbox_transaction_context *t,
 
 	const char *const *from;
 	const char *const *to;
+	uint8_t sig_bool;
 
 	struct siglist *item;
 
@@ -42,14 +43,17 @@ int signature_extract_to_list(struct mailbox_transaction_context *t,
 	from = get_mail_headers(mail, from_hdr);
 	to = get_mail_headers(mail, to_hdr);
 	if (!signatures || !signatures[0]) {
-		if (!signature_nosig_ignore) {
+/*		if (!signature_nosig_ignore) {
 			mail_storage_set_error(t->box->storage,
 					       ME(NOTPOSSIBLE)
 					       "antispam signature not found");
 			return -1;
 		} else {
 			return 0;
-		}
+		} */
+		sig_bool = 0;
+	} else {
+		sig_bool = 1;
 	}
 
 	if (!to || !to[0]) {
@@ -88,6 +92,7 @@ int signature_extract_to_list(struct mailbox_transaction_context *t,
 	item->wanted = wanted;
 	item->sig = i_strdup(signatures[0]);
 	item->from = i_strdup(from[0]);
+	item->sig_bool = sig_bool;
 	item->to = i_strdup(to[0]);
 
 	*list = item;
