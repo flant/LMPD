@@ -87,7 +87,6 @@ static int call_dspam(const char *signature, const char *from, const char *to, e
 		}
 
 		sprintf(str, "request=junk_policy\nsender=%s\nrecipient=%s\nsasl_username=%s\naction=%s\n\n", to, tmp, to, ((wanted == 1) ? "spam": "notspam"));
-		debug("Request for policyd: %s.", str);
 
 		if (strcmp(policyd_socket_type, "unix") == 0) {
 
