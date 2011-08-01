@@ -71,6 +71,18 @@ problems with this approach including
 (1) it can take a long time during which the IMAP session is blocked
 (2) when many users retrain many messages at once server load may spike
 
+.SS tfdspam executable backend (dspam specific)
+
+This backend instantly retrains by calling dspam. There are some
+problems with this approach including
+(1) it can take a long time during which the IMAP session is blocked
+(2) when many users retrain many messages at once server load may spike
+Futhermore, this backend can connect to The Flant PolicyD (whitelisting daemon 
+for postfix). So, when you transfer your mail in mailbox - you can add some 
+addresses to whitelist
+
+
+
 .SS pipe backend (spam filter agnostic)
 
 This backend simply pipes the mail to train to a process it executes.
@@ -128,6 +140,7 @@ plugin {
     # antispam_backend = dspam
     # antispam_backend = pipe
     # antispam_backend = spool2dir
+    # antispam_backend = tfdspam
 
     # mail signature (used with any backend requiring a signature)
     antispam_signature = X-DSPAM-Signature
@@ -205,6 +218,19 @@ plugin {
     # antispam_dspam_result_header = X-DSPAM-Result
     # semicolon-separated list of blacklisted results, case insensitive
     # antispam_dspam_result_blacklist = Virus
+
+    #Some policyd connection options.
+    #Path to unix domain socket
+    #antispam_socket_name = /var/spool/postfix/private/policyd.sock
+    #TCP port option 
+    #antispam_policyd_port = 7000
+    #TCP host option
+    #antispam_policyd_address = 127.0.0.1
+    #Boolean for policyd. It will enable or disable policyd. 
+    #In disabled by default
+    antispam_policyd_enable = 1
+    #PolicyD socket type
+    antispam_policyd_socket_type = tcp
 
     #=====================
     # pipe plugin
