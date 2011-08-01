@@ -1,9 +1,0 @@
-*.o
-*.so
-.config
-*~
-dovecot-version.h
-antispam-version.h
-dovecot-version
-*-stamp
-*.sw[lmnop]
