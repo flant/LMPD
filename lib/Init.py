@@ -66,7 +66,7 @@ def createsock(Config):
 			print "socket.error error({0}): {1}".format(errno, strerror)
 			sys.exit(1)
 
-	elif sTmp == "tcp":
+	elif Tmp == "tcp":
 		Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		try:
 			Socket.bind(Config.get("network_address","0.0.0.0"), Config.get("network_port","7000"))
