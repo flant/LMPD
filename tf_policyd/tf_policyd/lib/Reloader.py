@@ -24,20 +24,24 @@
 import threading, sys, Connection, PySQLPool, Init, time
 
 class ReloaderTread(threading.Thread):
-	def __init__(self, sleep_time, debug = False):
+	def __init__(self, sleep_time, flts, debug = False):
 		threading.Thread.__init__(self)
 		self.debug = debug
 		self.daemon = True
 		self.flts = flts
-		self._sleep_time = sleep_time * 1000
+		self._sleep_time = sleep_time
 		if self.debug:
 			self.start_time = time.time()
 
 	def run(self):
 		while (True):
 			time.sleep(self._sleep_time)
-			for flt in flts:
-				flt.reload()
+			for flt in self.flts:
+				try:
+					flt.reload()
+				except:
+					if self.debug:
+						print "Update problem!"
 			
 		if self.debug:
 			stop_time = time.time()

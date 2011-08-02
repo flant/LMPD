@@ -44,7 +44,7 @@ class DomainPolicy(Policy.Policy):
 
 		return result
 
-	def _loadsql(sql_pool):
+	def _loadsql(self):
 		sql_1 = "SELECT `dns`, `accept` FROM `white_list_dns`"
 		res = {}
 
@@ -58,8 +58,10 @@ class DomainPolicy(Policy.Policy):
 
 	def reload(self):
 
+		tmp_data = self._loadsql()
+
 		with self._mutex:
 			self._data.clean()
-			self._data.update(self._loadsql())
+			self._data.update(tmp_data)
 
 		return None

@@ -44,7 +44,7 @@ class AddressPolicy(Policy.Policy):
 
 		return result
 
-	def _loadsql():
+	def _loadsql(self):
 		sql_1 = "SELECT `mx_addr`, `accept` FROM `white_list_addr`"
 		res = {}
 
@@ -58,8 +58,10 @@ class AddressPolicy(Policy.Policy):
 
 	def reload(self):
 
+		tmp_data = self._loadsql()
+
 		with self._mutex:
 			self._data.clean()
-			self._data.update(self._loadsql())
+			self._data.update(tmp_data)
 
 		return None

@@ -39,16 +39,13 @@ class UserPolicy(Policy.Policy):
 					return answer				
 				else:
 					array_of_recipients = self._postalias(data["recipient"])
-					if recipient:
-						recipient = list(set(array_of_recipients))
-						for email in recipient:
-							answer = self._strict_check(email.lower(), Sender)
-							if answer: break
+					recipients = list(set(array_of_recipients))
+					for email in recipient:
+						answer = self._strict_check(email.lower(), Sender)
+						if answer: break
 
-						if answer:
-							return answer
-						else:
-							return None
+					if answer:
+						return answer
 					else:
 						return None
 			else:
@@ -78,8 +75,8 @@ class UserPolicy(Policy.Policy):
 
 		return None
 
-	def _postalias(self, Recipient):
-		post_alias = subprocess.Popen(["postalias -q {0} {1}".format(Recipient, self.ConfAliases)], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
+	def _postalias(self, recipient):
+		post_alias = subprocess.Popen(["postalias -q {0} {1}".format(recipient, self.conf_aliases)], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
 		output = post_alias.communicate()[0].strip().lower()
 	        res = list()
 		if output == recipient.lower().strip() or post_alias.returncode:
@@ -191,8 +188,10 @@ class UserPolicy(Policy.Policy):
 
 	def reload(self):
 
+		tmp_data = self._loadsql()
+
 		with self._mutex:
 			self._data.clean()
-			self._data.update(self._loadsql())
+			self._data.update(tmp_data)
 			
 		return None
