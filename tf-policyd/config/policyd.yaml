@@ -9,7 +9,7 @@ mysql:
 
 system:
   user: postfix
-  group: 
+  group: postfix
 
 network:
   type: unix
