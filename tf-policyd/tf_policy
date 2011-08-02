@@ -22,21 +22,26 @@
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 
-import os, sys, signal, site
+import os, sys, signal, site, argparse
 
 #Importing our modules
 site.addsitedir("/usr/lib/python2.6/tf_policyd/lib", known_paths=None)
 site.addsitedir("/usr/lib/python2.6/tf_policyd/plugins", known_paths=None)
 site.addsitedir("/usr/lib/python2.6/tf_policyd/lib/PySQLPool", known_paths=None)
-import Args, Config, Init, Connection, Policy, Worker, Logger, PySQLPool
+import Config, Init, Connection, Policy, Worker, Logger, PySQLPool
 
 
 def main():
-	#getting arguments from command line
-	args = Args.Args()
-	
+	parser = argparse.ArgumentParser(description='SMTP policy whitelisting daemon.')
+	parser.add_argument('-c', '--config', help='Path to a config file', default='/etc/postfix/tf_policyd.yaml')
+	parser.add_argument('-p', '--pid', help='Path to a PID file', default='/tmp/tf_policyd.pid')
+	parser.add_argument('-d', dest='is_daemon', action='store_true', help='Become a daemon', default=False)
+	args = parser.parse_args()	
+
+	Init.check_clone(args.pid)
+
 	#reading config
-	config = Config.Config(args.get("argv_config", "/etc/postfix/tf_policyd.yaml"))
+	config = Config.Config(args.config)
 
 	#set user name and group
 	Init.baseinit(config)
@@ -71,11 +76,14 @@ def main():
 		print "Lost fields in filter config. Exiting..."
 		sys.exit(1)
 
-	signal.signal(signal.SIGTERM, lambda x, y: Init.SIGINT_handler(args.get("argv_pid", "/tmp/policyd.pid"), x, y))
-	signal.signal(signal.SIGINT, lambda x, y: Init.SIGINT_handler(args.get("argv_pid", "/tmp/policyd.pid"), x, y))
+	signal.signal(signal.SIGTERM, lambda x, y: Init.SIGINT_handler(args.pid, x, y))
+	signal.signal(signal.SIGINT, lambda x, y: Init.SIGINT_handler(args.pid, x, y))
 	signal.signal(signal.SIGHUP, signal.SIG_IGN)
 
-	Init.demonize(args)
+	if args.is_daemon:
+		Init.demonize()
+
+	Init.write_pid(args.pid)
 
 	while 1:
 		conn, addr = socket.accept()

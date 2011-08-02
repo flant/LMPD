@@ -23,12 +23,13 @@
 
 import os, pwd, grp, socket, sys
 
-def baseinit(config):
-	os.umask(0111)
-
-	if os.path.exists(config.get("argv_pid", "/tmp/policyd.pid")):
+def check_clone(pid_file):
+	if os.path.exists(pid_file):
 		print "Another policyd works. Exiting..."
 		sys.exit(1)
+
+def baseinit(config):
+	os.umask(0111)
 
 	if os.getgid() == 0:
 		try:
@@ -49,8 +50,8 @@ def baseinit(config):
 			sys.exit(1)
 
 def createsock(config):
-	tmp = config.get("network_type","unix")
-	if tmp == "unix":
+	net_type = config.get("network_type","unix")
+	if net_type == "unix":
 		socket_fd = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 		sockname=config.get("network_socket","/var/spool/postfix/private/policy.sock")
 		if os.path.exists(sockname):
@@ -66,7 +67,7 @@ def createsock(config):
 			print "socket.error error({0}): {1}".format(errno, strerror)
 			sys.exit(1)
 
-	elif tmp == "tcp":
+	elif net_type == "tcp":
 		socket_fd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		try:
 			socket_fd.bind((config.get("network_address","127.0.0.1"), int(config.get("network_port","7000"))))
@@ -79,33 +80,40 @@ def createsock(config):
 	socket_fd.listen(1)
 	return socket_fd
 
-def demonize(config):
-	if config.get("argv_is_daemon", False) == True:
-		try: 
-			pid = os.fork()
-			if pid > 0:
-				print "Daemon PID %d" % pid
-				sys.exit(0) 
-		except OSError as (errno, strerror):
-			print "OSError error({0}): {1}".format(errno, strerror)
-			sys.exit(1)
+def demonize():
+	try: 
+		pid = os.fork()
+		if pid > 0:
+			sys.exit(0) 
+	except OSError as (errno, strerror):
+		print "OSError error({0}): {1}".format(errno, strerror)
+		sys.exit(1)
 
-		os.chdir("/") 
-		os.setsid() 
-	
-		sys.stdin = open("/dev/null")
-		sys.stderr = open("/dev/null","w")
-		sys.stdout = open("/dev/null", "w")
+	os.chdir("/") 
+	os.setsid() 
 
-	pid = os.getpid()
+	sys.stdin = open("/dev/null")
+	sys.stderr = open("/dev/null","w")
+	sys.stdout = open("/dev/null", "w")
 
 	try:
-		pid_file = open(config.get("argv_pid", "/tmp/policyd.pid"), "w")
-		pid_file.write(str(pid))
-		pid_file.close()
-	except IOError as (errno, strerror):
-		print "I/O error({0}): {1}".format(errno, strerror)
-		sys.exit(1)	
+		pid = os.fork()
+		if pid > 0:
+			sys.exit(0)
+	except OSError as (errno, strerror):
+		print "OSError error({0}): {1}".format(errno, strerror)
+		sys.exit(1)
+
+def write_pid(pid_file):
+	pid = os.getpid()
+
+        try:
+                pid_file_desc = open(pid_file, "w")
+                pid_file_desc.write(str(pid))
+                pid_file_desc.close()
+        except IOError as (errno, strerror):
+                print "I/O error({0}): {1}".format(errno, strerror)
+                sys.exit(1)
 
 def SIGINT_handler(pid_file, signum, frame):
 	print "Caught SIGNAL 2. Exiting..."
