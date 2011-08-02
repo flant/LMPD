@@ -1,9 +1,8 @@
-#Зададим MySQL базу и таблицу в ней
 mysql:
   host: 127.0.0.1
   port: 3306
-  user: postfix
-  password: 5xMZosHi
+  user: mail
+  password: mail
   dbname: mail
   pool: 10
 
