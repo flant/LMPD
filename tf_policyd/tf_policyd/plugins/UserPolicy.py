@@ -76,7 +76,7 @@ class UserPolicy(Policy.Policy):
 			if self._data.has_key(recipient) and self._data[recipient].has_key(sender):
 				result = self._data[recipient][sender]
 
-		return None
+		return result
 
 	def _postalias(self, recipient, deep = 1):
 
