@@ -320,7 +320,7 @@ static int backend_commit(struct mailbox_transaction_context *ctx,
 			mail_storage_set_error(ctx->box->storage,
                                                         ME(NOTPOSSIBLE)
                                                         "Failed to close policyd socket.");
-			ret = -1
+			ret = -1;
 		}
 	}
 
