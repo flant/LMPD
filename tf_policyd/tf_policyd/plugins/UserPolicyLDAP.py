@@ -23,13 +23,13 @@
 
 import Policy, threading, PySQLPool, subprocess, ldap
 
-class UserPolicy(Policy.Policy):
+class UserPolicyLDAP(Policy.Policy):
 	def __init__(self, config, sql_pool):
 		Policy.Policy.__init__(self, config, sql_pool)
-		self._sql_pool = sql_pool
-		self._config = config
-		
+
 		self.conf_aliases = self._postconf()
+		self._sql_pool = sql_pool
+
 		self._users = self._loadldap()
 		self._data = self._loadsql()
 
@@ -37,14 +37,14 @@ class UserPolicy(Policy.Policy):
 		if data["request"] == "smtpd_access_policy":
 			if data["sasl_username"] == "":
 				sender = data["sender"]
-				array_of_recipients = self._postalias(data["recipient"])
 				answer = self._strict_check(data["recipient"], sender)
 				if answer:
-					return answer
+					return answer				
 				else:
-					if recipient:
-						recipient = list(set(array_of_recipients))
-						for email in recipient:
+					array_of_recipients = self._postalias(data["recipient"])
+					if array_of_recipients:
+						recipients = list(set(array_of_recipients))
+						for email in recipients:
 							answer = self._strict_check(email.lower(), Sender)
 							if answer: break
 
@@ -81,16 +81,21 @@ class UserPolicy(Policy.Policy):
 
 		return None
 
-	def _postalias(self, Recipient):
-		post_alias = subprocess.Popen(["postalias -q {0} {1}".format(Recipient, self.ConfAliases)], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
+	def _postalias(self, recipient, deep = 1):
+
+		if (deep > 50):
+			return recipient
+
+		post_alias = subprocess.Popen(["postalias -q {0} {1}".format(recipient, self.conf_aliases)], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
 		output = post_alias.communicate()[0].strip().lower()
 	        res = list()
+
 		if output == recipient.lower().strip() or post_alias.returncode:
 			return None
 		else:
 			test_mails = output.split(",")
 			for email in test_mails:
-				answer = self._postalias(email.strip())
+				answer = self._postalias(email.strip(), deep + 1)
 				if answer:
 					res += answer
 				else:
@@ -111,13 +116,13 @@ class UserPolicy(Policy.Policy):
 		recipient = data["recipient"]
 		sender = data["sender"]
 
-		with self.mutex:
+		with self._mutex:
 			if recipient != "" and sender != "":
 				if not self._data.has_key(sender): self._data[sender] = {}
 				
 				if not self._data[sender].has_key(recipient):
 
-					self._addrule(data, self.sql_pool, answer)
+					self._addrule(data, answer)
 					self._data[sender][recipient] = answer
 
 		return None
@@ -127,60 +132,64 @@ class UserPolicy(Policy.Policy):
 		recipient = data["recipient"]
 		sender = data["sender"]
 
-		with self.mutex:
+		with self._mutex:
 			if recipient != "" and sender != "":
 
 				if not self._data.has_key(sender): self._data[sender] = {}
 				if self._data[sender].has_key(recipient):
 
-					self._delrule(data, self.sql_pool)
+					self._delrule(data)
 					del self._data[sender][recipient]
 		return None
 
-	def _loadsql(sql_pool):
+	def _loadsql(self, users = self._users):
 		sql_1 = "SELECT `user_id`, `mail`, `accept` FROM `white_list_mail`"
 
 		res={}
-		
 		rules={}
 
-		query = PySQLPool.getNewQuery(sql_pool, True)
-		
+		query = PySQLPool.getNewQuery(self._sql_pool, True)
+
 		query.Query(sql_1)
 		for row in query.record:
 			tmp = {}
 			tmp[row["mail"].lower()] = row["accept"]
-			res[self._users[str(int(row["user_id"]))]].update(tmp)
+			res[users[str(int(row["user_id"]))]].update(tmp)
 
 		return res
 
-	def _addrule(data, sql_pool, answer = "dspam_innocent"):
+	def _loadldap(self):
+		pass
+
+	def _addrule(self, data, answer = "dspam_innocent"):
 		if data["sasl_username"] != "" and data["sender"] != "" and data["recipient"] != "":
 
-			sql_1 = "SELECT `id` FROM `users` WHERE `username` LIKE '{0}'"
-			sql_2 = "INSERT IGNORE INTO `white_list_mail` VALUES(NULL, {0}, '{1}', '{2}')"
+			sql_1 = "INSERT IGNORE INTO `white_list_mail` VALUES(NULL, {0}, '{1}', '{2}')"
 
-			query = PySQLPool.getNewQuery(sql_pool, True)
+			query = PySQLPool.getNewQuery(self._sql_pool, True)
 
-			query.Query(sql_1.format(data["sasl_username"]))
-			try:
-				tmp = str(int(query.record[0]["id"]))
-			except IndexError as Err:
-				return None
+			if self._users.has_key(data["sasl_username"]):
+				tmp = self._users[data["sasl_username"]]
+				query.Query(sql_1.format(tmp, data["recipient"], answer))
 
-			query.Query(sql_2.format(tmp, data["recipient"], answer))
+	def _delrule(self, data):
+		sql_1 = "DELETE FROM `white_list_mail` WHERE `user_id` = '{0}' AND `mail` = '{1}'"
 
-	def _delrule(data, sql_pool):
-		sql_1 = "SELECT `id` FROM `users` WHERE `username` LIKE '{0}'"
-		sql_2 = "DELETE FROM `white_list_mail` WHERE `user_id` = '{0}' AND `mail` = '{1}'"
+		if data["sasl_username"] != "" and data["sender"] != "" and data["recipient"] != "":
+			query = PySQLPool.getNewQuery(self._sql_pool, True)
 
-		if data["sender"] != "" and data["recipient"] != "":
-			query = PySQLPool.getNewQuery(sql_pool, True)
+			if self._users.has_key(date["sasl_username"]):
+				tmp = self._users[date["sasl_username"]]
+				query.Query(sql_1.format(tmp, data["recipient"]))
 
-			query.Query(sql_1.format(data["sender"]))
-			try:
-				tmp = str(int(query.record[0]["id"]))
-			except IndexError as Err:
-				return None
+	def reload(self):
 
-			query.Query(sql_2.format(tmp, data["recipient"]))
+		tmp_users = self._loadldap()
+		tmp_data = self._loadsql(tmp_users)
+
+		with self._mutex:
+			self._data.clean()
+			self._data.update(tmp_data)
+			self._users.clean()
+			self._users.update(tmp_users)
+		return None
