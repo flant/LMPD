@@ -214,6 +214,9 @@ static int backend_commit(struct mailbox_transaction_context *ctx,
 			sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
 			if (sockfd < 0) {
 				debug("ERROR opening policy unix socket. Function socket()");
+				mail_storage_set_error(ctx->box->storage,
+                                                        ME(NOTPOSSIBLE)
+                                                        "Failed to create policyd socket");
 				return -1;
 			}
 
@@ -223,6 +226,9 @@ static int backend_commit(struct mailbox_transaction_context *ctx,
 			if (connect(sockfd, (struct sockaddr *) &serv_unix_addr, sizeof(serv_unix_addr)) < 0) {
 				getsockopt( sockfd, SOL_SOCKET, SO_ERROR, &error, &len);
 				debug("Unix socket connection problem. Function connect(). Error: %s.", strerror(error));
+				mail_storage_set_error(ctx->box->storage,
+                                                        ME(NOTPOSSIBLE)
+                                                        "Failed to connect to policyd.");
 				return -1;
 			}
 		} else {
@@ -230,12 +236,18 @@ static int backend_commit(struct mailbox_transaction_context *ctx,
 			sockfd = socket(AF_INET, SOCK_STREAM, 0);
 			if (sockfd < 0) {
 				debug("ERROR opening policy tcp socket. Function socket()");
+				mail_storage_set_error(ctx->box->storage,
+                                                        ME(NOTPOSSIBLE)
+                                                        "Failed to create policyd socket.");
 				return -1;
 			}
 
 			server = gethostbyname(policyd_address);
 			if (server == NULL) {
 				debug("ERROR, no such host. Function gethostbyname()");
+				mail_storage_set_error(ctx->box->storage,
+                                                        ME(NOTPOSSIBLE)
+                                                        "Failed to get policyd host address");
 				return -1;
 			}
 
@@ -247,6 +259,9 @@ static int backend_commit(struct mailbox_transaction_context *ctx,
 			if(connect(sockfd,(struct sockaddr*)&serv_inet_addr,sizeof(serv_inet_addr)) < 0) {
 				getsockopt( sockfd, SOL_SOCKET, SO_ERROR, &error, &len);
 				debug("TCP socket connection problem. Function connect(). Error: %s.", strerror(error));
+				mail_storage_set_error(ctx->box->storage,
+                                                        ME(NOTPOSSIBLE)
+                                                        "Failed to connect to policyd.");
 				return -1;
 			}
 		}
@@ -263,6 +278,9 @@ static int backend_commit(struct mailbox_transaction_context *ctx,
 
 			if ((scndbracket - fstbracket - 1) > BUFSIZE) {
 				debug("Too long 'from' field for tmp buffer with size %d", BUFSIZE);
+				mail_storage_set_error(ctx->box->storage,
+                                                        ME(NOTPOSSIBLE)
+                                                        "Failed to create policyd request.");
 				return -1;
 			}
 
@@ -277,6 +295,10 @@ static int backend_commit(struct mailbox_transaction_context *ctx,
 			sprintf(str, "request=junk_policy\nsender=%s\nrecipient=%s\nsasl_username=%s\naction=%s\n\n", item->to, tmp, item->to, ((item->wanted == 1) ? "spam": "notspam"));
 			if (send(sockfd, str, strlen(str), 0) < 0) {
 				debug("Socket send data problem. Function send()");
+				mail_storage_set_error(ctx->box->storage,
+                                                        ME(NOTPOSSIBLE)
+                                                        "Failed to send request to policyd");
+				return -1;
 			}
 
 		}
@@ -292,7 +314,15 @@ static int backend_commit(struct mailbox_transaction_context *ctx,
 		item = item->next;
 	}
 
-	if (policyd_bool == 1) close(sockfd);
+	if (policyd_bool == 1) {
+		if (close(sockfd) < 0) {
+			debug("Failed to close policyd socket. Or we have problems with connection?");
+			mail_storage_set_error(ctx->box->storage,
+                                                        ME(NOTPOSSIBLE)
+                                                        "Failed to close policyd socket.");
+			ret = -1
+		}
+	}
 
 	tfsignature_list_free(&ast->siglist);
 	i_free(ast);
