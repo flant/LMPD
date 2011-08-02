@@ -39,13 +39,16 @@ class UserPolicy(Policy.Policy):
 					return answer				
 				else:
 					array_of_recipients = self._postalias(data["recipient"])
-					recipients = list(set(array_of_recipients))
-					for email in recipient:
-						answer = self._strict_check(email.lower(), Sender)
-						if answer: break
+					if array_of_recipients:
+						recipients = list(set(array_of_recipients))
+						for email in recipients:
+							answer = self._strict_check(email.lower(), Sender)
+							if answer: break
 
-					if answer:
-						return answer
+						if answer:
+							return answer
+						else:
+							return None
 					else:
 						return None
 			else:
@@ -75,16 +78,21 @@ class UserPolicy(Policy.Policy):
 
 		return None
 
-	def _postalias(self, recipient):
+	def _postalias(self, recipient, deep = 1):
+
+		if (deep > 50):
+			return recipient
+
 		post_alias = subprocess.Popen(["postalias -q {0} {1}".format(recipient, self.conf_aliases)], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
 		output = post_alias.communicate()[0].strip().lower()
 	        res = list()
+
 		if output == recipient.lower().strip() or post_alias.returncode:
 			return None
 		else:
 			test_mails = output.split(",")
 			for email in test_mails:
-				answer = self._postalias(email.strip())
+				answer = self._postalias(email.strip(), deep + 1)
 				if answer:
 					res += answer
 				else:
