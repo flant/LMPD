@@ -28,7 +28,7 @@ import os, sys, signal, site, argparse
 site.addsitedir("/usr/lib/python2.6/tf_policyd/lib", known_paths=None)
 site.addsitedir("/usr/lib/python2.6/tf_policyd/plugins", known_paths=None)
 site.addsitedir("/usr/lib/python2.6/tf_policyd/lib/PySQLPool", known_paths=None)
-import Config, Init, Connection, Policy, Worker, Logger, PySQLPool
+import Config, Init, Connection, Policy, Worker, Logger, PySQLPool, Reloader
 
 
 def main():
@@ -43,13 +43,13 @@ def main():
 	#reading config
 	config = Config.Config(args.config)
 
-	#set user name and group
+	# set uid and gid
 	Init.baseinit(config)
 	
-	#creating socket
+	# creating socket
 	socket = Init.createsock(config)
 	
-	#creating mysql pool
+	# creating mysql pool
 	mysql_config = config.get("mysql", False)
 	if mysql_config:
 		PySQLPool.getNewPool().maxActiveConnections = config.get("mysql_pool", 10)
@@ -58,19 +58,19 @@ def main():
 		print "Lost fields in mysql config. Exiting..."
 		sys.exit(1)
 
-	#loading filters names from config
+	# loading filters names from config
 	flt_names = config.get("filters_order", False)
 	if not flt_names:
 		flt_names = ["AddressPolicy","DomainPolicy","UserPolicy"]
 
-	#loading filters
+	# loading filters
 	flts = []
 	for flt_name in flt_names:
 		globals()[flt_name] = locals()[flt_name] = __import__(flt_name, globals(), locals(), [], -1)
-		flt = getattr(locals()[flt_name], flt_name)(locals()[flt_name].loadsql(sql_pool), sql_pool)
+		flt = getattr(locals()[flt_name], flt_name)(config, sql_pool)
 		flts.append(flt)
 
-	#Loading default answer for postfix
+	# Loading default answer for postfix
 	default_answer = config.get("filters_default", False)
 	if not default_answer:
 		print "Lost fields in filter config. Exiting..."
@@ -83,7 +83,14 @@ def main():
 	if args.is_daemon:
 		Init.demonize()
 
+	# Writing pid to file
 	Init.write_pid(args.pid)
+
+	reload_proc = Reloader.ReloaderTread(int(config.get("filters_reload", 600)), flts)
+	try:
+		reload_proc.start()
+	except(thread.error):
+		print("Spawned threads : %s. Can not spawn other one" % threading.active_count())
 
 	while 1:
 		conn, addr = socket.accept()

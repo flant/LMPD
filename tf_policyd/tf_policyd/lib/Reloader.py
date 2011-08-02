@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
-#		Base filter class for policyd
-#       Policy.py
+#		Worker class for policyd
+#       Worker.py
 #       
 #       Copyright (C) 2009-2011 CJSC TrueOffice (www.trueoffice.ru)
 #		Written by Nikolay aka GyRT Bogdanov <nikolay.bogdanov@trueoffice.ru>
@@ -21,18 +21,24 @@
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 
-import threading
+import threading, sys, Connection, PySQLPool, Init, time
 
-class Policy():
-	data = {}
-	def __init__(self, config, sql_pool):
-		self._mutex = threading.Lock()
+class ReloaderTread(threading.Thread):
+	def __init__(self, sleep_time, debug = False):
+		threading.Thread.__init__(self)
+		self.debug = debug
+		self.daemon = True
+		self.flts = flts
+		self._sleep_time = sleep_time * 1000
+		if self.debug:
+			self.start_time = time.time()
 
-	def train(self, data):
-		return None
-
-	def check(self, data):
-		return None
-		
-	def reload(self):
-		return None
+	def run(self):
+		while (True):
+			time.sleep(self._sleep_time)
+			for flt in flts:
+				flt.reload()
+			
+		if self.debug:
+			stop_time = time.time()
+			print "Process with name {0} started {1}, stopped {2}. Working {3} seconds.".format(self.name, time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.start_time)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(stop_time)), (stoptime - self.start_time))
