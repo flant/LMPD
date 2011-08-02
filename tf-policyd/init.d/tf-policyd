@@ -13,7 +13,7 @@
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
 NAME="server.py"
-PATH_DAEMON="/usr/local/share/tf-policyd/"
+PATH_DAEMON="/usr/local/share/tf-policyd"
 DAEMON="$PATH_DAEMON/$NAME"
 PIDF="/tmp/policyd.pid"
 ARGS="-d -p $PIDF"
@@ -21,13 +21,16 @@ ARGS="-d -p $PIDF"
 USER="root"
 
 start() {
-    echo -n "Starting $NAME: "
-    start-stop-daemon --start --chuid $USER --name $NAME --background --startas $DAEMON -- $ARGS
+    echo -n "Starting tf-policyd: "
+    cd $PATH_DAEMON
+    ./$NAME $ARGS
     echo "OK"
 }
 stop() {
     echo -n "Stopping $NAME: "
-    start-stop-daemon --chuid $USER --stop --name $NAME --retry=TERM/5/KILL/10
+    PID=$(cat $PIDF)
+    echo $PID
+    kill -2 $PID
     rm -f "$PIDF"
     echo "OK"
 }
@@ -59,13 +62,13 @@ case "$1" in
             PID=$(cat $PIDF)
             if [ `ps auwx|grep $NAME|grep $PID|grep -v -c grep` = 1 ]
             then
-                echo "$NAME working [pid: $PID]."
+                echo "TF policyd working [pid: $PID]."
                 exit 0
             fi
-            echo "$NAME not running"
+            echo "TF policyd not running"
             exit 3
         fi
-        echo "$NAME not running."
+        echo "TF policyd not running."
         exit 3
 ;;
     *)
