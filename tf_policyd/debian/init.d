@@ -1,7 +1,7 @@
 #!/bin/sh
 
 ### BEGIN INIT INFO
-# Provides:          tf-policyd
+# Provides:          tf_policyd
 # Required-Start:    $network
 # Required-Stop:     $network
 # Default-Start:     2 3 4 5
