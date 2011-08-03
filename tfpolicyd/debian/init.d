@@ -12,10 +12,10 @@
 
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
-NAME="tf_policyd"
+NAME="tfpolicyd"
 PATH_DAEMON="/usr/sbin/"
 DAEMON="$PATH_DAEMON/$NAME"
-PIDF="/tmp/tf_policyd.pid"
+PIDF="/tmp/tfpolicyd.pid"
 ARGS="-d -p $PIDF"
 
 start() {
@@ -23,10 +23,10 @@ start() {
 		PID=$(cat $PIDF)
 		if [ `ps auwx|grep $NAME|grep $PID|grep -v -c grep` = 1 ]
 		then
-			echo "Starting tf_policyd: TF policyd working [pid: $PID]."
+			echo "Starting tfpolicyd: tfpolicyd working [pid: $PID]."
 			exit 0
 		else
-			echo "Starting tf_policyd: TF policyd not running with dirty exit. Start new."
+			echo "Starting tfpolicyd: tfpolicyd not running with dirty exit. Start new."
 			$DAEMON $ARGS
 		fi
 	else
@@ -36,10 +36,10 @@ start() {
 		PID=$(cat $PIDF)
 		if [ `ps auwx|grep $NAME|grep $PID|grep -v -c grep` = 1 ]
 		then
-			echo "Starting tf_policyd: OK."
+			echo "Starting tfpolicyd: OK."
 			exit 0
 		else
-			echo "Starting tf_policyd: FAIL."
+			echo "Starting tfpolicyd: FAIL."
 		fi
 	fi
 }
@@ -49,10 +49,10 @@ stop() {
 		if [ `ps auwx|grep $NAME|grep $PID|grep -v -c grep` = 1 ]
 		then
 			kill -2 $PID
-			echo "Stoping tf_policyd: OK."
+			echo "Stoping tfpolicyd: OK."
 			exit 0
 		else
-			echo "Stoping tf_policyd: no tf_policyd running."
+			echo "Stoping tfpolicyd: no tfpolicyd running."
 		fi
 	fi
 }
@@ -84,13 +84,13 @@ case "$1" in
             PID=$(cat $PIDF)
             if [ `ps auwx|grep $NAME|grep $PID|grep -v -c grep` = 1 ]
             then
-                echo "TF policyd working [pid: $PID]."
+                echo "tfpolicyd working [pid: $PID]."
                 exit 0
             fi
-            echo "TF policyd not running"
+            echo "tfpolicyd not running"
             exit 3
         fi
-        echo "TF policyd not running."
+        echo "tfpolicyd not running."
         exit 3
 ;;
     *)
