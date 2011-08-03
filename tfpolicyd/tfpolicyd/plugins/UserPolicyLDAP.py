@@ -27,19 +27,16 @@ class UserPolicyLDAP(Policy.Policy):
 	def __init__(self, config, sql_pool):
 		Policy.Policy.__init__(self, config, sql_pool)
 
-		self.conf_aliases = self._postconf()
+		self._alias_maps  = self._postconf()
 		self._sql_pool = sql_pool
-		self._ldap_addr = config.get("filters_UserPolicyLDAP_ldap_addr", "127.0.0.1")
 
-		if config.get("filters_UserPolicyLDAP_ldap_proto_ver", None):
-			self._ldap_proto_ver = ldap.VERSION3
-		else:
-			self._ldap_proto_ver = ldap.VERSION2
+		self._ldap_uri = config.get("filters_UserPolicyLDAP_ldap_addr", "ldaps://127.0.0.1")
 
 		self._ldap_user = config.get("filters_UserPolicyLDAP_ldap_user", "cn=mail,ou=main,dc=acmeinc,dc=en")
 		self._ldap_pass = config.get("filters_UserPolicyLDAP_ldap_pass", "")
 		self._ldap_base_dn = config.get("filters_UserPolicyLDAP_ldap_base_dn", "dc=acmeinc,dc=en")
-		self._ldap_retrieve_attributes = config.get("filters_UserPolicyLDAP_ldap_retrieve_attributes", ["mail", "uidNumber"])
+		self._ldap_mail_attr = config.get("filters_UserPolicyLDAP_ldap_mail_attr", "mail")
+		self._ldap_id_attr = config.get("filters_UserPolicyLDAP_ldap_id_attr", "id")
 		self._ldap_search_filter = config.get("filters_UserPolicyLDAP_ldap_search_filter", "(&(objectClass=Account)(mail=*))")
 
 		self._mail_users, self._uid_users = self._loadldap()
@@ -53,7 +50,7 @@ class UserPolicyLDAP(Policy.Policy):
 		if data["request"] == "smtpd_access_policy":
 			if data["sasl_username"] == "":
 				sender = data["sender"]
-				answer = self._strict_check(data["recipient"], sender)
+				answer = self._check_one(data["recipient"], sender)
 				if answer:
 					return answer				
 				else:
@@ -61,7 +58,7 @@ class UserPolicyLDAP(Policy.Policy):
 					if array_of_recipients:
 						recipients = list(set(array_of_recipients))
 						for email in recipients:
-							answer = self._strict_check(email.lower(), Sender)
+							answer = self._check_one(email.lower(), Sender)
 							if answer: break
 
 						if answer:
@@ -77,18 +74,18 @@ class UserPolicyLDAP(Policy.Policy):
 		elif data["request"] == "junk_policy":
 
 			if data["action"] == "notspam":
-				if not self._strict_check(data["sender"], data["recipient"]):
-					self._strict_train(data)
+				if not self._check_one(data["sender"], data["recipient"]):
+					self._train_one(data)
 
 			elif data["action"] == "spam":
-				if self._strict_check(data["sender"], data["recipient"]):
-					self._strict_del(data)
+				if self._check_one(data["sender"], data["recipient"]):
+					self._del_one(data)
 			else:
 				return None
 		else:
 			return None
 
-	def _strict_check(self, recipient, sender):
+	def _check_one(self, recipient, sender):
 		result = None
 
 		with self._mutex:
@@ -102,7 +99,7 @@ class UserPolicyLDAP(Policy.Policy):
 		if (deep > 50):
 			return recipient
 
-		post_alias = subprocess.Popen(["postalias -q {0} {1}".format(recipient, self.conf_aliases)], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
+		post_alias = subprocess.Popen(["postalias -q {0} {1}".format(recipient, self._alias_maps )], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
 		output = post_alias.communicate()[0].strip().lower()
 	        res = list()
 
@@ -126,9 +123,9 @@ class UserPolicyLDAP(Policy.Policy):
 		return conf
 
 	def train(self, data, answer = "dspam_innocent"):
-		return self._strict_train(data , answer)
+		return self._train_one(data , answer)
 
-	def _strict_train(self, data, answer = "dspam_innocent"):
+	def _train_one(self, data, answer = "dspam_innocent"):
 		recipient = data["recipient"]
 		sender = data["sender"]
 
@@ -143,7 +140,7 @@ class UserPolicyLDAP(Policy.Policy):
 
 		return None
 
-	def _strict_del(self, data):
+	def _del_one(self, data):
 
 		recipient = data["recipient"]
 		sender = data["sender"]
@@ -182,27 +179,22 @@ class UserPolicyLDAP(Policy.Policy):
 		result_mail_set = {}
 		result_uid_set = {}
 		try:
-			ldap_conn = ldap.open(self._ldap_addr)
-			ldap_conn.protocol_version = self._ldap_proto_ver
+			ldap_conn = ldap.open(self._ldap_uri)
+			ldap_conn.protocol_version = ldap.VERSION3
 			ldap_conn.simple_bind_s(self._ldap_user, self._ldap_pass)
 		except ldap.LDAPError, e:
 			return None, None
 
-		baseDN = self._ldap_base_dn
-		searchScope = ldap.SCOPE_SUBTREE
-		retrieveAttributes = self._ldap_retrieve_attributes
-		searchFilter = self._ldap_search_filter
-
 		try:
-			ldap_result_id = ldap_conn.search(baseDN, searchScope, searchFilter, retrieveAttributes)
-			while 1:
+			ldap_result_id = ldap_conn.search(self._ldap_base_dn, ldap.SCOPE_SUBTREE, self._ldap_search_filter, [self._ldap_mail_attr,self._ldap_id_attr])
+			while (True):
 				result_type, result_data = ldap_conn.result(ldap_result_id, 0)
 				if (result_data == []):
 					break
 				else:
 					if result_type == ldap.RES_SEARCH_ENTRY:
-						result_mail_set[result_data[0][1][retrieveAttributes[1]][0]] = result_data[0][1][retrieveAttributes[0]][0]
-						result_uid_set[result_data[0][1][retrieveAttributes[0]][0]] = result_data[0][1][retrieveAttributes[1]][0]
+						result_mail_set[result_data[0][1][self._ldap_id_attr][0]] = result_data[0][1][self._ldap_mail_attr][0]
+						result_uid_set[result_data[0][1][self._ldap_mail_attr][0]] = result_data[0][1][self._ldap_id_attr][0]
 		except ldap.LDAPError, e:
 			return None, None
 
@@ -231,12 +223,15 @@ class UserPolicyLDAP(Policy.Policy):
 
 	def reload(self):
 
-		tmp_users = self._loadldap()
+		tmp_users, tmp_uids = self._loadldap()
 		tmp_data = self._loadsql(tmp_users)
 
 		with self._mutex:
 			self._data.clean()
 			self._data.update(tmp_data)
-			self._users.clean()
-			self._users.update(tmp_users)
+			self._mail_users.clean()
+			self._mail_users.update(tmp_users)
+			self._uid_users.clean()
+			self._uid_users.update(tmp_uids)
+
 		return None

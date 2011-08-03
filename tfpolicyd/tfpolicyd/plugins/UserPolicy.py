@@ -26,7 +26,7 @@ import Policy, threading, PySQLPool, subprocess
 class UserPolicy(Policy.Policy):
 	def __init__(self, config, sql_pool):
 		Policy.Policy.__init__(self, config, sql_pool)
-		self.conf_aliases = self._postconf()
+		self._alias_maps  = self._postconf()
 		self._sql_pool = sql_pool
 		self._data = self._loadsql()
 
@@ -34,7 +34,7 @@ class UserPolicy(Policy.Policy):
 		if data["request"] == "smtpd_access_policy":
 			if data["sasl_username"] == "":
 				sender = data["sender"]
-				answer = self._strict_check(data["recipient"], sender)
+				answer = self._check_one(data["recipient"], sender)
 				if answer:
 					return answer				
 				else:
@@ -42,7 +42,7 @@ class UserPolicy(Policy.Policy):
 					if array_of_recipients:
 						recipients = list(set(array_of_recipients))
 						for email in recipients:
-							answer = self._strict_check(email.lower(), Sender)
+							answer = self._check_one(email.lower(), Sender)
 							if answer: break
 
 						if answer:
@@ -58,18 +58,18 @@ class UserPolicy(Policy.Policy):
 		elif data["request"] == "junk_policy":
 
 			if data["action"] == "notspam":
-				if not self._strict_check(data["sender"], data["recipient"]):
-					self._strict_train(data)
+				if not self._check_one(data["sender"], data["recipient"]):
+					self._train_one(data)
 
 			elif data["action"] == "spam":
-				if self._strict_check(data["sender"], data["recipient"]):
-					self._strict_del(data)
+				if self._check_one(data["sender"], data["recipient"]):
+					self._del_one(data)
 			else:
 				return None
 		else:
 			return None
 
-	def _strict_check(self, recipient, sender):
+	def _check_one(self, recipient, sender):
 		result = None
 
 		with self._mutex:
@@ -83,7 +83,7 @@ class UserPolicy(Policy.Policy):
 		if (deep > 50):
 			return recipient
 
-		post_alias = subprocess.Popen(["postalias -q {0} {1}".format(recipient, self.conf_aliases)], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
+		post_alias = subprocess.Popen(["postalias -q {0} {1}".format(recipient, self._alias_maps )], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
 		output = post_alias.communicate()[0].strip().lower()
 	        res = list()
 
@@ -107,9 +107,9 @@ class UserPolicy(Policy.Policy):
 		return conf
 
 	def train(self, data, answer = "dspam_innocent"):
-		return self._strict_train(data , answer)
+		return self._train_one(data , answer)
 
-	def _strict_train(self, data, answer = "dspam_innocent"):
+	def _train_one(self, data, answer = "dspam_innocent"):
 		recipient = data["recipient"]
 		sender = data["sender"]
 
@@ -124,7 +124,7 @@ class UserPolicy(Policy.Policy):
 
 		return None
 
-	def _strict_del(self, data):
+	def _del_one(self, data):
 
 		recipient = data["recipient"]
 		sender = data["sender"]
