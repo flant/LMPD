@@ -22,7 +22,7 @@
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 
-import os, sys, signal, site, argparse
+import os, sys, signal, site, argparse #, setproctitle
 
 #Importing our modules
 site.addsitedir("/usr/lib/python2.6/tfpolicyd/lib", known_paths=None)
@@ -37,6 +37,8 @@ def main():
 	parser.add_argument('-p', '--pid', help='Path to a PID file', default='/tmp/tfpolicyd.pid')
 	parser.add_argument('-d', dest='is_daemon', action='store_true', help='Become a daemon', default=False)
 	args = parser.parse_args()	
+
+	#setproctitle.setproctitle(' '.join(sys.argv)) 
 
 	Init.check_clone(args.pid)
 

@@ -24,7 +24,6 @@
 import threading
 
 class Policy():
-	data = {}
 	def __init__(self, config, sql_pool):
 		self._mutex = threading.Lock()
 
