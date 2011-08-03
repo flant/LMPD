@@ -37,7 +37,6 @@ start() {
 		if [ `ps auwx|grep $NAME|grep $PID|grep -v -c grep` = 1 ]
 		then
 			echo "Starting tfpolicyd: OK."
-			exit 0
 		else
 			echo "Starting tfpolicyd: FAIL."
 		fi
@@ -50,7 +49,6 @@ stop() {
 		then
 			kill -2 $PID
 			echo "Stoping tfpolicyd: OK."
-			exit 0
 		else
 			echo "Stoping tfpolicyd: no tfpolicyd running."
 		fi
