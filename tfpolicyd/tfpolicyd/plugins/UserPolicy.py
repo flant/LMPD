@@ -159,7 +159,8 @@ class UserPolicy(Policy.Policy):
 		for row in query.record:
 			tmp = {}
 			tmp[row["mail"].lower()] = row["accept"]
-			res[users[str(int(row["user_id"]))]].update(tmp)
+			if users.has_key(str(int(row["user_id"]))):
+				res[users[str(int(row["user_id"]))]].update(tmp)
 
 		return res
 

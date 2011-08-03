@@ -29,22 +29,23 @@ class UserPolicyLDAP(Policy.Policy):
 
 		self.conf_aliases = self._postconf()
 		self._sql_pool = sql_pool
-		self._ldap_addr = config("filters_UserPolicyLDAP_ldap_addr", "127.0.0.1")
+		self._ldap_addr = config.get("filters_UserPolicyLDAP_ldap_addr", "127.0.0.1")
 
-		if config("filters_UserPolicyLDAP_ldap_proto_ver", "3") == "3":
+		if config.get("filters_UserPolicyLDAP_ldap_proto_ver", None):
 			self._ldap_proto_ver = ldap.VERSION3
 		else:
 			self._ldap_proto_ver = ldap.VERSION2
 
-		self._ldap_user = config("filters_UserPolicyLDAP_ldap_user", "cn=mail,ou=main,dc=acmeinc,dc=en")
-		self._ldap_pass = config("filters_UserPolicyLDAP_ldap_pass", "")
-		self._ldap_base_dn = config("filters_UserPolicyLDAP_ldap_base_dn", "dc=acmeinc,dc=en")
-		self._ldap_retrieve_attributes = config("filters_UserPolicyLDAP_ldap_retrieve_attributes", ["mail", "uidNumber"])
-		self._ldap_search_filter = config("filters_UserPolicyLDAP_ldap_search_filter", "(&(objectClass=Account)(mail=*))")
+		self._ldap_user = config.get("filters_UserPolicyLDAP_ldap_user", "cn=mail,ou=main,dc=acmeinc,dc=en")
+		self._ldap_pass = config.get("filters_UserPolicyLDAP_ldap_pass", "")
+		self._ldap_base_dn = config.get("filters_UserPolicyLDAP_ldap_base_dn", "dc=acmeinc,dc=en")
+		self._ldap_retrieve_attributes = config.get("filters_UserPolicyLDAP_ldap_retrieve_attributes", ["mail", "uidNumber"])
+		self._ldap_search_filter = config.get("filters_UserPolicyLDAP_ldap_search_filter", "(&(objectClass=Account)(mail=*))")
 
-		self._users = self._loadldap()
-		if self._users:
-			self._data = self._loadsql(self._users)
+		self._mail_users, self._uid_users = self._loadldap()
+
+		if self._mail_users:
+			self._data = self._loadsql(self._mail_users)
 		else:
 			self._data = {}
 
@@ -163,24 +164,29 @@ class UserPolicyLDAP(Policy.Policy):
 		res={}
 		rules={}
 
+		for uid in users:
+			res[users[uid]] = {}
+
 		query = PySQLPool.getNewQuery(self._sql_pool, True)
 
 		query.Query(sql_1)
 		for row in query.record:
 			tmp = {}
 			tmp[row["mail"].lower()] = row["accept"]
-			res[users[str(int(row["user_id"]))]].update(tmp)
+			if users.has_key(str(int(row["user_id"]))):
+				res[users[str(int(row["user_id"]))]].update(tmp)
 
 		return res
 
 	def _loadldap(self):
-		result_set = {}
+		result_mail_set = {}
+		result_uid_set = {}
 		try:
-			ldap_conn = self._ldap_addr
+			ldap_conn = ldap.open(self._ldap_addr)
 			ldap_conn.protocol_version = self._ldap_proto_ver
 			ldap_conn.simple_bind_s(self._ldap_user, self._ldap_pass)
 		except ldap.LDAPError, e:
-			return None
+			return None, None
 
 		baseDN = self._ldap_base_dn
 		searchScope = ldap.SCOPE_SUBTREE
@@ -190,17 +196,17 @@ class UserPolicyLDAP(Policy.Policy):
 		try:
 			ldap_result_id = ldap_conn.search(baseDN, searchScope, searchFilter, retrieveAttributes)
 			while 1:
-				result_type, result_data = ldal_conn.result(ldap_result_id, 0)
+				result_type, result_data = ldap_conn.result(ldap_result_id, 0)
 				if (result_data == []):
 					break
 				else:
 					if result_type == ldap.RES_SEARCH_ENTRY:
-						result_set[result_data[0][1][retrieveAttributes[0]][0]] = result_data[0][1][retrieveAttributes[1]][0]
-
+						result_mail_set[result_data[0][1][retrieveAttributes[1]][0]] = result_data[0][1][retrieveAttributes[0]][0]
+						result_uid_set[result_data[0][1][retrieveAttributes[0]][0]] = result_data[0][1][retrieveAttributes[1]][0]
 		except ldap.LDAPError, e:
-			return None
+			return None, None
 
-		return result_set
+		return result_mail_set, result_uid_set
 
 	def _addrule(self, data, answer = "dspam_innocent"):
 		if data["sasl_username"] != "" and data["sender"] != "" and data["recipient"] != "":
@@ -209,8 +215,8 @@ class UserPolicyLDAP(Policy.Policy):
 
 			query = PySQLPool.getNewQuery(self._sql_pool, True)
 
-			if self._users.has_key(data["sasl_username"]):
-				tmp = self._users[data["sasl_username"]]
+			if self._uid_users.has_key(data["sasl_username"]):
+				tmp = self._uid_users[data["sasl_username"]]
 				query.Query(sql_1.format(tmp, data["recipient"], answer))
 
 	def _delrule(self, data):
@@ -219,8 +225,8 @@ class UserPolicyLDAP(Policy.Policy):
 		if data["sasl_username"] != "" and data["sender"] != "" and data["recipient"] != "":
 			query = PySQLPool.getNewQuery(self._sql_pool, True)
 
-			if self._users.has_key(date["sasl_username"]):
-				tmp = self._users[date["sasl_username"]]
+			if self._uid_users.has_key(data["sasl_username"]):
+				tmp = self._uid_users[data["sasl_username"]]
 				query.Query(sql_1.format(tmp, data["recipient"]))
 
 	def reload(self):
