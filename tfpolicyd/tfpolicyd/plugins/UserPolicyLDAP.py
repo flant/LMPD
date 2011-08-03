@@ -43,7 +43,10 @@ class UserPolicyLDAP(Policy.Policy):
 		self._ldap_search_filter = config("filters_UserPolicyLDAP_ldap_search_filter", "(&(objectClass=Account)(mail=*))")
 
 		self._users = self._loadldap()
-		self._data = self._loadsql(self._users)
+		if self._users:
+			self._data = self._loadsql(self._users)
+		else:
+			self._data = {}
 
 	def check(self, data):
 		if data["request"] == "smtpd_access_policy":
@@ -174,15 +177,15 @@ class UserPolicyLDAP(Policy.Policy):
 		result_set = {}
 		try:
 			ldap_conn = self._ldap_addr
-			ldap_conn.protocol_version = ldap.VERSION3
-			ldap_conn.simple_bind_s("cn=mail,ou=system,dc=mattino,dc=ru", "3DC6wnSHL7DMeCXaBWUm")
+			ldap_conn.protocol_version = self._ldap_proto_ver
+			ldap_conn.simple_bind_s(self._ldap_user, self._ldap_pass)
 		except ldap.LDAPError, e:
 			return None
 
-		baseDN = "dc=mattino,dc=ru"
+		baseDN = self._ldap_base_dn
 		searchScope = ldap.SCOPE_SUBTREE
-		retrieveAttributes = ["mail", "uidNumber"]
-		searchFilter = "(&(objectClass=posixAccount)(mail=*))"
+		retrieveAttributes = self._ldap_retrieve_attributes
+		searchFilter = self._ldap_search_filter
 
 		try:
 			ldap_result_id = ldap_conn.search(baseDN, searchScope, searchFilter, retrieveAttributes)
