@@ -1,0 +1,14 @@
+Source: tfpolicyd
+Section: mail
+Priority: optional
+Maintainer: Nikola Bogdanov <nikolay.bogdanov@trueoffice.ru>
+Build-Depends: debhelper (>= 5)
+Standards-Version: 3.8.2.0
+Homepage: http://trueoffice.ru
+
+Package: tfpolicyd
+Architecture: all
+Depends: python-yaml, python-argparse, python-mysqldb
+Description: Postfix plugin for whitelists
+ Policyd provides easy whitelisting for postfix
+ It can work with dovecot

@@ -1,0 +1,22 @@
+mysql:
+  host: 127.0.0.1
+  port: 3306
+  user: mail
+  password: mail
+  dbname: mail
+  pool: 10
+
+system:
+  user: postfix
+  group: postfix
+
+network:
+  type: unix
+  socket: /home/gyrt/DEV-Code/policyd/policy.sock
+
+filters:
+  order:
+    - AddressPolicy
+    - DomainPolicy
+    - UserPolicy
+  default: DUNNO
