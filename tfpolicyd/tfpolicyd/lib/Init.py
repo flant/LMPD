@@ -131,3 +131,10 @@ def SIGINT_handler(pid_file, socket_fd, signum, frame):
 		sys.exit(1)
 
 	sys.exit(0)
+
+def SIGINT_worker_handler(connection, signum, frame):
+	print "Caught SIGNAL 2. Exiting..."
+
+	connection.close()
+
+	sys.exit(0)

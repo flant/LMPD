@@ -21,7 +21,7 @@
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 
-import threading, sys, Connection, PySQLPool, Init, time
+import threading, sys, Connection, PySQLPool, Init, time, signal, Init
 
 class WorkerTread(threading.Thread):
 	def __init__(self, socket, flts, default_answer, sql_pool, debug = False):
@@ -34,6 +34,10 @@ class WorkerTread(threading.Thread):
 		self.flts = flts
 		if self.debug:
 			self.start_time = time.time()
+
+		signal.signal(signal.SIGTERM, lambda x, y: Init.SIGINT_worker_handler(socket, x, y))
+		signal.signal(signal.SIGINT, lambda x, y: Init.SIGINT_worker_handler(socket, x, y))
+		signal.signal(signal.SIGHUP, signal.SIG_IGN)
 
 	def run(self):
 		with Connection.Connection(self.socket, self.name, self.debug) as conn:

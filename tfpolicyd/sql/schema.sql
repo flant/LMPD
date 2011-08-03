@@ -1,12 +1,3 @@
--- phpMyAdmin SQL Dump
--- version 3.4.2deb1
--- http://www.phpmyadmin.net
---
--- Хост: localhost
--- Время создания: Июн 28 2011 г., 22:43
--- Версия сервера: 5.1.57
--- Версия PHP: 5.3.6-12
-
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
 
@@ -16,26 +7,12 @@ SET time_zone = "+00:00";
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8 */;
 
---
--- База данных: `postfix`
---
-
---
--- Структура таблицы `users`
---
-
 CREATE TABLE IF NOT EXISTS `users` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `username` varchar(128) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
-
--- --------------------------------------------------------
-
---
--- Структура таблицы `white_list_addr`
---
 
 CREATE TABLE IF NOT EXISTS `white_list_addr` (
   `id_wl_arrd` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -45,12 +22,6 @@ CREATE TABLE IF NOT EXISTS `white_list_addr` (
   UNIQUE KEY `mx_addr` (`mx_addr`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
--- --------------------------------------------------------
-
---
--- Структура таблицы `white_list_dns`
---
-
 CREATE TABLE IF NOT EXISTS `white_list_dns` (
   `id_wl_dns` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `dns` varchar(255) NOT NULL,
@@ -58,12 +29,6 @@ CREATE TABLE IF NOT EXISTS `white_list_dns` (
   PRIMARY KEY (`id_wl_dns`),
   UNIQUE KEY `dns` (`dns`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
-
--- --------------------------------------------------------
-
---
--- Структура таблицы `white_list_mail`
---
 
 CREATE TABLE IF NOT EXISTS `white_list_mail` (
   `id_wl_mail` int(10) unsigned NOT NULL AUTO_INCREMENT,
