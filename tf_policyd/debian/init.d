@@ -12,27 +12,53 @@
 
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
-NAME="server.py"
-PATH_DAEMON="/usr/local/share/tf-policyd"
+NAME="tf_policyd"
+PATH_DAEMON="/usr/sbin/"
 DAEMON="$PATH_DAEMON/$NAME"
-PIDF="/tmp/policyd.pid"
+PIDF="/tmp/tf_policyd.pid"
 ARGS="-d -p $PIDF"
 
-USER="root"
+test() {
+	
+}
 
 start() {
-    echo -n "Starting tf-policyd: "
-    cd $PATH_DAEMON
-    ./$NAME $ARGS
-    echo "OK"
+	if [ -f "$PIDF" ]; then
+		PID=$(cat $PIDF)
+		if [ `ps auwx|grep $NAME|grep $PID|grep -v -c grep` = 1 ]
+		then
+			echo "Starting tf_policyd: TF policyd working [pid: $PID]."
+			exit 0
+		else
+			echo "Starting tf_policyd: TF policyd not running with dirty exit. Start new."
+			$DAEMON $ARGS
+		fi
+	else
+		$DAEMON $ARGS
+	fi
+	if [ -f "$PIDF" ]; then
+		PID=$(cat $PIDF)
+		if [ `ps auwx|grep $NAME|grep $PID|grep -v -c grep` = 1 ]
+		then
+			echo "Starting tf_policyd: OK."
+			exit 0
+		else
+			echo "Starting tf_policyd: FAIL."
+		fi
+	fi
 }
 stop() {
-    echo -n "Stopping $NAME: "
-    PID=$(cat $PIDF)
-    echo $PID
-    kill -2 $PID
-    rm -f "$PIDF"
-    echo "OK"
+	if [ -f "$PIDF" ]; then
+		PID=$(cat $PIDF)
+		if [ `ps auwx|grep $NAME|grep $PID|grep -v -c grep` = 1 ]
+		then
+			kill -2 $PID
+			echo "Stoping tf_policyd: OK."
+			exit 0
+		else
+			echo "Stoping tf_policyd: no tf_policyd running."
+		fi
+	fi
 }
 restart() {
     stop
