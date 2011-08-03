@@ -40,7 +40,7 @@ class Connection(dict):
 		if self.debug:
 			self.start_time = time.time()
 			self.processed_messages = 0
-			self.last_messageTime = self.StartTime
+			self.last_messageTime = self.start_time
 
 	def __enter__(self):
 		return self
