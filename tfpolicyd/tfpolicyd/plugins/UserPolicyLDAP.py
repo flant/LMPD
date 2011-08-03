@@ -33,7 +33,7 @@ class UserPolicyLDAP(Policy.Policy):
 
 		if config("filters_UserPolicyLDAP_ldap_proto_ver", "3") == "3":
 			self._ldap_proto_ver = ldap.VERSION3
-		else 
+		else:
 			self._ldap_proto_ver = ldap.VERSION2
 
 		self._ldap_user = config("filters_UserPolicyLDAP_ldap_user", "cn=mail,ou=main,dc=acmeinc,dc=en")
