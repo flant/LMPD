@@ -115,7 +115,7 @@ def write_pid(pid_file):
                 print "I/O error({0}): {1}".format(errno, strerror)
                 sys.exit(1)
 
-def SIGINT_handler(pid_file, signum, frame):
+def SIGINT_handler(pid_file, socket_fd, signum, frame):
 	print "Caught SIGNAL 2. Exiting..."
 	
 	if os.path.exists(pid_file):
@@ -124,4 +124,10 @@ def SIGINT_handler(pid_file, signum, frame):
 		except OSError as (errno, strerror):
 			print "OSError error({0}): {1}".format(errno, strerror)
 			sys.exit(1)
+	try:
+		socket_fd.close()
+	except socket.error as (errno, strerror):
+		print "OSError error({0}): {1}".format(errno, strerror)
+		sys.exit(1)
+
 	sys.exit(0)

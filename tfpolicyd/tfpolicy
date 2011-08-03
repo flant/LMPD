@@ -76,8 +76,8 @@ def main():
 		print "Lost fields in filter config. Exiting..."
 		sys.exit(1)
 
-	signal.signal(signal.SIGTERM, lambda x, y: Init.SIGINT_handler(args.pid, x, y))
-	signal.signal(signal.SIGINT, lambda x, y: Init.SIGINT_handler(args.pid, x, y))
+	signal.signal(signal.SIGTERM, lambda x, y: Init.SIGINT_handler(args.pid, socket, x, y))
+	signal.signal(signal.SIGINT, lambda x, y: Init.SIGINT_handler(args.pid, socket, x, y))
 	signal.signal(signal.SIGHUP, signal.SIG_IGN)
 
 	if args.is_daemon:
