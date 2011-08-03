@@ -159,7 +159,33 @@ class UserPolicyLDAP(Policy.Policy):
 		return res
 
 	def _loadldap(self):
-		pass
+		result_set = {}
+		try:
+			ldap_conn = ldap.open("ldap.mattino.ru")
+			ldap_conn.protocol_version = ldap.VERSION3
+			ldap_conn.simple_bind_s("cn=mail,ou=system,dc=mattino,dc=ru", "3DC6wnSHL7DMeCXaBWUm")
+		except ldap.LDAPError, e:
+			return None
+
+		baseDN = "dc=mattino,dc=ru"
+		searchScope = ldap.SCOPE_SUBTREE
+		retrieveAttributes = ["mail", "uidNumber"]
+		searchFilter = "(&(objectClass=posixAccount)(mail=*))"
+
+		try:
+			ldap_result_id = ldap_conn.search(baseDN, searchScope, searchFilter, retrieveAttributes)
+		while 1:
+			result_type, result_data = ldal_conn.result(ldap_result_id, 0)
+			if (result_data == []):
+				break
+			else:
+				if result_type == ldap.RES_SEARCH_ENTRY:
+					result_set[result_data[0][1][retrieveAttributes[0]][0]] = result_data[0][1][retrieveAttributes[1]][0]
+
+		except ldap.LDAPError, e:
+			return None
+
+		return result_set
 
 	def _addrule(self, data, answer = "dspam_innocent"):
 		if data["sasl_username"] != "" and data["sender"] != "" and data["recipient"] != "":
