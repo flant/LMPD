@@ -29,9 +29,21 @@ class UserPolicyLDAP(Policy.Policy):
 
 		self.conf_aliases = self._postconf()
 		self._sql_pool = sql_pool
+		self._ldap_addr = config("filters_UserPolicyLDAP_ldap_addr", "127.0.0.1")
+
+		if config("filters_UserPolicyLDAP_ldap_proto_ver", "3") == "3":
+			self._ldap_proto_ver = ldap.VERSION3
+		else 
+			self._ldap_proto_ver = ldap.VERSION2
+
+		self._ldap_user = config("filters_UserPolicyLDAP_ldap_user", "cn=mail,ou=main,dc=acmeinc,dc=en")
+		self._ldap_pass = config("filters_UserPolicyLDAP_ldap_pass", "")
+		self._ldap_base_dn = config("filters_UserPolicyLDAP_ldap_base_dn", "dc=acmeinc,dc=en")
+		self._ldap_retrieve_attributes = config("filters_UserPolicyLDAP_ldap_retrieve_attributes", ["mail", "uidNumber"])
+		self._ldap_search_filter = config("filters_UserPolicyLDAP_ldap_search_filter", "(&(objectClass=Account)(mail=*))")
 
 		self._users = self._loadldap()
-		self._data = self._loadsql()
+		self._data = self._loadsql(self._users)
 
 	def check(self, data):
 		if data["request"] == "smtpd_access_policy":
@@ -142,7 +154,7 @@ class UserPolicyLDAP(Policy.Policy):
 					del self._data[sender][recipient]
 		return None
 
-	def _loadsql(self, users = self._users):
+	def _loadsql(self, users):
 		sql_1 = "SELECT `user_id`, `mail`, `accept` FROM `white_list_mail`"
 
 		res={}
@@ -161,7 +173,7 @@ class UserPolicyLDAP(Policy.Policy):
 	def _loadldap(self):
 		result_set = {}
 		try:
-			ldap_conn = ldap.open("ldap.mattino.ru")
+			ldap_conn = self._ldap_addr
 			ldap_conn.protocol_version = ldap.VERSION3
 			ldap_conn.simple_bind_s("cn=mail,ou=system,dc=mattino,dc=ru", "3DC6wnSHL7DMeCXaBWUm")
 		except ldap.LDAPError, e:
@@ -174,13 +186,13 @@ class UserPolicyLDAP(Policy.Policy):
 
 		try:
 			ldap_result_id = ldap_conn.search(baseDN, searchScope, searchFilter, retrieveAttributes)
-		while 1:
-			result_type, result_data = ldal_conn.result(ldap_result_id, 0)
-			if (result_data == []):
-				break
-			else:
-				if result_type == ldap.RES_SEARCH_ENTRY:
-					result_set[result_data[0][1][retrieveAttributes[0]][0]] = result_data[0][1][retrieveAttributes[1]][0]
+			while 1:
+				result_type, result_data = ldal_conn.result(ldap_result_id, 0)
+				if (result_data == []):
+					break
+				else:
+					if result_type == ldap.RES_SEARCH_ENTRY:
+						result_set[result_data[0][1][retrieveAttributes[0]][0]] = result_data[0][1][retrieveAttributes[1]][0]
 
 		except ldap.LDAPError, e:
 			return None
