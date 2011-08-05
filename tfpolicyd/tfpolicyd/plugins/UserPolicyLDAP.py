@@ -198,6 +198,8 @@ class UserPolicyLDAP(Policy.Policy):
 		except ldap.LDAPError, e:
 			return None, None
 
+		ldap_conn.unbind_s()
+
 		return result_mail_set, result_uid_set
 
 	def _addrule(self, data, answer = "dspam_innocent"):
