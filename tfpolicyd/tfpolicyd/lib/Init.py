@@ -130,15 +130,6 @@ def SIGINT_handler(pid_file, socket_fd, sql_pool, signum, frame):
 		print "OSError error({0}): {1}".format(errno, strerror)
 		sys.exit(1)
 
-	sql_manager = PySQLPool.PySQLConnectionManager(sql_pool)
-
-	sql_manager.Close()
-
-	sys.exit(0)
-
-def SIGINT_worker_handler(connection, signum, frame):
-	print "Caught SIGNAL 2. Exiting..."
-
-	connection.close()
+	PySQLPool.terminatePool()
 
 	sys.exit(0)
