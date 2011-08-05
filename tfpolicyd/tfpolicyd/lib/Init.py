@@ -21,7 +21,7 @@
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 
-import os, pwd, grp, socket, sys
+import os, pwd, grp, socket, sys, PySQLPool
 
 def check_clone(pid_file):
 	if os.path.exists(pid_file):
@@ -115,7 +115,7 @@ def write_pid(pid_file):
                 print "I/O error({0}): {1}".format(errno, strerror)
                 sys.exit(1)
 
-def SIGINT_handler(pid_file, socket_fd, signum, frame):
+def SIGINT_handler(pid_file, socket_fd, sql_pool, signum, frame):
 	print "Caught SIGNAL 2. Exiting..."
 	
 	if os.path.exists(pid_file):
@@ -129,6 +129,10 @@ def SIGINT_handler(pid_file, socket_fd, signum, frame):
 	except socket.error as (errno, strerror):
 		print "OSError error({0}): {1}".format(errno, strerror)
 		sys.exit(1)
+
+	sql_manager = PySQLPool.PySQLConnectionManager(sql_pool)
+
+	sql_manager.Close()
 
 	sys.exit(0)
 

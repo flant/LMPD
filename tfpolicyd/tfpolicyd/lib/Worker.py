@@ -35,11 +35,12 @@ class WorkerTread(threading.Thread):
 		if self.debug:
 			self.start_time = time.time()
 
-		signal.signal(signal.SIGTERM, lambda x, y: Init.SIGINT_worker_handler(socket, x, y))
-		signal.signal(signal.SIGINT, lambda x, y: Init.SIGINT_worker_handler(socket, x, y))
-		signal.signal(signal.SIGHUP, signal.SIG_IGN)
-
 	def run(self):
+		
+		signal.signal(signal.SIGTERM, lambda x, y: Init.SIGINT_worker_handler(self.socket, x, y))
+		signal.signal(signal.SIGINT, lambda x, y: Init.SIGINT_worker_handler(self.socket, x, y))
+		signal.signal(signal.SIGHUP, signal.SIG_IGN)
+		
 		with Connection.Connection(self.socket, self.name, self.debug) as conn:
 			while conn.get_message():
 
