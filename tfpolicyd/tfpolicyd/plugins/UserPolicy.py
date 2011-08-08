@@ -170,7 +170,7 @@ class UserPolicy(Policy.Policy):
 					res[users[str(int(row["user_id"]))]].update(tmp)
 
 			return res
-		except MySQLError as e:
+		except MySQLdb.Error as e:
 
 			if self._debug:
 				print e
@@ -192,7 +192,7 @@ class UserPolicy(Policy.Policy):
 					return None
 
 				query.Query(sql_2.format(tmp, data["recipient"], answer))
-			except MySQLError as e:
+			except MySQLdb.Error as e:
 
 			if self._debug:
 				print e
@@ -214,7 +214,7 @@ class UserPolicy(Policy.Policy):
 					return None
 
 				query.Query(sql_2.format(tmp, data["recipient"]))
-			except MySQLError as e:
+			except MySQLdb.Error as e:
 
 			if self._debug:
 				print e

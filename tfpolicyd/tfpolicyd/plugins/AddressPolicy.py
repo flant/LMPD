@@ -62,7 +62,7 @@ class AddressPolicy(Policy.Policy):
 				res[row[0]] = row[1].lower()
 
 			return res
-		except MySQLError as e:
+		except MySQLdb.Error as e:
 			if self._debug:
 				print e
 

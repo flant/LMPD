@@ -181,7 +181,7 @@ class UserPolicyLDAP(Policy.Policy):
 					res[users[str(int(row["user_id"]))]].update(tmp)
 
 			return res
-		except MySQLError as e:
+		except MySQLdb.Error as e:
 
 			if self._debug:
 				print e
@@ -225,7 +225,7 @@ class UserPolicyLDAP(Policy.Policy):
 				if self._uid_users.has_key(data["sasl_username"]):
 					tmp = self._uid_users[data["sasl_username"]]
 					query.Query(sql_1.format(tmp, data["recipient"], answer))
-			except MySQLError as e:
+			except MySQLdb.Error as e:
 
 				if self._debug:
 					print e
@@ -242,7 +242,7 @@ class UserPolicyLDAP(Policy.Policy):
 				if self._uid_users.has_key(data["sasl_username"]):
 					tmp = self._uid_users[data["sasl_username"]]
 					query.Query(sql_1.format(tmp, data["recipient"]))
-			except MySQLError as e:
+			except MySQLdb.Error as e:
 
 				if self._debug:
 					print e
