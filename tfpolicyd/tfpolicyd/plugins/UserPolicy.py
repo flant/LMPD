@@ -216,10 +216,10 @@ class UserPolicy(Policy.Policy):
 				query.Query(sql_2.format(tmp, data["recipient"]))
 			except MySQLdb.Error as e:
 
-			if self._debug:
-				print e
+				if self._debug:
+					print e
 
-			return None
+				return None
 
 	def reload(self):
 
