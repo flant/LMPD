@@ -28,7 +28,13 @@ class UserPolicy(Policy.Policy):
 		Policy.Policy.__init__(self, config, sql_pool)
 		self._alias_maps  = self._postconf()
 		self._sql_pool = sql_pool
-		self._data = self._loadsql()
+		self._debug = False
+
+		tmp_data = self._loadsql()
+		if tmp_data:
+			self._data = tmp_data
+		else:
+			self._data = {}
 
 	def check(self, data):
 		if data["request"] == "smtpd_access_policy":
@@ -140,67 +146,88 @@ class UserPolicy(Policy.Policy):
 		return None
 
 	def _loadsql(self):
-		sql_1 = "SELECT `id`,`username` FROM `users`"
-		sql_2 = "SELECT `user_id`, `mail`, `accept` FROM `white_list_mail`"
+		try:
+			sql_1 = "SELECT `id`,`username` FROM `users`"
+			sql_2 = "SELECT `user_id`, `mail`, `accept` FROM `white_list_mail`"
 
-		res={}
-		users={}
-		rules={}
-
-		query = PySQLPool.getNewQuery(self._sql_pool, True)
-
-		query.Query(sql_1)
-		for row in query.record:
-			tmp = row["username"].lower()
-			users[str(int(row["id"]))] = tmp
-			res[tmp] = {}
-
-		query.Query(sql_2)
-		for row in query.record:
-			tmp = {}
-			tmp[row["mail"].lower()] = row["accept"]
-			if users.has_key(str(int(row["user_id"]))):
-				res[users[str(int(row["user_id"]))]].update(tmp)
-
-		return res
-
-	def _addrule(self, data, answer = "dspam_innocent"):
-		if data["sasl_username"] != "" and data["sender"] != "" and data["recipient"] != "":
-
-			sql_1 = "SELECT `id` FROM `users` WHERE `username` LIKE '{0}'"
-			sql_2 = "INSERT IGNORE INTO `white_list_mail` VALUES(NULL, {0}, '{1}', '{2}')"
+			res={}
+			users={}
+			rules={}
 
 			query = PySQLPool.getNewQuery(self._sql_pool, True)
 
-			query.Query(sql_1.format(data["sasl_username"]))
-			try:
-				tmp = str(int(query.record[0]["id"]))
-			except IndexError as Err:
-				return None
+			query.Query(sql_1)
+			for row in query.record:
+				tmp = row["username"].lower()
+				users[str(int(row["id"]))] = tmp
+				res[tmp] = {}
 
-			query.Query(sql_2.format(tmp, data["recipient"], answer))
+			query.Query(sql_2)
+			for row in query.record:
+				tmp = {}
+				tmp[row["mail"].lower()] = row["accept"]
+				if users.has_key(str(int(row["user_id"]))):
+					res[users[str(int(row["user_id"]))]].update(tmp)
+
+			return res
+		except MySQLError as e:
+
+			if self._debug:
+				print e
+
+			return None
+
+	def _addrule(self, data, answer = "dspam_innocent"):
+		if data["sasl_username"] != "" and data["sender"] != "" and data["recipient"] != "":
+			try:
+				sql_1 = "SELECT `id` FROM `users` WHERE `username` LIKE '{0}'"
+				sql_2 = "INSERT IGNORE INTO `white_list_mail` VALUES(NULL, {0}, '{1}', '{2}')"
+
+				query = PySQLPool.getNewQuery(self._sql_pool, True)
+
+				query.Query(sql_1.format(data["sasl_username"]))
+				try:
+					tmp = str(int(query.record[0]["id"]))
+				except IndexError as Err:
+					return None
+
+				query.Query(sql_2.format(tmp, data["recipient"], answer))
+			except MySQLError as e:
+
+			if self._debug:
+				print e
+
+			return None
 
 	def _delrule(self, data):
 		sql_1 = "SELECT `id` FROM `users` WHERE `username` LIKE '{0}'"
 		sql_2 = "DELETE FROM `white_list_mail` WHERE `user_id` = '{0}' AND `mail` = '{1}'"
 
 		if data["sender"] != "" and data["recipient"] != "":
-			query = PySQLPool.getNewQuery(self._sql_pool, True)
-
-			query.Query(sql_1.format(data["sender"]))
 			try:
-				tmp = str(int(query.record[0]["id"]))
-			except IndexError as Err:
-				return None
+				query = PySQLPool.getNewQuery(self._sql_pool, True)
 
-			query.Query(sql_2.format(tmp, data["recipient"]))
+				query.Query(sql_1.format(data["sender"]))
+				try:
+					tmp = str(int(query.record[0]["id"]))
+				except IndexError as Err:
+					return None
+
+				query.Query(sql_2.format(tmp, data["recipient"]))
+			except MySQLError as e:
+
+			if self._debug:
+				print e
+
+			return None
 
 	def reload(self):
 
 		tmp_data = self._loadsql()
 
-		with self._mutex:
-			self._data.clean()
-			self._data.update(tmp_data)
-			
+		if tmp_data:
+			with self._mutex:
+				self._data.clean()
+				self._data.update(tmp_data)
+
 		return None

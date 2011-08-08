@@ -33,7 +33,13 @@ class AddressPolicy(Policy.Policy):
 	def __init__(self, config, sql_pool):
 		Policy.Policy.__init__(self, config, sql_pool)
 		self._sql_pool = sql_pool
-		self._data = self._loadsql()
+		self._debug = False
+
+		tmp_data = self._loadsql()
+		if tmp_data:
+			self._data = tmp_data
+		else:
+			self._data = {}
 
 	def check(self, data):
 		addr = data["client_address"]
@@ -45,23 +51,30 @@ class AddressPolicy(Policy.Policy):
 		return result
 
 	def _loadsql(self):
-		sql_1 = "SELECT `mx_addr`, `accept` FROM `white_list_addr`"
-		res = {}
+		try:
+			sql_1 = "SELECT `mx_addr`, `accept` FROM `white_list_addr`"
+			res = {}
 
-		query = PySQLPool.getNewQuery(self._sql_pool, True)
-		query.Query(sql_1)		
+			query = PySQLPool.getNewQuery(self._sql_pool, True)
+			query.Query(sql_1)		
 
-		for row in query.record:
-			res[row[0]] = row[1].lower()
+			for row in query.record:
+				res[row[0]] = row[1].lower()
 
-		return res
+			return res
+		except MySQLError as e:
+			if self._debug:
+				print e
+
+			return None
 
 	def reload(self):
 
 		tmp_data = self._loadsql()
 
-		with self._mutex:
-			self._data.clean()
-			self._data.update(tmp_data)
+		if tmp_data:
+			with self._mutex:
+				self._data.clean()
+				self._data.update(tmp_data)
 
 		return None

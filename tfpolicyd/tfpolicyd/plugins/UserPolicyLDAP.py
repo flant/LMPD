@@ -30,6 +30,8 @@ class UserPolicyLDAP(Policy.Policy):
 		self._alias_maps  = self._postconf()
 		self._sql_pool = sql_pool
 
+		self._debug = False
+
 		self._ldap_uri = config.get("filters_UserPolicyLDAP_ldap_addr", "ldaps://127.0.0.1")
 
 		self._ldap_user = config.get("filters_UserPolicyLDAP_ldap_user", "cn=mail,ou=main,dc=acmeinc,dc=en")
@@ -42,7 +44,11 @@ class UserPolicyLDAP(Policy.Policy):
 		self._mail_users, self._uid_users = self._loadldap()
 
 		if self._mail_users:
-			self._data = self._loadsql(self._mail_users)
+			tmp_data = self._loadsql()
+			if tmp_data:
+				self._data = tmp_data
+			else:
+				self._data = {}
 		else:
 			self._data = {}
 
@@ -156,24 +162,31 @@ class UserPolicyLDAP(Policy.Policy):
 		return None
 
 	def _loadsql(self, users):
-		sql_1 = "SELECT `user_id`, `mail`, `accept` FROM `white_list_mail`"
+		try:
+			sql_1 = "SELECT `user_id`, `mail`, `accept` FROM `white_list_mail`"
 
-		res={}
-		rules={}
+			res={}
+			rules={}
 
-		for uid in users:
-			res[users[uid]] = {}
+			for uid in users:
+				res[users[uid]] = {}
 
-		query = PySQLPool.getNewQuery(self._sql_pool, True)
+			query = PySQLPool.getNewQuery(self._sql_pool, True)
 
-		query.Query(sql_1)
-		for row in query.record:
-			tmp = {}
-			tmp[row["mail"].lower()] = row["accept"]
-			if users.has_key(str(int(row["user_id"]))):
-				res[users[str(int(row["user_id"]))]].update(tmp)
+			query.Query(sql_1)
+			for row in query.record:
+				tmp = {}
+				tmp[row["mail"].lower()] = row["accept"]
+				if users.has_key(str(int(row["user_id"]))):
+					res[users[str(int(row["user_id"]))]].update(tmp)
 
-		return res
+			return res
+		except MySQLError as e:
+
+			if self._debug:
+				print e
+
+			return None
 
 	def _loadldap(self):
 		result_mail_set = {}
@@ -206,34 +219,51 @@ class UserPolicyLDAP(Policy.Policy):
 		if data["sasl_username"] != "" and data["sender"] != "" and data["recipient"] != "":
 
 			sql_1 = "INSERT IGNORE INTO `white_list_mail` VALUES(NULL, {0}, '{1}', '{2}')"
+			try:
+				query = PySQLPool.getNewQuery(self._sql_pool, True)
 
-			query = PySQLPool.getNewQuery(self._sql_pool, True)
+				if self._uid_users.has_key(data["sasl_username"]):
+					tmp = self._uid_users[data["sasl_username"]]
+					query.Query(sql_1.format(tmp, data["recipient"], answer))
+			except MySQLError as e:
 
-			if self._uid_users.has_key(data["sasl_username"]):
-				tmp = self._uid_users[data["sasl_username"]]
-				query.Query(sql_1.format(tmp, data["recipient"], answer))
+				if self._debug:
+					print e
+
+				return None
 
 	def _delrule(self, data):
 		sql_1 = "DELETE FROM `white_list_mail` WHERE `user_id` = '{0}' AND `mail` = '{1}'"
 
 		if data["sasl_username"] != "" and data["sender"] != "" and data["recipient"] != "":
-			query = PySQLPool.getNewQuery(self._sql_pool, True)
+			try:
+				query = PySQLPool.getNewQuery(self._sql_pool, True)
 
-			if self._uid_users.has_key(data["sasl_username"]):
-				tmp = self._uid_users[data["sasl_username"]]
-				query.Query(sql_1.format(tmp, data["recipient"]))
+				if self._uid_users.has_key(data["sasl_username"]):
+					tmp = self._uid_users[data["sasl_username"]]
+					query.Query(sql_1.format(tmp, data["recipient"]))
+			except MySQLError as e:
 
+				if self._debug:
+					print e
+
+				return None
+			
 	def reload(self):
 
 		tmp_users, tmp_uids = self._loadldap()
-		tmp_data = self._loadsql(tmp_users)
+		if tmp_users:
+			tmp_data = self._loadsql(tmp_users)
+		else:
+			tmp_data = {}
 
-		with self._mutex:
-			self._data.clean()
-			self._data.update(tmp_data)
-			self._mail_users.clean()
-			self._mail_users.update(tmp_users)
-			self._uid_users.clean()
-			self._uid_users.update(tmp_uids)
+		if tmp_data and tmp_uids:
+			with self._mutex:
+				self._data.clean()
+				self._data.update(tmp_data)
+				self._mail_users.clean()
+				self._mail_users.update(tmp_users)
+				self._uid_users.clean()
+				self._uid_users.update(tmp_uids)
 
 		return None
