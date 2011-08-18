@@ -62,6 +62,7 @@ def createsock(config):
 				sys.exit(1)
 
 		try:
+			socket_fd.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 			socket_fd.bind(sockname)
 		except socket.error as (errno, strerror):
 			print "socket.error error({0}): {1}".format(errno, strerror)
@@ -70,6 +71,7 @@ def createsock(config):
 	elif net_type == "tcp":
 		socket_fd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		try:
+			socket_fd.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 			socket_fd.bind((config.get("network_address","127.0.0.1"), int(config.get("network_port","7000"))))
 		except socket.error as (errno, strerror):
 			print "socket.error error({0}): {1}".format(errno, strerror)
@@ -124,7 +126,9 @@ def SIGINT_handler(pid_file, socket_fd, sql_pool, signum, frame):
 		except OSError as (errno, strerror):
 			print "OSError error({0}): {1}".format(errno, strerror)
 			sys.exit(1)
+
 	try:
+		socket_fd.shutdown(socket.SHUT_RDWR)
 		socket_fd.close()
 	except socket.error as (errno, strerror):
 		print "OSError error({0}): {1}".format(errno, strerror)

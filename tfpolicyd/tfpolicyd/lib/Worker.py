@@ -32,6 +32,7 @@ class WorkerTread(threading.Thread):
 		self.socket = socket
 		self.sql_pool = sql_pool
 		self.flts = flts
+
 		if self.debug:
 			self.start_time = time.time()
 
