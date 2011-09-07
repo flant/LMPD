@@ -183,8 +183,6 @@ class UserPolicy(Policy.Policy):
 						if self._debug:
 							print e
 
-						continue
-
 			return res
 		except MySQLdb.Error as e:
 

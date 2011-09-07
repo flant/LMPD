@@ -36,7 +36,8 @@ CREATE TABLE IF NOT EXISTS `white_list_mail` (
   `mail` varchar(255) NOT NULL,
   `accept` varchar(255) NOT NULL DEFAULT 'OK',
   PRIMARY KEY (`id_wl_mail`),
-  UNIQUE (`user_id`, `mail`)
+  UNIQUE (`user_id`, `mail`),
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
