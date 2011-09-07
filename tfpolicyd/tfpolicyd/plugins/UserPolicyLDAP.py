@@ -164,9 +164,11 @@ class UserPolicyLDAP(Policy.Policy):
 	def _loadsql(self, users):
 		try:
 			sql_1 = "SELECT `user_id`, `mail`, `accept` FROM `white_list_mail`"
+			sql_2 = "DELETE FROM `white_list_mail` WHERE `user_id` = '{0}'"
 
 			res={}
 			rules={}
+			clean_rulse={}
 
 			for uid in users:
 				res[users[uid]] = {}
@@ -179,6 +181,17 @@ class UserPolicyLDAP(Policy.Policy):
 				tmp[row["mail"].lower()] = row["accept"]
 				if users.has_key(str(int(row["user_id"]))):
 					res[users[str(int(row["user_id"]))]].update(tmp)
+				else:
+					if not clean_rulse.has_key(int(row["user_id"])):
+						clean_rulse.[row["user_id"]] = "delete"
+
+			if len(clean_rulse) > 0:
+				for user_id in clean_rulse:
+					try:
+						query.Query(sql_2.format(user_id))
+					except MySQLdb.Error as e:
+						if self._debug:
+							print e
 
 			return res
 		except MySQLdb.Error as e:

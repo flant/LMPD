@@ -149,10 +149,12 @@ class UserPolicy(Policy.Policy):
 		try:
 			sql_1 = "SELECT `id`,`username` FROM `users`"
 			sql_2 = "SELECT `user_id`, `mail`, `accept` FROM `white_list_mail`"
+			sql_3 = "DELETE FROM `white_list_mail` WHERE `user_id` = '{0}'"
 
 			res={}
 			users={}
 			rules={}
+			clean_rulse={}
 
 			query = PySQLPool.getNewQuery(self._sql_pool, True)
 
@@ -168,6 +170,20 @@ class UserPolicy(Policy.Policy):
 				tmp[row["mail"].lower()] = row["accept"]
 				if users.has_key(str(int(row["user_id"]))):
 					res[users[str(int(row["user_id"]))]].update(tmp)
+				else:
+					if not clean_rulse.has_key(int(row["user_id"])):
+						clean_rulse.[row["user_id"]] = "delete"
+
+			if len(clean_rulse) > 0:
+				for user_id in clean_rulse:
+					try:
+						query.Query(sql_3.format(user_id))
+
+					except MySQLdb.Error as e:
+						if self._debug:
+							print e
+
+						continue
 
 			return res
 		except MySQLdb.Error as e:
