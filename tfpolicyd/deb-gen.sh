@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 CHECKPKG=`dpkg --get-selections | egrep '^(gpgv|lsb-release)' | awk '{print $2}' | grep -v "deinstall" | wc -l`
 if [ ! $CHECKPKG == "2" ]; then
