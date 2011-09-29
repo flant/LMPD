@@ -7,7 +7,7 @@ else
 echo "All needed packages installed"
 fi
 
-export CFLAGS="-O0 -g" 
+export CFLAGS="-O0 -g"
 export CPPFLAGS="-O0 -g"
 
 BUILDPATH=`pwd`
