@@ -1,53 +1,5 @@
-dovecot-antispam (1.4-1) unstable; urgency=low
+dovecot-antispam (1.4-changeme1) changeme; urgency=low
 
   * Patched dovecot plugin from TrueOffice with love
 
- -- Nikolay Bogdanov <nikolay.bogdanov@trueoffice.ru>  Mon, 1 Aug 2011 19:40:14 +0930
-
-dovecot-antispam (1.2+20090702-1) unstable; urgency=low
-
-  * Adopt this one officially now with the maintainer's blessing. Thanks Jonny!
-  * Update the Vcs-* URLs to point at the repo this was prepared from.
-
- -- Ron Lee <ron@debian.org>  Sat, 25 Jul 2009 04:45:14 +0930
-
-dovecot-antispam (1.2+20090702-0.2) unstable; urgency=low
-
-  * Include stdlib.h for the getenv prototype.  Closes: #537765
-  * Fix the match_fn_t prototype for dovecot 1.2 which makes more parameters
-    to it const.
-
- -- Ron Lee <ron@debian.org>  Wed, 22 Jul 2009 23:14:52 +0930
-
-dovecot-antispam (1.2+20090702-0.1) unstable; urgency=low
-
-  * Non-maintainer upload.
-  * Import upstream fix af0f8f8de27901e2efb9560a1fc66c7af3cd810b, required to
-    build this with dovecot 1.2 now in unstable.  Closes: #537077
-
- -- Ron Lee <ron@debian.org>  Fri, 17 Jul 2009 08:36:46 +0930
-
-dovecot-antispam (1.2-0.1) unstable; urgency=low
-
-  * Non-maintainer upload.  (Pulling in new upstream source)
-  * Rebuild to suit dovecot 1.1.16 currently in unstable.
-  * Note in the description this package is built using the mailtrain backend.
-    half- Closes: #532605, it probably still would be nice to build for all of
-    the backends, but I only need this one too, so add others as people to test
-    them put their hands up.
-  * Tidy up a little in debian/rules.
-
- -- Ron Lee <ron@debian.org>  Sun, 12 Jul 2009 21:19:58 +0930
-
-dovecot-antispam (1.1+20090218.git.g28075fa-2) unstable; urgency=low
-
-  * debian/gbp.conf: Removed no-create-orig line.
-  * Rebuilding with newer dovecot. (Closes: #521643)
-
- -- Jonny Lamb <jonny@debian.org>  Wed, 08 Apr 2009 09:43:38 +0100
-
-dovecot-antispam (1.1+20090218.git.g28075fa-1) unstable; urgency=low
-
-  * Initial release.
-
- -- Jonny Lamb <jonny@debian.org>  Wed, 04 Mar 2009 16:06:42 +0000
+ -- Nikolay Bogdanov <nikolay.bogdanov@trueoffice.ru>  Mon, 1 Aug 2011 19:40:14 +0400
