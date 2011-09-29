@@ -7,6 +7,9 @@ else
 echo "All needed packages installed"
 fi
 
+export CFLAGS="-O0 -g" 
+export CPPFLAGS="-O0 -g"
+
 BUILDPATH=`pwd`
 
 CODENAME=`lsb_release -a 2>/dev/null |grep "Codename:" | awk '{print $2}'`
