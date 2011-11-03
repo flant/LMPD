@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 #
-#		System functions for policyd
+#       System functions for LMPD
 #       Init.py
 #       
-#       Copyright (C) 2009-2011 CJSC TrueOffice (www.trueoffice.ru)
-#		Written by Nikolay aka GyRT Bogdanov <nikolay.bogdanov@trueoffice.ru>
+#       Copyright (C) 2009-2011 CJSC Flant (http://flant.ru/)
+#       Written by Nikolay "GyRT" Bogdanov <nikolay.bogdanov@flant.ru>
 #       
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by

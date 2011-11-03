@@ -3,10 +3,10 @@ tfpolicyd (0.2-changeme1) changeme; urgency=low
   * Some updates in network code
   * Updates in database connectors
 
- -- Nikolay Bogdanov <nikolay.bogdanov@trueoffice.ru>  Tue, 30 Aug 2011 15:38:14 +0400
+ -- Nikolay Bogdanov <nikolay.bogdanov@flant.ru>  Tue, 30 Aug 2011 15:38:14 +0400
 
 tfpolicyd (0.1-changeme1) changeme; urgency=low
 
   * Initial release
 
- -- Nikolay Bogdanov <nikolay.bogdanov@trueoffice.ru>  Tue, 2 Aug 2011 20:00:14 +0400
+ -- Nikolay Bogdanov <nikolay.bogdanov@flant.ru>  Tue, 2 Aug 2011 20:00:14 +0400

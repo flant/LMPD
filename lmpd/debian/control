@@ -1,10 +1,10 @@
 Source: tfpolicyd
 Section: mail
 Priority: optional
-Maintainer: Nikola Bogdanov <nikolay.bogdanov@trueoffice.ru>
+Maintainer: Nikolay Bogdanov <nikolay.bogdanov@flant.ru>
 Build-Depends: debhelper (>= 5)
 Standards-Version: 3.8.2.0
-Homepage: http://trueoffice.ru
+Homepage: http://flant.ru/
 
 Package: tfpolicyd
 Architecture: all

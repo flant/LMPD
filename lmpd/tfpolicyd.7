@@ -1,0 +1,58 @@
+.TH TF_POLICYD 7 "2 August 2011" "" ""
+.SH NAME
+tf_policyd \- whitelisting daemon for Postfix
+written in Python.
+
+.SH DESCRIPTION
+This daemon implements simple user whitelisting for
+Postfix using SMTP_ACCESS_POLICY. It uses Postfix
+aliases and MySQL database for whitelisting.
+
+You can train your daemon using Dovecot. For this,
+please install the patched dovecot-antispam.
+
+.SH CONFIGURATION
+
+You have the following run-time options (default
+values are displayed):
+
+.nf
+# MySQL connection options
+mysql:
+  host: 127.0.0.1
+  port: 3306
+  user: mail
+  password: mail
+  dbname: mail
+  # Limit of MySQL connections
+  pool: 10 
+
+# Daemon UID and GID
+system:
+  user: postfix
+  group: postfix 
+
+# Network settings
+network:
+  # Network type: "unix" or "tcp"
+  type: unix
+  # Path to UNIX domain socket (used for "unix")
+  socket: /home/gyrt/DEV-Code/policyd/policy.sock
+  # IP address to bind (used for "tcp")
+  address: 127.0.0.1
+  # TCP port to bind (used for "tcp")
+  port: 7000
+ 
+filters:
+  # Policies' names
+  order:
+    - AddressPolicy
+    - DomainPolicy
+    - UserPolicy
+  # Default answer in policies
+  default: DUNNO
+.fi
+
+.SH AUTHORS
+
+Nikolay Bogdanov

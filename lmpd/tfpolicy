@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#		Main process(connection manager) for policyd
-#       server.py
+#       Main process (connection manager) for LMPD server.py
 #       
-#       Copyright (C) 2009-2011 CJSC TrueOffice (www.trueoffice.ru)
-#		Written by Nikolay aka GyRT Bogdanov <nikolay.bogdanov@trueoffice.ru>
+#       Copyright (C) 2009-2011 CJSC Flant (http://flant.ru/)
+#       Written by Nikolay "GyRT" Bogdanov <nikolay.bogdanov@flant.ru>
 #       
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
@@ -24,7 +23,7 @@
 
 import os, sys, signal, site, argparse
 
-#Importing our modules
+# importing LMPD modules
 site.addsitedir("/usr/lib/python2.6/tfpolicyd/lib", known_paths=None)
 site.addsitedir("/usr/lib/python2.6/tfpolicyd/plugins", known_paths=None)
 site.addsitedir("/usr/lib/python2.6/tfpolicyd/lib/PySQLPool", known_paths=None)
@@ -33,29 +32,29 @@ import Config, Init, Connection, Policy, Worker, Logger, PySQLPool, Reloader
 
 def main():
 	parser = argparse.ArgumentParser(description='SMTP policy whitelisting daemon.')
-	parser.add_argument('-c', '--config', help='Path to a config file', default='/etc/postfix/tfpolicyd.yaml')
-	parser.add_argument('-p', '--pid', help='Path to a PID file', default='/tmp/tfpolicyd.pid')
+	parser.add_argument('-c', '--config', help='Path to the config file', default='/etc/postfix/tfpolicyd.yaml')
+	parser.add_argument('-p', '--pid', help='Path to the PID file', default='/tmp/tfpolicyd.pid')
 	parser.add_argument('-d', dest='is_daemon', action='store_true', help='Become a daemon', default=False)
 	args = parser.parse_args()	
 
 	Init.check_clone(args.pid)
 
-	#reading config
+	# reading config
 	config = Config.Config(args.config)
 
-	# set uid and gid
+	# setting UID and GID
 	Init.baseinit(config)
 	
 	# creating socket
 	socket = Init.createsock(config)
 	
-	# creating mysql pool
+	# creating MySQL pool
 	mysql_config = config.get("mysql", False)
 	if mysql_config:
 		PySQLPool.getNewPool().maxActiveConnections = config.get("mysql_pool", 10)
 		sql_pool = PySQLPool.getNewConnection(username=config.get("mysql_user", "root"), password=config.get("mysql_password", ""), host=config.get("mysql_host", "localhost"), db=config.get("mysql_dbname", "postfix"), port=config.get("mysql_port", 3306))
 	else:
-		print "Lost fields in mysql config. Exiting..."
+		print "No MySQL params in the LMPD config. Exiting..."
 		sys.exit(1)
 
 	# loading filters names from config
@@ -70,10 +69,10 @@ def main():
 		flt = getattr(locals()[flt_name], flt_name)(config, sql_pool)
 		flts.append(flt)
 
-	# Loading default answer for postfix
+	# loading default answer for Postfix
 	default_answer = config.get("filters_default", False)
 	if not default_answer:
-		print "Lost fields in filter config. Exiting..."
+		print "No filters params in the LMPD config. Exiting..."
 		sys.exit(1)
 
 	signal.signal(signal.SIGTERM, lambda x, y: Init.SIGINT_handler(args.pid, socket, sql_pool, x, y))
@@ -83,14 +82,14 @@ def main():
 	if args.is_daemon:
 		Init.demonize()
 
-	# Writing pid to file
+	# writing pid to file
 	Init.write_pid(args.pid)
 
 	reload_proc = Reloader.ReloaderTread(int(config.get("filters_reload", 600)), flts)
 	try:
 		reload_proc.start()
 	except(thread.error):
-		print("Spawned threads : %s. Can not spawn other one" % threading.active_count())
+		print("Spawned threads : %s. Unable to spawn new thread" % threading.active_count())
 
 	while 1:
 		conn, addr = socket.accept()
@@ -98,7 +97,7 @@ def main():
 		try:
 			proc.start()
 		except(thread.error):
-			print("Spawned threads : %s. Can not spawn other one" % threading.active_count())
+			print("Spawned threads : %s. Unable to spawn new thread" % threading.active_count())
 
 
 if __name__ == "__main__":

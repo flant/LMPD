@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 #
-#		Logger for loging
+#       Logger for LMPD
 #       Logger.py
 #       
-#       Copyright (C) 2009-2011 CJSC TrueOffice (www.trueoffice.ru)
-#		Written by Dmitry Stolyarov <dmitry.stolyarov@trueoffice.ru>
+#       Copyright (C) 2009-2011 CJSC Flant (http://flant.ru/)
+#       Written by Dmitry Stolyarov <dmitry.stolyarov@flant.ru>
 #       
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by

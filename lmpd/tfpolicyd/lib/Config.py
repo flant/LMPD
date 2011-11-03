@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 #
-#		Config for policyd
-#       AnalysePolicy.py
+#       Config for LMPD
+#       Config.py
 #       
-#       Copyright (C) 2009-2011 CJSC TrueOffice (www.trueoffice.ru)
-#		Written by Dmitry Stolyarov <dmitry.stolyarov@trueoffice.ru>
-#		Modified by Nikolay aka GyRT Bogdanov <nikolay.bogdanov@@trueoffice.ru>
+#       Copyright (C) 2009-2011 CJSC Flant (http://flant.ru/)
+#       Written by Dmitry Stolyarov <dmitry.stolyarov@flant.ru>
+#       Modified by Nikolay "GyRT" Bogdanov <nikolay.bogdanov@flant.ru>
 #       
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by

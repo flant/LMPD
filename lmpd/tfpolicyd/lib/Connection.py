@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 #
-#		Postfix Protocol class for policyd
+#       Postfix Protocol class for LMPD
 #       Connection.py
 #       
-#       Copyright (C) 2009-2011 CJSC TrueOffice (www.trueoffice.ru)
-#		Written by Nikolay aka GyRT Bogdanov <nikolay.bogdanov@trueoffice.ru>
+#       Copyright (C) 2009-2011 CJSC Flant (http://flant.ru/)
+#       Written by Nikolay "GyRT" Bogdanov <nikolay.bogdanov@flant.ru>
 #       
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
@@ -93,9 +93,9 @@ class Connection(dict):
 
 	def close(self):
 		if self.debug:
-			print "Closing socket now"
+			print "Closing socket"
 			stop_time = time.time()
-			print "Connection started {0}, stopped in {1}. Last message in {2}. Processe messages - {3}. Working {4} seconds.".format(time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.start_time)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(stop_time)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.last_message_time)), self.processed_messages, (stop_time - self.start_time))
+			print "Connection started {0}, stopped in {1}. Last message in {2}. Process messages - {3}. Working {4} seconds.".format(time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.start_time)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(stop_time)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.last_message_time)), self.processed_messages, (stop_time - self.start_time))
 		try:
 			self.socket.shutdown(socket.SHUT_RDWR)
 			self.socket.close()

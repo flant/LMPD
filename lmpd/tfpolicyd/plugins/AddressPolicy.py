@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 #
-#		Address filters for policyd
+#       Address filters for LMPD
 #       AddressPolicy.py
 #       
-#       Copyright (C) 2009-2011 CJSC TrueOffice (www.trueoffice.ru)
-#		Written by Nikolay aka GyRT Bogdanov <nikolay.bogdanov@trueoffice.ru>
+#       Copyright (C) 2009-2011 CJSC Flant (http://flant.ru/)
+#       Written by Nikolay "GyRT" Bogdanov <nikolay.bogdanov@flant.ru>
 #       
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 
 import Policy, threading, PySQLPool, MySQLdb
 
-#Dont need now
+## deprecated stuff
 #def addrule(oData, oSqlPool):
 #	sSql_1 = "INSERT INTO `white_list_addr` VALUES(NULL, {0}, {1})"
 #
