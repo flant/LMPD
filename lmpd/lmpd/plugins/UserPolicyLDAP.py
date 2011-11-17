@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 #
-#       Users filters for LMPD
-#       UserPolicy.py
+#		Users filters for lmpd
+#       UserPolicyLDAP.py
 #       
-#       Copyright (C) 2009-2011 CJSC Flant (http://flant.ru/)
-#       Written by Nikolay "GyRT" Bogdanov <nikolay.bogdanov@flant.ru>
+#       Copyright (C) 2009-2011 CJSC Flant (www.flant.ru)
+#		Written by Nikolay "GyRT" Bogdanov <nikolay.bogdanov@flant.ru>
 #       
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by

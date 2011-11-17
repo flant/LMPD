@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 #
-#       Worker class for LMPD
-#       Worker.py
+#       Base filter class for lmpd
+#       Policy.py
 #       
-#       Copyright (C) 2009-2011 CJSC Flant (http://flant.ru/)
+#       Copyright (C) 2009-2011 CJSC Flant (www.flant.ru)
 #       Written by Nikolay "GyRT" Bogdanov <nikolay.bogdanov@flant.ru>
 #       
 #       This program is free software; you can redistribute it and/or modify
@@ -21,24 +21,17 @@
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 
-import threading, sys, Connection, PySQLPool, Init, time
+import threading
 
-class ReloaderTread(threading.Thread):
-	def __init__(self, sleep_time, flts, debug = False):
-		threading.Thread.__init__(self)
-		self.debug = debug
-		self.daemon = True
-		self.flts = flts
-		self._sleep_time = sleep_time
-		if self.debug:
-			self.start_time = time.time()
+class Policy():
+	def __init__(self, config, sql_pool):
+		self._mutex = threading.Lock()
 
-	def run(self):
-		while (True):
-			time.sleep(self._sleep_time)
-			for flt in self.flts:
-				try:
-					flt.reload()
-				except:
-					if self.debug:
-						print "Update problem!"
+	def train(self, data):
+		return None
+
+	def check(self, data):
+		return None
+		
+	def reload(self):
+		return None

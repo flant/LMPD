@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 #
-#       Config for LMPD
+#       Config for lmpd
 #       Config.py
 #       
-#       Copyright (C) 2009-2011 CJSC Flant (http://flant.ru/)
+#       Copyright (C) 2009-2011 CJSC Flant (www.flant.ru)
 #       Written by Dmitry Stolyarov <dmitry.stolyarov@flant.ru>
-#       Modified by Nikolay "GyRT" Bogdanov <nikolay.bogdanov@flant.ru>
+#       Modified by Nikolay "GyRT" Bogdanov <nikolay.bogdanov@@flant.ru>
 #       
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by

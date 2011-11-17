@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 #
-#       Worker class for LMPD
+#       Worker class for lmpd
 #       Worker.py
 #       
-#       Copyright (C) 2009-2011 CJSC Flant (http://flant.ru/)
+#       Copyright (C) 2009-2011 CJSC Flant (www.flant.ru)
 #       Written by Nikolay "GyRT" Bogdanov <nikolay.bogdanov@flant.ru>
 #       
 #       This program is free software; you can redistribute it and/or modify

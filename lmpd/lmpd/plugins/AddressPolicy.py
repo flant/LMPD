@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 #
-#       Address filters for LMPD
+#		Address filters for lmpd
 #       AddressPolicy.py
 #       
-#       Copyright (C) 2009-2011 CJSC Flant (http://flant.ru/)
-#       Written by Nikolay "GyRT" Bogdanov <nikolay.bogdanov@flant.ru>
+#       Copyright (C) 2009-2011 CJSC Flant (www.flant.ru)
+#		Written by Nikolay "GyRT" Bogdanov <nikolay.bogdanov@flant.ru>
 #       
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
@@ -22,12 +22,6 @@
 #       MA 02110-1301, USA.
 
 import Policy, threading, PySQLPool, MySQLdb
-
-## deprecated stuff
-#def addrule(oData, oSqlPool):
-#	sSql_1 = "INSERT INTO `white_list_addr` VALUES(NULL, {0}, {1})"
-#
-#	oSqlConn.execute(sSql_1.format(oData["address"], oData["answer"]))
 
 class AddressPolicy(Policy.Policy):
 	def __init__(self, config, sql_pool):

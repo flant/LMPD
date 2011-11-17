@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 #
-#       Logger for LMPD
+#       Logger for loging
 #       Logger.py
 #       
-#       Copyright (C) 2009-2011 CJSC Flant (http://flant.ru/)
+#       Copyright (C) 2009-2011 CJSC Flant (www.flant.ru)
 #       Written by Dmitry Stolyarov <dmitry.stolyarov@flant.ru>
 #       
 #       This program is free software; you can redistribute it and/or modify

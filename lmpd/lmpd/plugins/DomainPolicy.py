@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 #
-#       Domain filters for LMPD
+#		Domain filters for lmpd
 #       DomainPolicy.py
 #       
-#       Copyright (C) 2009-2011 CJSC Flant (http://flant.ru/)
-#       Written by Nikolay "GyRT" Bogdanov <nikolay.bogdanov@flant.ru>
+#       Copyright (C) 2009-2011 CJSC Flant (www.flant.ru)
+#		Written by Nikolay "GyRT" Bogdanov <nikolay.bogdanov@flant.ru>
 #       
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 
 import Policy, threading, PySQLPool, MySQLdb
 
-## deprecated stuff
+#Dont need now
 #def addrule(oData, oSqlConn):
 #	sSql_1 = "INSERT INTO `white_list_dns` VALUES(NULL, {0}, {1})"
 #
