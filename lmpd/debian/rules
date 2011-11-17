@@ -21,8 +21,8 @@ install: build
 	dh_installdirs -A  usr/lib/python2.6/
 	dh_installdirs -A  usr/sbin
 	dh_installdirs -A  etc/postfix
-	$(MAKE) DESTDIR=./debian/tfpolicyd/ install
-	dh_installman tfpolicyd.7
+	$(MAKE) DESTDIR=./debian/lmpd/ install
+	dh_installman lmpd.7
 
 binary-indep: build install
 
