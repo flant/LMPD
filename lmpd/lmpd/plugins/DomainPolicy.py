@@ -21,7 +21,7 @@
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 
-import Policy, threading, PySQLPool, MySQLdb
+import Policy, PySQLPool, MySQLdb
 
 #Dont need now
 #def addrule(oData, oSqlConn):
@@ -30,10 +30,9 @@ import Policy, threading, PySQLPool, MySQLdb
 #	oSqlConn.execute(sSql_1.format(oData["helo_name"], oData["answer"]))
 
 class DomainPolicy(Policy.Policy):
-	def __init__(self, config, sql_pool):
-		Policy.Policy.__init__(self, config, sql_pool)
+	def __init__(self, config, sql_pool, debug = False):
+		Policy.Policy.__init__(self, config, sql_pool, debug)
 		self._sql_pool = sql_pool
-		self._debug = False
 
 		tmp_data = self._loadsql()
 		if tmp_data:
@@ -44,9 +43,8 @@ class DomainPolicy(Policy.Policy):
 	def check(self, data):
 		domain = data["helo_name"]
 		result = None
-		with self._mutex:
-			if self._data.has_key(domain):
-				result = self._data[domain]
+		if self._data.has_key(domain):
+			result = self._data[domain]
 
 		return result
 
@@ -62,11 +60,10 @@ class DomainPolicy(Policy.Policy):
 				res[row[0]] = row[1].lower()
 
 			return res
-		except MySQLdb.Error as e:
 
+		except:
 			if self._debug:
-				print e
-
+				print traceback.format_exc()
 			return None
 
 	def reload(self):
@@ -74,8 +71,7 @@ class DomainPolicy(Policy.Policy):
 		tmp_data = self._loadsql()
 
 		if tmp_data:
-			with self._mutex:
-				self._data.clean()
-				self._data.update(tmp_data)
+			self._data.clean()
+			self._data.update(tmp_data)
 
 		return None

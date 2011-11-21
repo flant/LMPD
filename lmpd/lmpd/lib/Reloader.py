@@ -21,11 +21,12 @@
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 
-import threading, sys, Connection, PySQLPool, Init, time
+import threading, sys, Connection, PySQLPool, Init, time, traceback, logging
 
 class ReloaderTread(threading.Thread):
 	def __init__(self, sleep_time, flts, debug = False):
 		threading.Thread.__init__(self)
+		self._mutex = threading.Lock()
 		self.debug = debug
 		self.daemon = True
 		self.flts = flts
@@ -38,7 +39,9 @@ class ReloaderTread(threading.Thread):
 			time.sleep(self._sleep_time)
 			for flt in self.flts:
 				try:
-					flt.reload()
+					with self._mutex:
+						flt.reload()
 				except:
+					logging.wanr("Update problem!")
 					if self.debug:
-						print "Update problem!"
+						logging.debug("Error, while updating. Traceback: \n{0}\n".format(traceback.format_exc()))

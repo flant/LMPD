@@ -21,16 +21,13 @@
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 
-import Policy, threading, PySQLPool, subprocess, ldap, MySQLdb
+import Policy, threading, PySQLPool, subprocess, ldap, traceback
 
 class UserPolicyLDAP(Policy.Policy):
-	def __init__(self, config, sql_pool):
-		Policy.Policy.__init__(self, config, sql_pool)
+	def __init__(self, config, sql_pool, debug = False):
+		Policy.Policy.__init__(self, config, sql_pool, debug)
 
 		self._alias_maps  = self._postconf()
-		self._sql_pool = sql_pool
-
-		self._debug = False
 
 		self._ldap_uri = config.get("filters_UserPolicyLDAP_ldap_addr", "ldaps://127.0.0.1")
 
@@ -94,9 +91,8 @@ class UserPolicyLDAP(Policy.Policy):
 	def _check_one(self, recipient, sender):
 		result = None
 
-		with self._mutex:
-			if self._data.has_key(recipient) and self._data[recipient].has_key(sender):
-				result = self._data[recipient][sender]
+		if self._data.has_key(recipient) and self._data[recipient].has_key(sender):
+			result = self._data[recipient][sender]
 
 		return result
 
@@ -135,14 +131,11 @@ class UserPolicyLDAP(Policy.Policy):
 		recipient = data["recipient"]
 		sender = data["sender"]
 
-		with self._mutex:
-			if recipient != "" and sender != "":
-				if not self._data.has_key(sender): self._data[sender] = {}
-				
-				if not self._data[sender].has_key(recipient):
-
-					self._addrule(data, answer)
-					self._data[sender][recipient] = answer
+		if recipient != "" and sender != "":
+			if not self._data.has_key(sender): self._data[sender] = {}
+			if not self._data[sender].has_key(recipient):
+				self._addrule(data, answer)
+				self._data[sender][recipient] = answer
 
 		return None
 
@@ -151,14 +144,12 @@ class UserPolicyLDAP(Policy.Policy):
 		recipient = data["recipient"]
 		sender = data["sender"]
 
-		with self._mutex:
-			if recipient != "" and sender != "":
+		if recipient != "" and sender != "":
+			if not self._data.has_key(sender): self._data[sender] = {}
+			if self._data[sender].has_key(recipient):
+				self._delrule(data)
+				del self._data[sender][recipient]
 
-				if not self._data.has_key(sender): self._data[sender] = {}
-				if self._data[sender].has_key(recipient):
-
-					self._delrule(data)
-					del self._data[sender][recipient]
 		return None
 
 	def _loadsql(self, users):
@@ -271,12 +262,11 @@ class UserPolicyLDAP(Policy.Policy):
 			tmp_data = {}
 
 		if tmp_data and tmp_uids:
-			with self._mutex:
-				self._data.clean()
-				self._data.update(tmp_data)
-				self._mail_users.clean()
-				self._mail_users.update(tmp_users)
-				self._uid_users.clean()
-				self._uid_users.update(tmp_uids)
+			self._data.clean()
+			self._data.update(tmp_data)
+			self._mail_users.clean()
+			self._mail_users.update(tmp_users)
+			self._uid_users.clean()
+			self._uid_users.update(tmp_uids)
 
 		return None

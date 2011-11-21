@@ -24,8 +24,10 @@
 import threading
 
 class Policy():
-	def __init__(self, config, sql_pool):
-		self._mutex = threading.Lock()
+	def __init__(self, config, sql_pool, debug = False):
+		self._config = config
+		self._sql_pool = sql_pool
+		self._debug = debug
 
 	def train(self, data):
 		return None

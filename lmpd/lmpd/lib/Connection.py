@@ -21,7 +21,7 @@
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 
-import socket, re, time
+import socket, re, time, traceback, logging
 
 class ConnectionError(Exception):
 	def __init__(self, value):
@@ -62,18 +62,18 @@ class Connection(dict):
 			try:
 				self._buffer += self.socket.recv(100)
 
-			except socket.error as (errno, strerror):
+			except:
 
 				if self.debug:
-					print "socket.error error({0}): {1}".format(errno, strerror)
-					print "Closing socket with error!"
+					logging.error("Error, while reading socket. Traceback:\n{0}".format(traceback.format_exc()))
+				logging.warn("Closing socket with error!")
 
 				return None
 
 			if not self._buffer:
 
 				if self.debug:
-					print "Closing socket with null answer"
+					logging.debug("Closing socket with null answer")
 
 				return None
 
@@ -86,22 +86,25 @@ class Connection(dict):
 	def answer(self, data):
 		try:
 			self.socket.send("action={0}\n\n".format(data))
-		except socket.error as (errno, strerror):
+		except:
+			if self.debug:
+				logging.error("Error, while reading socket. Traceback:\n{0}".format(traceback.format_exc()))
+			logging.warn("Cannot send data though socket!")
 			return False
 
 		return True
 
 	def close(self):
+		logging.info("Closing socket now")
 		if self.debug:
-			print "Closing socket now"
 			stop_time = time.time()
-			print "Connection started {0}, stopped in {1}. Last message in {2}. Processe messages - {3}. Working {4} seconds.".format(time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.start_time)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(stop_time)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.last_message_time)), self.processed_messages, (stop_time - self.start_time))
+			logging.debug("Connection started {0}, stopped in {1}. Last message in {2}. Processe messages - {3}. Working {4} seconds.".format(time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.start_time)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(stop_time)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.last_message_time)), self.processed_messages, (stop_time - self.start_time)))
 		try:
 			self.socket.shutdown(socket.SHUT_RDWR)
 			self.socket.close()
-		except socket.error as (errno, strerror):
+		except:
 			if self.debug:
-				print "socket.error error({0}): {1}".format(errno, strerror)
+				logging.debug("Error, while cloasing socket. Tracaback: {0}".format(traceback..format_exc()))
 
 	def get_message(self):
 
@@ -112,9 +115,7 @@ class Connection(dict):
 		if not data: return False
 
 		for key in self._array_of_regexps:
-
 			tmp = self._array_of_regexps[key].findall(data)
-
 			if len(tmp) > 0:
 				self[key] = tmp[0].lower()
 			else:

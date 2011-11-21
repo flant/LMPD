@@ -21,11 +21,11 @@
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 
-import os, pwd, grp, socket, sys, PySQLPool
+import os, pwd, grp, socket, sys, PySQLPool, logging
 
 def check_clone(pid_file):
 	if os.path.exists(pid_file):
-		print "Another policyd works. Exiting..."
+		logging.error("Another policyd works. Exiting...")
 		sys.exit(1)
 
 def baseinit(config):
@@ -35,18 +35,18 @@ def baseinit(config):
 		try:
 			os.setgid(grp.getgrnam(config.get("system_group", "postfix"))[2])
 		except KeyError:
-			print "Using existing group"
-		except OSErroras as (errno, strerror):
-			print "OSError error({0}): {1}".format(errno, strerror)
+			logging.warn("Using existing group")
+		except:
+			logging.error("Error, while get GID. Traceback: \n{0}\n".format(traceback.format_exc()))
 			sys.exit(1)
 
 	if os.getuid() == 0:
 		try:
 			os.setuid(pwd.getpwnam(config.get("system_user", "postfix"))[2])
 		except KeyError:
-			print "Using existing user"
+			logging.warn("Using existing user")
 		except OSErroras as (errno, strerror):
-			print "OSError error({0}): {1}".format(errno, strerror)
+			logging.error("Error, while get UID. Traceback: \n{0}\n".format(traceback.format_exc()))
 			sys.exit(1)
 
 def createsock(config):
@@ -57,15 +57,15 @@ def createsock(config):
 		if os.path.exists(sockname):
 			try:
 				os.remove(sockname)
-			except OSError as (errno, strerror):
-				print "OSError error({0}): {1}".format(errno, strerror)
+			except:
+				logging.error("Error, removing socket file. Traceback: \n{0}\n".format(traceback.format_exc()))
 				sys.exit(1)
 
 		try:
 			socket_fd.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 			socket_fd.bind(sockname)
-		except socket.error as (errno, strerror):
-			print "socket.error error({0}): {1}".format(errno, strerror)
+		except:
+			logging.error("Error, creating socket file. Traceback: \n{0}\n".format(traceback.format_exc()))
 			sys.exit(1)
 
 	elif net_type == "tcp":
@@ -73,13 +73,17 @@ def createsock(config):
 		try:
 			socket_fd.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 			socket_fd.bind((config.get("network_address","127.0.0.1"), int(config.get("network_port","7000"))))
-		except socket.error as (errno, strerror):
-			print "socket.error error({0}): {1}".format(errno, strerror)
+		except:
+			logging.error("Error, creating socket file. Traceback: \n{0}\n".format(traceback.format_exc()))
 			sys.exit(1)
 
-	socket_fd.setblocking(1)
-	socket_fd.settimeout(None)
-	socket_fd.listen(1)
+	try:
+		socket_fd.setblocking(1)
+		socket_fd.settimeout(None)
+		socket_fd.listen(1)
+	except:
+		logging.error("Error, setting socket flags. Traceback: \n{0}\n".format(traceback.format_exc()))
+		sys.exit(1)
 	return socket_fd
 
 def demonize():
@@ -87,53 +91,57 @@ def demonize():
 		pid = os.fork()
 		if pid > 0:
 			sys.exit(0) 
-	except OSError as (errno, strerror):
-		print "OSError error({0}): {1}".format(errno, strerror)
+	except:
+		logging.error("Error while first fork. Traceback: \n{0}\n".format(traceback.format_exc()))
 		sys.exit(1)
 
-	os.chdir("/") 
-	os.setsid() 
-
-	sys.stdin = open("/dev/null")
-	sys.stderr = open("/dev/null","w")
-	sys.stdout = open("/dev/null", "w")
+	try:
+		os.chdir("/") 
+		os.setsid() 
+		sys.stdin = open("/dev/null")
+		sys.stderr = open("/dev/null","w")
+		sys.stdout = open("/dev/null", "w")
+	except:
+		logging.error("Error while dropping control term. Traceback: \n{0}\n".format(traceback.format_exc()))
+		sys.exit(1)
 
 	try:
 		pid = os.fork()
 		if pid > 0:
 			sys.exit(0)
-	except OSError as (errno, strerror):
-		print "OSError error({0}): {1}".format(errno, strerror)
+	except:
+		logging.error("Error while second fork. Traceback: \n{0}\n".format(traceback.format_exc()))
 		sys.exit(1)
 
 def write_pid(pid_file):
 	pid = os.getpid()
 
-        try:
-                pid_file_desc = open(pid_file, "w")
-                pid_file_desc.write(str(pid))
-                pid_file_desc.close()
-        except IOError as (errno, strerror):
-                print "I/O error({0}): {1}".format(errno, strerror)
-                sys.exit(1)
+	try:
+		pid_file_desc = open(pid_file, "w")
+		pid_file_desc.write(str(pid))
+		pid_file_desc.close()
+	except:
+		logging.error("Error while creating pid file. Traceback: \n{0}\n".format(traceback.format_exc()))
+		sys.exit(1)
 
 def SIGINT_handler(pid_file, socket_fd, sql_pool, signum, frame):
-	print "Caught SIGNAL 2. Exiting..."
-	
+	logging.info("Caught SIGNAL 2. Exiting...")
+
 	if os.path.exists(pid_file):
 		try:
 			os.remove(pid_file)
-		except OSError as (errno, strerror):
-			print "OSError error({0}): {1}".format(errno, strerror)
-			sys.exit(1)
+		except:
+			logging.error("Error while first fork. Traceback: \n{0}\n".format(traceback.format_exc()))
+
 
 	try:
 		socket_fd.shutdown(socket.SHUT_RDWR)
 		socket_fd.close()
-	except socket.error as (errno, strerror):
-		print "OSError error({0}): {1}".format(errno, strerror)
-		sys.exit(1)
+	except:
+		logging.error("Error closing master socket. Traceback: \n{0}\n".format(traceback.format_exc()))
 
-	PySQLPool.terminatePool()
-
+	try:
+		PySQLPool.terminatePool()
+	except:
+		logging.error("Error terminating SQL pool. Traceback: \n{0}\n".format(traceback.format_exc()))
 	sys.exit(0)

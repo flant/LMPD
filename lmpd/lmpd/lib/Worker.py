@@ -21,7 +21,7 @@
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 
-import threading, sys, Connection, PySQLPool, Init, time, signal, Init
+import threading, sys, Connection, PySQLPool, time, signal, Init, traceback, logging
 
 class WorkerTread(threading.Thread):
 	def __init__(self, socket, flts, default_answer, sql_pool, debug = False):
@@ -32,6 +32,7 @@ class WorkerTread(threading.Thread):
 		self.socket = socket
 		self.sql_pool = sql_pool
 		self.flts = flts
+		self._mutex = threading.Lock()
 
 		if self.debug:
 			self.start_time = time.time()
@@ -45,9 +46,10 @@ class WorkerTread(threading.Thread):
 
 				if conn["sender"] != "" and conn["recipient"] != "":
 					if self.debug:
-						print "Mail from {0} to {1} with SASL: {2}".format(conn["sender"], conn["recipient"], conn["sasl_username"])
+						logging.debug("Mail from {0} to {1} with SASL: {2}".format(conn["sender"], conn["recipient"], conn["sasl_username"]))
 					for flt in self.flts:
-						flt_answer = flt.check(conn)
+						with self._mutex:
+							flt_answer = flt.check(conn)
 						if flt_answer:
 							break
 
@@ -55,13 +57,14 @@ class WorkerTread(threading.Thread):
 						answer = flt_answer
 
 					if self.debug:
-						print "Answer was: {0}".format(answer)
+						logging.debug("Answer for mail {0} to {1} was: {2}".format(conn["sender"], conn["recipient"], answer))
 
 				if conn["request"] == "smtpd_access_policy":
 					conn.answer(answer)
-
-				PySQLPool.cleanupPool()
-
+				try:
+					PySQLPool.cleanupPool()
+				except:
+					logging.warn('Error, while cleanging pool! Traceback: \n{0}\n'.format(traceback.format_exc()))
 		if self.debug:
 			stop_time = time.time()
-			print "Process with name {0} started {1}, stopped {2}. Working {3} seconds.".format(self.name, time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.start_time)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(stop_time)), (stop_time - self.start_time))
+			logging.debug("Process with name {0} started {1}, stopped {2}. Working {3} seconds.".format(self.name, time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.start_time)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(stop_time)), (stop_time - self.start_time)))

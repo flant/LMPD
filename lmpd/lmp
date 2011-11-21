@@ -22,13 +22,13 @@
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 
-import os, sys, signal, site, argparse
+import os, sys, signal, site, argparse, traceback, logging
 
 #Importing our modules
 site.addsitedir("/usr/lib/python2.6/lmpd/lib", known_paths=None)
 site.addsitedir("/usr/lib/python2.6/lmpd/plugins", known_paths=None)
 site.addsitedir("/usr/lib/python2.6/lmpd/lib/PySQLPool", known_paths=None)
-import Config, Init, Connection, Policy, Worker, Logger, PySQLPool, Reloader
+import Config, Init, Connection, Policy, Worker, PySQLPool, Reloader
 
 
 def main():
@@ -40,9 +40,16 @@ def main():
 
 	Init.check_clone(args.pid)
 
-	#reading config
+	# reading config
 	config = Config.Config(args.config)
 
+	# getting debug options
+	debug = config.get('debug', False)
+	log_file = config.get('log', False)
+	if log:
+		logging.basicConfig(filename=log, level=logging.DEBUG, datefmt='%m/%d/%Y %I:%M:%S %p', format='%(asctime)s %(levelname)s - %(message)s\n')
+	else:
+		logging.basicConfig(level=logging.DEBUG, datefmt='%m/%d/%Y %I:%M:%S %p', format='%(asctime)s %(levelname)s - %(message)s\n')
 	# set uid and gid
 	Init.baseinit(config)
 	
@@ -55,7 +62,7 @@ def main():
 		PySQLPool.getNewPool().maxActiveConnections = config.get("mysql_pool", 10)
 		sql_pool = PySQLPool.getNewConnection(username=config.get("mysql_user", "root"), password=config.get("mysql_password", ""), host=config.get("mysql_host", "localhost"), db=config.get("mysql_dbname", "postfix"), port=config.get("mysql_port", 3306))
 	else:
-		print "Lost fields in mysql config. Exiting..."
+		logging.error("Lost fields in mysql config. Exiting...")
 		sys.exit(1)
 
 	# loading filters names from config
@@ -66,14 +73,17 @@ def main():
 	# loading filters
 	flts = []
 	for flt_name in flt_names:
-		globals()[flt_name] = locals()[flt_name] = __import__(flt_name, globals(), locals(), [], -1)
-		flt = getattr(locals()[flt_name], flt_name)(config, sql_pool)
-		flts.append(flt)
+		try:
+			globals()[flt_name] = locals()[flt_name] = __import__(flt_name, globals(), locals(), [], -1)
+			flt = getattr(locals()[flt_name], flt_name)(config, sql_pool, debug)
+			flts.append(flt)
+		except:
+			logging.warning("Error, while loading module. Traceback:\n{0}".format(traceback.format_exc()))
 
 	# Loading default answer for postfix
 	default_answer = config.get("filters_default", False)
 	if not default_answer:
-		print "Lost fields in filter config. Exiting..."
+		logging.info("Lost fields in filter config. Exiting...")
 		sys.exit(1)
 
 	signal.signal(signal.SIGTERM, lambda x, y: Init.SIGINT_handler(args.pid, socket, sql_pool, x, y))
@@ -86,19 +96,21 @@ def main():
 	# Writing pid to file
 	Init.write_pid(args.pid)
 
-	reload_proc = Reloader.ReloaderTread(int(config.get("filters_reload", 600)), flts)
+	reload_proc = Reloader.ReloaderTread(int(config.get("filters_reload", 600)), flts, debug)
 	try:
 		reload_proc.start()
-	except(thread.error):
-		print("Spawned threads : %s. Can not spawn other one" % threading.active_count())
+	except:
+		logging.error("Spawned threads : %s. Can not spawn other one" % threading.active_count())
+		sys.exit(1)
 
 	while 1:
 		conn, addr = socket.accept()
-		proc = Worker.WorkerTread(conn, flts, default_answer, sql_pool)
+		proc = Worker.WorkerTread(conn, flts, default_answer, sql_pool, debug)
 		try:
 			proc.start()
 		except(thread.error):
-			print("Spawned threads : %s. Can not spawn other one" % threading.active_count())
+			logging.error("Spawned threads : %s. Can not spawn other one" % threading.active_count())
+			sys.exit(1)
 
 
 if __name__ == "__main__":

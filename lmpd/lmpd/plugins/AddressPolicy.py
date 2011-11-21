@@ -21,13 +21,11 @@
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 
-import Policy, threading, PySQLPool, MySQLdb
+import Policy, PySQLPool, traceback
 
 class AddressPolicy(Policy.Policy):
-	def __init__(self, config, sql_pool):
-		Policy.Policy.__init__(self, config, sql_pool)
-		self._sql_pool = sql_pool
-		self._debug = False
+	def __init__(self, config, sql_pool, debug = False):
+		Policy.Policy.__init__(self, config, sql_pool, debug)
 
 		tmp_data = self._loadsql()
 		if tmp_data:
@@ -38,9 +36,8 @@ class AddressPolicy(Policy.Policy):
 	def check(self, data):
 		addr = data["client_address"]
 		result = None
-		with self._mutex:
-			if self._data.has_key(addr):
-				result = self._data[addr]
+		if self._data.has_key(addr):
+			result = self._data[addr]
 
 		return result
 
@@ -56,9 +53,9 @@ class AddressPolicy(Policy.Policy):
 				res[row[0]] = row[1].lower()
 
 			return res
-		except MySQLdb.Error as e:
+		except:
 			if self._debug:
-				print e
+				print traceback.format_exc()
 
 			return None
 
@@ -67,8 +64,7 @@ class AddressPolicy(Policy.Policy):
 		tmp_data = self._loadsql()
 
 		if tmp_data:
-			with self._mutex:
-				self._data.clean()
-				self._data.update(tmp_data)
+			self._data.clean()
+			self._data.update(tmp_data)
 
 		return None

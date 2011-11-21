@@ -21,14 +21,12 @@
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 
-import Policy, threading, PySQLPool, subprocess, MySQLdb
+import Policy, threading, PySQLPool, subprocess, traceback
 
 class UserPolicy(Policy.Policy):
-	def __init__(self, config, sql_pool):
-		Policy.Policy.__init__(self, config, sql_pool)
+	def __init__(self, config, sql_pool, debug = False):
+		Policy.Policy.__init__(self, config, sql_pool, debug)
 		self._alias_maps  = self._postconf()
-		self._sql_pool = sql_pool
-		self._debug = False
 
 		tmp_data = self._loadsql()
 		if tmp_data:
@@ -78,9 +76,8 @@ class UserPolicy(Policy.Policy):
 	def _check_one(self, recipient, sender):
 		result = None
 
-		with self._mutex:
-			if self._data.has_key(recipient) and self._data[recipient].has_key(sender):
-				result = self._data[recipient][sender]
+		if self._data.has_key(recipient) and self._data[recipient].has_key(sender):
+			result = self._data[recipient][sender]
 
 		return result
 
@@ -91,7 +88,7 @@ class UserPolicy(Policy.Policy):
 
 		post_alias = subprocess.Popen(["postalias -q {0} {1}".format(recipient, self._alias_maps )], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
 		output = post_alias.communicate()[0].strip().lower()
-	        res = list()
+		res = list()
 
 		if output == recipient.lower().strip() or post_alias.returncode:
 			return None
@@ -119,14 +116,12 @@ class UserPolicy(Policy.Policy):
 		recipient = data["recipient"]
 		sender = data["sender"]
 
-		with self._mutex:
-			if recipient != "" and sender != "":
-				if not self._data.has_key(sender): self._data[sender] = {}
-				
-				if not self._data[sender].has_key(recipient):
+		if recipient != "" and sender != "":
+			if not self._data.has_key(sender): self._data[sender] = {}
 
-					self._addrule(data, answer)
-					self._data[sender][recipient] = answer
+			if not self._data[sender].has_key(recipient):
+				self._addrule(data, answer)
+				self._data[sender][recipient] = answer
 
 		return None
 
@@ -135,14 +130,12 @@ class UserPolicy(Policy.Policy):
 		recipient = data["recipient"]
 		sender = data["sender"]
 
-		with self._mutex:
-			if recipient != "" and sender != "":
+		if recipient != "" and sender != "":
+			if not self._data.has_key(sender): self._data[sender] = {}
+			if self._data[sender].has_key(recipient):
+				self._delrule(data)
+				del self._data[sender][recipient]
 
-				if not self._data.has_key(sender): self._data[sender] = {}
-				if self._data[sender].has_key(recipient):
-
-					self._delrule(data)
-					del self._data[sender][recipient]
 		return None
 
 	def _loadsql(self):
@@ -228,10 +221,10 @@ class UserPolicy(Policy.Policy):
 					return None
 
 				query.Query(sql_2.format(tmp, data["recipient"]))
-			except MySQLdb.Error as e:
+			except:
 
 				if self._debug:
-					print e
+					print traceback.format_exc()
 
 				return None
 
@@ -240,8 +233,7 @@ class UserPolicy(Policy.Policy):
 		tmp_data = self._loadsql()
 
 		if tmp_data:
-			with self._mutex:
-				self._data.clean()
-				self._data.update(tmp_data)
+			self._data.clean()
+			self._data.update(tmp_data)
 
 		return None
