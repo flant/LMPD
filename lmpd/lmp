@@ -76,9 +76,10 @@ def main():
 		try:
 			globals()[flt_name] = locals()[flt_name] = __import__(flt_name, globals(), locals(), [], -1)
 			flt = getattr(locals()[flt_name], flt_name)(config, sql_pool, debug)
-			flts.append(flt)
 		except:
 			logging.warning("Error, while loading module. Traceback:\n{0}".format(traceback.format_exc()))
+			continue
+		flts.append(flt)
 
 	# Loading default answer for postfix
 	default_answer = config.get("filters_default", False)

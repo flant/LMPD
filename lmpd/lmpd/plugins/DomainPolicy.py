@@ -21,13 +21,7 @@
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 
-import Policy, PySQLPool, MySQLdb
-
-#Dont need now
-#def addrule(oData, oSqlConn):
-#	sSql_1 = "INSERT INTO `white_list_dns` VALUES(NULL, {0}, {1})"
-#
-#	oSqlConn.execute(sSql_1.format(oData["helo_name"], oData["answer"]))
+import Policy, PySQLPool, traceback, logging
 
 class DomainPolicy(Policy.Policy):
 	def __init__(self, config, sql_pool, debug = False):
@@ -63,7 +57,7 @@ class DomainPolicy(Policy.Policy):
 
 		except:
 			if self._debug:
-				print traceback.format_exc()
+				logging.warn("Error get sql data for Domain policy. Traceback: \n{0}\n".format(traceback.format_exc()))
 			return None
 
 	def reload(self):

@@ -21,7 +21,7 @@
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 
-import Policy, PySQLPool, traceback
+import Policy, PySQLPool, traceback, logging
 
 class AddressPolicy(Policy.Policy):
 	def __init__(self, config, sql_pool, debug = False):
@@ -55,7 +55,7 @@ class AddressPolicy(Policy.Policy):
 			return res
 		except:
 			if self._debug:
-				print traceback.format_exc()
+				logging.warn("Error get sql data for Address policy. Traceback: \n{0}\n".format(traceback.format_exc()))
 
 			return None
 

@@ -21,7 +21,7 @@
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 
-import Policy, threading, PySQLPool, subprocess, traceback
+import Policy, PySQLPool, subprocess, traceback, logging
 
 class UserPolicy(Policy.Policy):
 	def __init__(self, config, sql_pool, debug = False):
@@ -40,7 +40,7 @@ class UserPolicy(Policy.Policy):
 				sender = data["sender"]
 				answer = self._check_one(data["recipient"], sender)
 				if answer:
-					return answer				
+					return answer
 				else:
 					array_of_recipients = self._postalias(data["recipient"])
 					if array_of_recipients:
@@ -86,7 +86,12 @@ class UserPolicy(Policy.Policy):
 		if (deep > 50):
 			return recipient
 
-		post_alias = subprocess.Popen(["postalias -q {0} {1}".format(recipient, self._alias_maps )], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
+		try:
+			post_alias = subprocess.Popen(["postalias -q {0} {1}".format(recipient, self._alias_maps )], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
+		except:
+			logging.warn("Error get alias data for User policy. Traceback: \n{0}\n".format(traceback.format_exc()))
+			return None
+
 		output = post_alias.communicate()[0].strip().lower()
 		res = list()
 
@@ -105,7 +110,12 @@ class UserPolicy(Policy.Policy):
 		return res
 
 	def _postconf(self):
-		post_conf = subprocess.Popen(["postconf -h virtual_alias_maps alias_maps"], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
+		try:
+			post_conf = subprocess.Popen(["postconf -h virtual_alias_maps alias_maps"], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
+		except:
+			logging.error("Error get postconf data for User policy. Traceback: \n{0}\n".format(traceback.format_exc()))
+			raise BaseException('Postconf error')
+
 		conf = post_conf.communicate()[0].strip().replace("\n", " ").replace(",", "")
 		return conf
 
@@ -120,8 +130,8 @@ class UserPolicy(Policy.Policy):
 			if not self._data.has_key(sender): self._data[sender] = {}
 
 			if not self._data[sender].has_key(recipient):
-				self._addrule(data, answer)
-				self._data[sender][recipient] = answer
+				if self._addrule(data, answer):
+					self._data[sender][recipient] = answer
 
 		return None
 
@@ -133,8 +143,8 @@ class UserPolicy(Policy.Policy):
 		if recipient != "" and sender != "":
 			if not self._data.has_key(sender): self._data[sender] = {}
 			if self._data[sender].has_key(recipient):
-				self._delrule(data)
-				del self._data[sender][recipient]
+				if self._delrule(data):
+					del self._data[sender][recipient]
 
 		return None
 
@@ -177,10 +187,9 @@ class UserPolicy(Policy.Policy):
 							print e
 
 			return res
-		except MySQLdb.Error as e:
-
+		except:
 			if self._debug:
-				print e
+				logging.debug("Error get sql data for User policy. Traceback: \n{0}\n".format(traceback.format_exc()))
 
 			return None
 
@@ -193,18 +202,13 @@ class UserPolicy(Policy.Policy):
 				query = PySQLPool.getNewQuery(self._sql_pool, True)
 
 				query.Query(sql_1.format(data["sasl_username"]))
-				try:
-					tmp = str(int(query.record[0]["id"]))
-				except IndexError as Err:
-					return None
+				tmp = str(int(query.record[0]["id"]))
 
 				query.Query(sql_2.format(tmp, data["recipient"], answer))
-			except MySQLdb.Error as e:
-
-				if self._debug:
-					print e
-
-				return None
+				return True
+			except:
+				logging.warn("Error creating rule for UserLdap policy. Traceback: \n{0}\n".format(traceback.format_exc()))
+				return False
 
 	def _delrule(self, data):
 		sql_1 = "SELECT `id` FROM `users` WHERE `username` LIKE '{0}'"
@@ -215,18 +219,13 @@ class UserPolicy(Policy.Policy):
 				query = PySQLPool.getNewQuery(self._sql_pool, True)
 
 				query.Query(sql_1.format(data["sender"]))
-				try:
-					tmp = str(int(query.record[0]["id"]))
-				except IndexError as Err:
-					return None
+				tmp = str(int(query.record[0]["id"]))
 
 				query.Query(sql_2.format(tmp, data["recipient"]))
+				return True
 			except:
-
-				if self._debug:
-					print traceback.format_exc()
-
-				return None
+				logging.warn("Error deleting rule for UserLdap policy. Traceback: \n{0}\n".format(traceback.format_exc()))
+				return False
 
 	def reload(self):
 

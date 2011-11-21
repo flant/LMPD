@@ -21,7 +21,7 @@
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 
-import Policy, threading, PySQLPool, subprocess, ldap, traceback
+import Policy, PySQLPool, subprocess, ldap, traceback, logging
 
 class UserPolicyLDAP(Policy.Policy):
 	def __init__(self, config, sql_pool, debug = False):
@@ -100,10 +100,14 @@ class UserPolicyLDAP(Policy.Policy):
 
 		if (deep > 50):
 			return recipient
+		try:
+			post_alias = subprocess.Popen(["postalias -q {0} {1}".format(recipient, self._alias_maps )], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
+		except:
+			logging.warn("Error get alias data for UserLdap policy. Traceback: \n{0}\n".format(traceback.format_exc()))
+			return None
 
-		post_alias = subprocess.Popen(["postalias -q {0} {1}".format(recipient, self._alias_maps )], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
 		output = post_alias.communicate()[0].strip().lower()
-	        res = list()
+			res = list()
 
 		if output == recipient.lower().strip() or post_alias.returncode:
 			return None
@@ -120,7 +124,12 @@ class UserPolicyLDAP(Policy.Policy):
 		return res
 
 	def _postconf(self):
-		post_conf = subprocess.Popen(["postconf -h virtual_alias_maps alias_maps"], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
+		try:
+			post_conf = subprocess.Popen(["postconf -h virtual_alias_maps alias_maps"], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
+		except:
+			logging.error("Error get postconf data for UserLdap policy. Traceback: \n{0}\n".format(traceback.format_exc()))
+			raise BaseException('Postconf error')
+
 		conf = post_conf.communicate()[0].strip().replace("\n", " ").replace(",", "")
 		return conf
 
@@ -134,8 +143,8 @@ class UserPolicyLDAP(Policy.Policy):
 		if recipient != "" and sender != "":
 			if not self._data.has_key(sender): self._data[sender] = {}
 			if not self._data[sender].has_key(recipient):
-				self._addrule(data, answer)
-				self._data[sender][recipient] = answer
+				if self._addrule(data, answer):
+					self._data[sender][recipient] = answer
 
 		return None
 
@@ -147,8 +156,8 @@ class UserPolicyLDAP(Policy.Policy):
 		if recipient != "" and sender != "":
 			if not self._data.has_key(sender): self._data[sender] = {}
 			if self._data[sender].has_key(recipient):
-				self._delrule(data)
-				del self._data[sender][recipient]
+				if self._delrule(data):
+					del self._data[sender][recipient]
 
 		return None
 
@@ -178,18 +187,12 @@ class UserPolicyLDAP(Policy.Policy):
 
 			if len(clean_rulse) > 0:
 				for user_id in clean_rulse:
-					try:
-						query.Query(sql_2.format(user_id))
-					except MySQLdb.Error as e:
-						if self._debug:
-							print e
+					query.Query(sql_2.format(user_id))
 
 			return res
-		except MySQLdb.Error as e:
-
+		except:
 			if self._debug:
-				print e
-
+				logging.debug("Error get sql data for UserLdap policy. Traceback: \n{0}\n".format(traceback.format_exc()))
 			return None
 
 	def _loadldap(self):
@@ -199,7 +202,9 @@ class UserPolicyLDAP(Policy.Policy):
 			ldap_conn = ldap.open(self._ldap_uri)
 			ldap_conn.protocol_version = ldap.VERSION3
 			ldap_conn.simple_bind_s(self._ldap_user, self._ldap_pass)
-		except ldap.LDAPError, e:
+		except:
+			if self._debug:
+				logging.debug("Error create ldap connection for UserLdap policy. Traceback: \n{0}\n".format(traceback.format_exc()))
 			return None, None
 
 		try:
@@ -212,7 +217,9 @@ class UserPolicyLDAP(Policy.Policy):
 					if result_type == ldap.RES_SEARCH_ENTRY:
 						result_mail_set[result_data[0][1][self._ldap_id_attr][0]] = result_data[0][1][self._ldap_mail_attr][0]
 						result_uid_set[result_data[0][1][self._ldap_mail_attr][0]] = result_data[0][1][self._ldap_id_attr][0]
-		except ldap.LDAPError, e:
+		except:
+			if self._debug:
+				logging.debug("Error get ldap data for UserLdap policy. Traceback: \n{0}\n".format(traceback.format_exc()))
 			return None, None
 
 		ldap_conn.unbind_s()
@@ -229,12 +236,12 @@ class UserPolicyLDAP(Policy.Policy):
 				if self._uid_users.has_key(data["sasl_username"]):
 					tmp = self._uid_users[data["sasl_username"]]
 					query.Query(sql_1.format(tmp, data["recipient"], answer))
-			except MySQLdb.Error as e:
-
-				if self._debug:
-					print e
-
-				return None
+					return True
+				else:
+					return False
+			except:
+				logging.warn("Error creating rule for UserLdap policy. Traceback: \n{0}\n".format(traceback.format_exc()))
+				return False
 
 	def _delrule(self, data):
 		sql_1 = "DELETE FROM `white_list_mail` WHERE `user_id` = '{0}' AND `mail` = '{1}'"
@@ -246,13 +253,13 @@ class UserPolicyLDAP(Policy.Policy):
 				if self._uid_users.has_key(data["sasl_username"]):
 					tmp = self._uid_users[data["sasl_username"]]
 					query.Query(sql_1.format(tmp, data["recipient"]))
-			except MySQLdb.Error as e:
+					return True
+				else:
+					return False
+			except:
+				logging.warn("Error deleting rule for UserLdap policy. Traceback: \n{0}\n".format(traceback.format_exc()))
+				return False
 
-				if self._debug:
-					print e
-
-				return None
-			
 	def reload(self):
 
 		tmp_users, tmp_uids = self._loadldap()
