@@ -37,6 +37,8 @@ class ReloaderTread(threading.Thread):
 	def run(self):
 		while (True):
 			time.sleep(self._sleep_time)
+			if self.debug:
+				logging.debug('Starting update process')
 			for flt in self.flts:
 				try:
 					with self._mutex:
@@ -45,3 +47,5 @@ class ReloaderTread(threading.Thread):
 					logging.warn("Update problem!")
 					if self.debug:
 						logging.debug("Error, while updating. Traceback: \n{0}\n".format(traceback.format_exc()))
+			if self.debug:
+				logging.debug('Successfully update')
