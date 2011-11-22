@@ -269,11 +269,11 @@ class UserPolicyLDAP(Policy.Policy):
 			tmp_data = {}
 
 		if tmp_data and tmp_uids:
-			self._data.clean()
+			self._data.clear()
 			self._data.update(tmp_data)
-			self._mail_users.clean()
+			self._mail_users.clear()
 			self._mail_users.update(tmp_users)
-			self._uid_users.clean()
+			self._uid_users.clear()
 			self._uid_users.update(tmp_uids)
 
 		return None

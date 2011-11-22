@@ -227,7 +227,7 @@ class UserPolicy(Policy.Policy):
 		tmp_data = self._loadsql()
 
 		if tmp_data:
-			self._data.clean()
+			self._data.clear()
 			self._data.update(tmp_data)
 
 		return None
