@@ -22,7 +22,7 @@
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 
-import os, sys, signal, site, argparse, traceback, logging
+import os, sys, signal, site, optparse, traceback, logging
 
 #Importing our modules
 site.addsitedir("/usr/lib/python2.6/lmpd/lib", known_paths=None)
@@ -32,11 +32,11 @@ import Config, Init, Connection, Policy, Worker, PySQLPool, Reloader
 
 
 def main():
-	parser = argparse.ArgumentParser(description='SMTP policy whitelisting daemon.')
-	parser.add_argument('-c', '--config', help='Path to a config file', default='/etc/postfix/lmpd.yaml')
-	parser.add_argument('-p', '--pid', help='Path to a PID file', default='/tmp/lmpd.pid')
-	parser.add_argument('-d', dest='is_daemon', action='store_true', help='Become a daemon', default=False)
-	args = parser.parse_args()	
+	parser = optparse.OptionParser(description='SMTP policy whitelisting daemon.')
+	parser.add_option('-c', '--config', help='Path to a config file', default='/etc/postfix/lmpd.yaml')
+	parser.add_option('-p', '--pid', help='Path to a PID file', default='/tmp/lmpd.pid')
+	parser.add_option('-d', dest='is_daemon', action='store_true', help='Become a daemon', default=False)
+	(args, options) = parser.parse_args()	
 
 	Init.check_clone(args.pid)
 

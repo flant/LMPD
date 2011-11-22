@@ -104,7 +104,7 @@ class Connection(dict):
 			self.socket.close()
 		except:
 			if self.debug:
-				logging.debug("Error, while cloasing socket. Tracaback: {0}".format(traceback..format_exc()))
+				logging.debug("Error, while cloasing socket. Tracaback: {0}".format(traceback.format_exc()))
 
 	def get_message(self):
 
