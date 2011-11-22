@@ -183,7 +183,7 @@ class UserPolicyLDAP(Policy.Policy):
 					res[users[str(int(row["user_id"]))]].update(tmp)
 				else:
 					if not clean_rulse.has_key(int(row["user_id"])):
-						clean_rulse.[row["user_id"]] = "delete"
+						clean_rulse[row["user_id"]] = "delete"
 
 			if len(clean_rulse) > 0:
 				for user_id in clean_rulse:

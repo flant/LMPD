@@ -175,16 +175,11 @@ class UserPolicy(Policy.Policy):
 					res[users[str(int(row["user_id"]))]].update(tmp)
 				else:
 					if not clean_rulse.has_key(int(row["user_id"])):
-						clean_rulse.[row["user_id"]] = "delete"
+						clean_rulse[row["user_id"]] = "delete"
 
 			if len(clean_rulse) > 0:
 				for user_id in clean_rulse:
-					try:
-						query.Query(sql_3.format(user_id))
-
-					except MySQLdb.Error as e:
-						if self._debug:
-							print e
+					query.Query(sql_3.format(user_id))
 
 			return res
 		except:

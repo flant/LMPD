@@ -45,7 +45,7 @@ def main():
 
 	# getting debug options
 	debug = config.get('debug', False)
-	log_file = config.get('log', False)
+	log = config.get('log', False)
 	if log:
 		logging.basicConfig(filename=log, level=logging.DEBUG, datefmt='%m/%d/%Y %I:%M:%S %p', format='%(asctime)s %(levelname)s - %(message)s\n')
 	else:
