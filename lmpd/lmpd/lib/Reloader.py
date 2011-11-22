@@ -42,6 +42,6 @@ class ReloaderTread(threading.Thread):
 					with self._mutex:
 						flt.reload()
 				except:
-					logging.wanr("Update problem!")
+					logging.warn("Update problem!")
 					if self.debug:
 						logging.debug("Error, while updating. Traceback: \n{0}\n".format(traceback.format_exc()))
