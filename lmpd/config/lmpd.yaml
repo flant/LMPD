@@ -1,17 +1,17 @@
-#mysql:
-#  host: 127.0.0.1
-#  port: 3306
-#  user: mail
-#  password: mail
-#  dbname: mail
-#  pool: 10
+mysql:
+  host: 127.0.0.1
+  port: 3306
+  user: mail
+  password: mail
+  dbname: mail
+  pool: 10
 
 system:
   user: postfix
   group: postfix
 
 network:
-  type: unix
+  type: tcp
   socket: /tmp/lmpd.sock
 
 filters:
@@ -20,3 +20,5 @@ filters:
     - DomainPolicy
     - UserPolicy
   default: DUNNO
+
+debug: True

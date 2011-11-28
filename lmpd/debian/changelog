@@ -1,11 +1,11 @@
-tfpolicyd (0.2-changeme1) changeme; urgency=low
+lmpd (0.2-changeme1) changeme; urgency=low
 
   * Some updates in network code
   * Updates in database connectors
 
  -- Nikolay Bogdanov <nikolay.bogdanov@flant.ru>  Tue, 30 Aug 2011 15:38:14 +0400
 
-tfpolicyd (0.1-changeme1) changeme; urgency=low
+lmpd (0.1-changeme1) changeme; urgency=low
 
   * Initial release
 

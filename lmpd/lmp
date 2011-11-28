@@ -25,9 +25,9 @@
 import os, sys, signal, site, optparse, traceback, logging
 
 #Importing our modules
-site.addsitedir("/usr/lib/python2.6/lmpd/lib", known_paths=None)
-site.addsitedir("/usr/lib/python2.6/lmpd/plugins", known_paths=None)
-site.addsitedir("/usr/lib/python2.6/lmpd/lib/PySQLPool", known_paths=None)
+site.addsitedir("/usr/lib/lmpd/lib", known_paths=None)
+site.addsitedir("/usr/lib/lmpd/plugins", known_paths=None)
+site.addsitedir("/usr/lib/lmpd/lib/PySQLPool", known_paths=None)
 import Config, Init, Connection, Policy, Worker, PySQLPool, Reloader
 
 

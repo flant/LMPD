@@ -1,7 +1,7 @@
 #!/bin/sh
 
 ### BEGIN INIT INFO
-# Provides:          tf_policyd
+# Provides:          lmpd
 # Required-Start:    $network
 # Required-Stop:     $network
 # Default-Start:     2 3 4 5
@@ -13,7 +13,7 @@
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
 NAME="lmpd"
-PATH_DAEMON="/usr/sbin/"
+PATH_DAEMON="/usr/bin/"
 DAEMON="$PATH_DAEMON/$NAME"
 PIDF="/tmp/lmpd.pid"
 ARGS="-d -p $PIDF"

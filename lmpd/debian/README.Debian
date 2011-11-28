@@ -1,6 +1,6 @@
-tf-policyd
+lmpd
 ================
 
-Read man tf-policyd(7).
+Read man lmpd(7).
 
  -- Nikolay Bogdanov <nikolay.bogdanov@debian.org>  Tue, 2 Aug 2011 20:02:42 +0000

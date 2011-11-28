@@ -18,9 +18,9 @@ install: build
 	dh_testdir
 	dh_testroot
 	dh_clean -k
-	dh_installdirs -A  usr/lib/python2.6/
-	dh_installdirs -A  usr/sbin
-	dh_installdirs -A  etc/postfix
+	dh_installdirs -A  usr/lib/
+	dh_installdirs -A  usr/bin/
+	dh_installdirs -A  etc/postfix/
 	$(MAKE) DESTDIR=./debian/lmpd/ install
 	dh_installman lmpd.7
 
