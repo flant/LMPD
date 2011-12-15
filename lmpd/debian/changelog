@@ -1,9 +1,15 @@
+lmpd (0.3-changeme1) changeme; urgency=low
+
+  * Bugfix release
+
+ -- Nikolay Bogdanov <nikolay.bogdanov@flant.ru>  Thu, 15 Dec 2011 10:25:08 +0400
+
 lmpd (0.2-changeme1) changeme; urgency=low
 
   * Some updates in network code
   * Updates in database connectors
 
- -- Nikolay Bogdanov <nikolay.bogdanov@flant.ru>  Tue, 30 Aug 2011 15:38:14 +0400
+ -- Nikolay Bogdanov <nikolay.bogdanov@flant.ru>  Thu, 15 Dec 2011 10:24:34 +0400
 
 lmpd (0.1-changeme1) changeme; urgency=low
 
