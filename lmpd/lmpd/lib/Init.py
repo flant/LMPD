@@ -21,7 +21,7 @@
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 
-import os, pwd, grp, socket, sys, PySQLPool, logging
+import os, pwd, grp, socket, sys, PySQLPool, logging, traceback
 
 def check_clone(pid_file):
 	if os.path.exists(pid_file):
@@ -89,11 +89,12 @@ def createsock(config):
 def demonize():
 	try: 
 		pid = os.fork()
-		if pid > 0:
-			sys.exit(0) 
-	except:
+        except:
 		logging.error("Error while first fork. Traceback: \n{0}\n".format(traceback.format_exc()))
 		sys.exit(1)
+
+	if pid > 0:
+		sys.exit(0) 
 
 	try:
 		os.chdir("/") 
@@ -107,11 +108,12 @@ def demonize():
 
 	try:
 		pid = os.fork()
-		if pid > 0:
-			sys.exit(0)
 	except:
 		logging.error("Error while second fork. Traceback: \n{0}\n".format(traceback.format_exc()))
 		sys.exit(1)
+
+	if pid > 0:
+		sys.exit(0)
 
 def write_pid(pid_file):
 	pid = os.getpid()
