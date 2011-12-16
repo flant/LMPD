@@ -37,6 +37,7 @@ class Connection(dict):
 		self.debug = debug
 		self.socket = socket
 		self._buffer = str("")
+		logging.info("Open socket now")
 		if self.debug:
 			self.start_time = time.time()
 			self.processed_messages = 0

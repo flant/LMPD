@@ -46,10 +46,14 @@ def main():
 	# getting debug options
 	debug = config.get('debug', False)
 	log = config.get('log', False)
+	try:
+		loglevel = getattr(logging, config.get('loglevel', 'NOTSET').upper())
+	except:
+		loglevel = logging.NOTSET
 	if log:
-		logging.basicConfig(filename=log, level=logging.DEBUG, datefmt='%m/%d/%Y %I:%M:%S %p', format='%(asctime)s %(levelname)s - %(message)s\n')
+		logging.basicConfig(filename=log, level=loglevel, datefmt='%m/%d/%Y %I:%M:%S %p', format='%(asctime)s %(levelname)s - %(message)s\n')
 	else:
-		logging.basicConfig(level=logging.DEBUG, datefmt='%m/%d/%Y %I:%M:%S %p', format='%(asctime)s %(levelname)s - %(message)s\n')
+		logging.basicConfig(level=loglevel, datefmt='%m/%d/%Y %I:%M:%S %p', format='%(asctime)s %(levelname)s - %(message)s\n')
 	# set uid and gid
 	Init.baseinit(config)
 	

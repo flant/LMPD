@@ -1,3 +1,9 @@
+lmpd (0.3.1-changeme1) changeme; urgency=low
+
+  * Added loglevel option
+
+ -- Nikolay Bogdanov <nikolay.bogdanov@flant.ru>  Fri, 16 Dec 2011 19:42:17 +0400
+
 lmpd (0.3-changeme1) changeme; urgency=low
 
   * Bugfix release
