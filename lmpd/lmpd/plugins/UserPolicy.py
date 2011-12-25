@@ -150,9 +150,7 @@ class UserPolicy(Policy.Policy):
 
 	def _loadsql(self):
 		try:
-			sql_1 = "SELECT `id`,`username` FROM `users`"
-			sql_2 = "SELECT `user_id`, `mail`, `accept` FROM `white_list_mail`"
-			sql_3 = "DELETE FROM `white_list_mail` WHERE `user_id` = '{0}'"
+			sql_1 = 'SELECT users.username, white_list_mail.mail, white_list_mail.accept FROM users RIGHT JOIN white_list_mail ON users.id = white_list_mail.user_id'
 
 			res={}
 			users={}
@@ -163,23 +161,9 @@ class UserPolicy(Policy.Policy):
 
 			query.Query(sql_1)
 			for row in query.record:
-				tmp = row["username"].lower()
-				users[str(int(row["id"]))] = tmp
-				res[tmp] = {}
-
-			query.Query(sql_2)
-			for row in query.record:
-				tmp = {}
-				tmp[row["mail"].lower()] = row["accept"]
-				if users.has_key(str(int(row["user_id"]))):
-					res[users[str(int(row["user_id"]))]].update(tmp)
-				else:
-					if not clean_rulse.has_key(int(row["user_id"])):
-						clean_rulse[row["user_id"]] = "delete"
-
-			if len(clean_rulse) > 0:
-				for user_id in clean_rulse:
-					query.Query(sql_3.format(user_id))
+				if not res.has_key(row["username"].lower()):
+					res[row["username"].lower()] = dict()
+				res[row["username"].lower()][row["mail"].lower()] = row["accept"]
 
 			return res
 		except:
