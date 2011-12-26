@@ -41,7 +41,7 @@ class UserPolicyLDAP(Policy.Policy):
 		self._mail_users, self._uid_users = self._loadldap()
 
 		if self._mail_users:
-			tmp_data = self._loadsql()
+			tmp_data = self._loadsql(self._mail_users)
 			if tmp_data:
 				self._data = tmp_data
 			else:
@@ -107,7 +107,7 @@ class UserPolicyLDAP(Policy.Policy):
 			return None
 
 		output = post_alias.communicate()[0].strip().lower()
-			res = list()
+		res = list()
 
 		if output == recipient.lower().strip() or post_alias.returncode:
 			return None

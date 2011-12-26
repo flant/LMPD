@@ -1,3 +1,9 @@
+lmpd (0.3.3-changeme1) changeme; urgency=low
+
+  * Bugfix release
+
+ -- Nikolay Bogdanov <nikolay.bogdanov@flant.ru>  Mon, 26 Dec 2011 21:57:37 +0400
+
 lmpd (0.3.2-changeme1) changeme; urgency=low
 
   * Update for sql code in UserPolicy
