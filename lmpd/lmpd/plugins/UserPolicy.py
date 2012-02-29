@@ -46,7 +46,7 @@ class UserPolicy(Policy.Policy):
 					if array_of_recipients:
 						recipients = list(set(array_of_recipients))
 						for email in recipients:
-							answer = self._check_one(email.lower(), Sender)
+							answer = self._check_one(email.lower(), sender)
 							if answer: break
 
 						if answer:
