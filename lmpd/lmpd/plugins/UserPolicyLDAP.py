@@ -260,7 +260,7 @@ class UserPolicyLDAP(Policy.Policy):
 				if self._uid_users.has_key(data["sasl_username"]):
 					tmp = self._uid_users[data["sasl_username"]]
 					if self._debug:
-						logging.debug("Del sql request: " + sql_1.format(tmp, data["recipient"], answer))
+						logging.debug("Del sql request: " + sql_1.format(tmp, data["recipient"]))
 					query.Query(sql_1.format(tmp, data["recipient"]))
 					return True
 				else:
