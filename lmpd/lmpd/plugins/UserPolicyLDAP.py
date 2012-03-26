@@ -139,6 +139,8 @@ class UserPolicyLDAP(Policy.Policy):
 	def _train_one(self, data, answer = "dspam_innocent"):
 		recipient = data["recipient"]
 		sender = data["sender"]
+		if self._debug:
+			logging.debug("Start training for user {0} with mail {1}".format(sender, recipient))
 
 		if recipient != "" and sender != "":
 			if not self._data.has_key(sender): self._data[sender] = {}
@@ -152,6 +154,9 @@ class UserPolicyLDAP(Policy.Policy):
 
 		recipient = data["recipient"]
 		sender = data["sender"]
+
+		if self._debug:
+			logging.debug("Start training for user {1} with mail {0}".format(sender, recipient))
 
 		if recipient != "" and sender != "":
 			if not self._data.has_key(sender): self._data[sender] = {}
@@ -215,8 +220,8 @@ class UserPolicyLDAP(Policy.Policy):
 					break
 				else:
 					if result_type == ldap.RES_SEARCH_ENTRY:
-						result_mail_set[result_data[0][1][self._ldap_id_attr][0]] = result_data[0][1][self._ldap_mail_attr][0]
-						result_uid_set[result_data[0][1][self._ldap_mail_attr][0]] = result_data[0][1][self._ldap_id_attr][0]
+						result_mail_set[result_data[0][1][self._ldap_id_attr][0]] = result_data[0][1][self._ldap_mail_attr][0].lower()
+						result_uid_set[result_data[0][1][self._ldap_mail_attr][0].lower()] = result_data[0][1][self._ldap_id_attr][0]
 		except:
 			if self._debug:
 				logging.debug("Error get ldap data for UserLdap policy. Traceback: \n{0}\n".format(traceback.format_exc()))
@@ -235,6 +240,8 @@ class UserPolicyLDAP(Policy.Policy):
 
 				if self._uid_users.has_key(data["sasl_username"]):
 					tmp = self._uid_users[data["sasl_username"]]
+					if self._debug:
+						logging.debug("Add sql request: " + sql_1.format(tmp, data["recipient"], answer))
 					query.Query(sql_1.format(tmp, data["recipient"], answer))
 					return True
 				else:
@@ -252,6 +259,8 @@ class UserPolicyLDAP(Policy.Policy):
 
 				if self._uid_users.has_key(data["sasl_username"]):
 					tmp = self._uid_users[data["sasl_username"]]
+					if self._debug:
+						logging.debug("Del sql request: " + sql_1.format(tmp, data["recipient"], answer))
 					query.Query(sql_1.format(tmp, data["recipient"]))
 					return True
 				else:
