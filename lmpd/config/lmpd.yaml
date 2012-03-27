@@ -22,3 +22,4 @@ filters:
   default: DUNNO
 
 debug: True
+log: /var/log/lmpd/lmpd.log

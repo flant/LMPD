@@ -8,7 +8,7 @@ Homepage: http://flant.ru/
 
 Package: lmpd
 Architecture: all
-Depends: python-yaml, python-argparse, python-mysqldb
+Depends: python-yaml, python-argparse, python-mysqldb, logrotate
 Description: Postfix plugin for whitelists
  Policyd provides easy whitelisting for postfix
  It can work with dovecot

@@ -21,6 +21,7 @@ install: build
 	dh_installdirs -A  usr/lib/
 	dh_installdirs -A  usr/bin/
 	dh_installdirs -A  etc/postfix/
+	dh_installdirs -A  etc/logrotate.d
 	$(MAKE) DESTDIR=./debian/lmpd/ install
 	dh_installman lmpd.7
 

@@ -5,6 +5,7 @@ install: all
 	cp -r lmpd $(DESTDIR)/usr/lib/ 
 	cp lmp $(DESTDIR)/usr/bin/lmpd
 	cp config/lmpd.yaml $(DESTDIR)/etc/postfix
+	cp config/lmpd $(DESTDIR)/etc/logrotate.d
 
 clean:
 	rm -f stamp > /dev/null
