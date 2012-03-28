@@ -1,3 +1,9 @@
+lmpd (0.4-changeme2) changeme; urgency=low
+
+  * Cleaning dist 
+
+ -- Nikolay Bogdanov <nikolay.bogdanov@flant.ru>  Wed, 28 Mar 2012 11:51:28 +0400
+
 lmpd (0.4-changeme1) changeme; urgency=low
 
   * Bugfix release
