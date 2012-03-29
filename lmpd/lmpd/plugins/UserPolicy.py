@@ -27,6 +27,7 @@ class UserPolicy(Policy.Policy):
 	def __init__(self, config, sql_pool, debug = False):
 		Policy.Policy.__init__(self, config, sql_pool, debug)
 		self._alias_maps  = self._postconf()
+		self._keep_rules = config.get("filters_keep", True)
 
 		tmp_data = self._loadsql()
 		if tmp_data:
@@ -150,21 +151,30 @@ class UserPolicy(Policy.Policy):
 
 	def _loadsql(self):
 		try:
-			sql_1 = 'SELECT users.username, white_list_mail.mail, white_list_mail.accept FROM users RIGHT JOIN white_list_mail ON users.id = white_list_mail.user_id'
-
+			sql_1 = 'SELECT users.username, white_list_mail.user_id, white_list_mail.mail, white_list_mail.accept FROM users RIGHT JOIN white_list_mail ON users.id = white_list_mail.user_id'
+			sql_2 = "DELETE FROM `white_list_mail` WHERE `user_id` = '{0}'"
 			res={}
 			users={}
 			rules={}
-			clean_rulse={}
+			clean_rules=list()
 
 			query = PySQLPool.getNewQuery(self._sql_pool, True)
 
 			query.Query(sql_1)
 			for row in query.record:
+				if not self._keep_rules:
+					if not row["username"]:
+						clean_rules.append(row['user_id'])
+						continue
 				if not res.has_key(row["username"].lower()):
 					res[row["username"].lower()] = dict()
 				res[row["username"].lower()][row["mail"].lower()] = row["accept"]
-
+			
+			if not self._keep_rules:
+				clean_rules = list(set(clean_rules))
+				for id in clean_rules:
+					query.Query(sql_2.format(id))
+			
 			return res
 		except:
 			if self._debug:

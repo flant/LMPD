@@ -37,6 +37,7 @@ class UserPolicyLDAP(Policy.Policy):
 		self._ldap_mail_attr = config.get("filters_UserPolicyLDAP_ldap_mail_attr", "mail")
 		self._ldap_id_attr = config.get("filters_UserPolicyLDAP_ldap_id_attr", "id")
 		self._ldap_search_filter = config.get("filters_UserPolicyLDAP_ldap_search_filter", "(&(objectClass=Account)(mail=*))")
+		self._keep_rules = config.get("filters_keep", True)
 
 		self._mail_users, self._uid_users = self._loadldap()
 
@@ -173,7 +174,7 @@ class UserPolicyLDAP(Policy.Policy):
 
 			res={}
 			rules={}
-			clean_rulse={}
+			clean_rules=list()
 
 			for uid in users:
 				res[users[uid]] = {}
@@ -187,13 +188,13 @@ class UserPolicyLDAP(Policy.Policy):
 				if users.has_key(str(int(row["user_id"]))):
 					res[users[str(int(row["user_id"]))]].update(tmp)
 				else:
-					if not clean_rulse.has_key(int(row["user_id"])):
-						clean_rulse[row["user_id"]] = "delete"
-
-			if len(clean_rulse) > 0:
-				for user_id in clean_rulse:
-					query.Query(sql_2.format(user_id))
-
+					if not self._keep_rules:
+						clean_rules.append(row["user_id"])
+						
+			if not self._keep_rules:
+				clean_rules = list(set(clean_rulse))
+				for id in clean_rulse:
+					query.Query(sql_2.format(id))
 			return res
 		except:
 			if self._debug:
