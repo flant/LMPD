@@ -38,6 +38,7 @@ class UserPolicyLDAP(Policy.Policy):
 		self._ldap_id_attr = config.get("filters_UserPolicyLDAP_ldap_id_attr", "id")
 		self._ldap_search_filter = config.get("filters_UserPolicyLDAP_ldap_search_filter", "(&(objectClass=Account)(mail=*))")
 		self._keep_rules = config.get("filters_keep", True)
+		self._exclude_mails = config.get("filters_exclude", list())
 
 		self._mail_users, self._uid_users = self._loadldap()
 
@@ -140,8 +141,12 @@ class UserPolicyLDAP(Policy.Policy):
 	def _train_one(self, data, answer = "dspam_innocent"):
 		recipient = data["recipient"]
 		sender = data["sender"]
+
 		if self._debug:
 			logging.debug("Start training for user {0} with mail {1}".format(sender, recipient))
+
+		if sender in self._exclude_mails:
+			return None
 
 		if recipient != "" and sender != "":
 			if not self._data.has_key(sender): self._data[sender] = {}
@@ -177,6 +182,8 @@ class UserPolicyLDAP(Policy.Policy):
 			clean_rules=list()
 
 			for uid in users:
+				if users[uid] in self._exclude_mails:
+					continue
 				res[users[uid]] = {}
 
 			query = PySQLPool.getNewQuery(self._sql_pool, True)

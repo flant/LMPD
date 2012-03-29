@@ -28,6 +28,7 @@ class UserPolicy(Policy.Policy):
 		Policy.Policy.__init__(self, config, sql_pool, debug)
 		self._alias_maps  = self._postconf()
 		self._keep_rules = config.get("filters_keep", True)
+		self._exclude_mails = config.get("filters_exclude", list())
 
 		tmp_data = self._loadsql()
 		if tmp_data:
@@ -127,6 +128,9 @@ class UserPolicy(Policy.Policy):
 		recipient = data["recipient"]
 		sender = data["sender"]
 
+		if sender in self._exclude_mails:
+			return None
+
 		if recipient != "" and sender != "":
 			if not self._data.has_key(sender): self._data[sender] = {}
 
@@ -161,10 +165,13 @@ class UserPolicy(Policy.Policy):
 			query = PySQLPool.getNewQuery(self._sql_pool, True)
 
 			query.Query(sql_1)
-			for row in query.record:
+			for row in query.record:	
 				if not self._keep_rules:
 					if not row["username"]:
 						clean_rules.append(row['user_id'])
+						continue
+				if self._exclude_mails:
+					if row["username"] in self._exclude_mails:
 						continue
 				if not res.has_key(row["username"].lower()):
 					res[row["username"].lower()] = dict()
