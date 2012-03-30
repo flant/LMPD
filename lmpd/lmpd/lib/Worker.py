@@ -53,7 +53,7 @@ class WorkerTread(threading.Thread):
 								flt_answer = flt.check(conn)
 							except:
 								logging.error("Error, while check policy {0}. Traceback: \n{1}\n".format(flt, traceback.format_exc()))
-						if flt_answer:
+						if flt_answer
 							break
 
 					if flt_answer:
