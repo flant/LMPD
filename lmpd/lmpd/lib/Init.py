@@ -28,6 +28,9 @@ def check_clone(pid_file):
 		logging.error("Another policyd works. Exiting...")
 		sys.exit(1)
 
+def limits():
+	return 100
+
 def baseinit(config):
 	os.umask(0111)
 

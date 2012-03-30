@@ -42,6 +42,10 @@ def main():
 	# reading config
 	config = Config.Config(args.config)
 
+	# get workers limits
+	limit = config.get('limit', Init.limits())
+	softlimit = config.get('softlimit', int(limit * 0,05))
+
 	# getting debug options
 	debug = config.get('debug', False)
 	log = config.get('log', False)
@@ -110,11 +114,14 @@ def main():
 	while 1:
 		conn, addr = socket.accept()
 		proc = Worker.WorkerTread(conn, flts, default_answer, sql_pool, debug)
-		try:
-			proc.start()
-		except(thread.error):
-			logging.error("Spawned threads : %s. Can not spawn other one" % threading.active_count())
-			sys.exit(1)
+		if threading.active_count() <= (limit + softlimit):
+			if threading.active_count() > limit:
+				logging.warning("")
+			try:
+				proc.start()
+			except(thread.error):
+				logging.error("Spawned threads : %s. Can not spawn other one" % threading.active_count())
+				sys.exit(1)
 
 
 if __name__ == "__main__":
