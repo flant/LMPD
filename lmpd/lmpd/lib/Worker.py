@@ -49,7 +49,10 @@ class WorkerTread(threading.Thread):
 						logging.debug("Mail from {0} to {1} with SASL: {2}".format(conn["sender"], conn["recipient"], conn["sasl_username"]))
 					for flt in self.flts:
 						with self._mutex:
-							flt_answer = flt.check(conn)
+							try:
+								flt_answer = flt.check(conn)
+							except:
+								logging.error("Error, while check policy {0}. Traceback: \n{1}\n".format(flt, traceback.format_exc()))
 						if flt_answer:
 							break
 
