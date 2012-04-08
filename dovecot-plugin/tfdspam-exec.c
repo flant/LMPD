@@ -197,7 +197,7 @@ static int backend_commit(struct mailbox_transaction_context *ctx,
 	int sockfd;
 	int error;
 	socklen_t len = sizeof(error);
-	size_t fstbracket, scndbracket;
+	size_t fstbracket, scndbracket, from_length;
 	char str[4*BUFSIZE];
 	char tmp[BUFSIZE];
 	struct sockaddr_un serv_unix_addr;
@@ -275,6 +275,13 @@ static int backend_commit(struct mailbox_transaction_context *ctx,
 
 			fstbracket = strcspn (item->from,"<") + 1;
 			scndbracket = strcspn (item->from,">");
+
+			from_length = strlen(item->from);
+
+			if (from_length == fstbracket or from_length == scndbracket) {
+				fstbracket = 0;
+				scndbracket = from_length;
+			}
 
 			if ((scndbracket - fstbracket - 1) > BUFSIZE) {
 				debug("Too long 'from' field for tmp buffer with size %d", BUFSIZE);
