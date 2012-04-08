@@ -1,3 +1,9 @@
+lmpd (0.4.1-changeme2) changeme; urgency=low
+
+  * Minor bugfix
+
+ -- Nikolay Bogdanov <nikolay.bogdanov@flant.ru>  Sun, 08 Apr 2012 22:18:23 +0400
+
 lmpd (0.4.1-changeme1) changeme; urgency=low
 
   * New rules keeper 
