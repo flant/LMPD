@@ -278,7 +278,7 @@ static int backend_commit(struct mailbox_transaction_context *ctx,
 
 			from_length = strlen(item->from);
 
-			if (from_length == fstbracket or from_length == scndbracket) {
+			if ((from_length + 1) == fstbracket or from_length == scndbracket) {
 				fstbracket = 0;
 				scndbracket = from_length;
 			}
