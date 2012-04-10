@@ -1,56 +1,59 @@
 .TH LMPD 7 "2 August 2011" "" ""
 .SH NAME
-lmpd \- The postfix python whitelisting daemon.
+lmpd \- Lightweight Modular Policy Daemon for Postfix.
 
 .SH DESCRIPTION
-This daemon was created to do easy user whitelisting
-for Postfix, using SMTP_ACCESS_POLICY. It use postfix
-aliases and MySQL database for whitelisting.
+This daemon is intended to make user whitelisting 
+for Postfix using SMTP_ACCESS_POLICY. Whitelisting 
+is implemented by means of Postfix aliases and MySQL
+database.
 
-You can train your daemon using dovecot. If you want this 
-fucntion - install patched dovecot-antispam.
+The LMPD database can be trained (automatically 
+updated) by the Dovecot server. For this, you have to 
+install a patched version of Dovecot antispam plugin.
 
 .SH CONFIGURATION
 
-You have the following run-time options (shown along with the default):
+Here you can see the runtime options of LMPD
+(they are displayed with default values):
 
 .nf
-#MySQL connaction options
+# MySQL connection options
 mysql:
   host: 127.0.0.1
   port: 3306
   user: mail
   password: mail
   dbname: mail
-  # Limit of mysql connections
+  # Limit of MySQL connections
   pool: 10 
 
-# Daemon uid and gid
+# Daemon's UID and GID
 system:
   user: postfix
   group: postfix 
 
 # Network settings
 network:
-  # Network type. unix or tcp
+  # Network type: unix or tcp
   type: unix
-  # Path to unix domain socket if network type "unix"
+  # for "unix": path to unix domain socket
   socket: /tmp/lmpd.sock
-  # IP address to bind if network type "tcp"
+  # for "tcp": IP address to bind
   address: 127.0.0.1
-  # TCP port to bind if network type "tcp"
+  # for "tcp": TCP port to bind
   port: 7000
  
 filters:
-  # Names of policitcs
+  # Names of policies
   order:
     - AddressPolicy
     - DomainPolicy
     - UserPolicy
-  # Default answer in politics
+  # Default answer in policies
   default: DUNNO
 .fi
 
-.SH AUTHORS
+.SH AUTHOR
 
-Nikolay Bogdanov
+Nikolay Bogdanov <nikolay.bogdanov@flant.ru>

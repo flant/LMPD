@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 #
-#       Worker class for lmpd
+#       Worker class for LMPD (http://flant.ru/projects/lmpd)
 #       Worker.py
 #       
-#       Copyright (C) 2009-2011 CJSC Flant (www.flant.ru)
+#       Copyright (C) 2009-2012 CJSC Flant (www.flant.ru)
 #       Written by Nikolay "GyRT" Bogdanov <nikolay.bogdanov@flant.ru>
 #       
 #       This program is free software; you can redistribute it and/or modify
@@ -52,7 +52,7 @@ class WorkerTread(threading.Thread):
 							try:
 								flt_answer = flt.check(conn)
 							except:
-								logging.error("Error, while check policy {0}. Traceback: \n{1}\n".format(flt, traceback.format_exc()))
+								logging.error("Error in checking policy {0}. Traceback: \n{1}\n".format(flt, traceback.format_exc()))
 						if flt_answer
 							break
 
@@ -67,7 +67,7 @@ class WorkerTread(threading.Thread):
 				try:
 					PySQLPool.cleanupPool()
 				except:
-					logging.warn('Error, while cleanging pool! Traceback: \n{0}\n'.format(traceback.format_exc()))
+					logging.warn('Error in cleaning SQL pool! Traceback: \n{0}\n'.format(traceback.format_exc()))
 		if self.debug:
 			stop_time = time.time()
-			logging.debug("Process with name {0} started {1}, stopped {2}. Working {3} seconds.".format(self.name, time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.start_time)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(stop_time)), (stop_time - self.start_time)))
+			logging.debug("Process named {0} started {1}, stopped {2}. Working {3} seconds.".format(self.name, time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.start_time)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(stop_time)), (stop_time - self.start_time)))

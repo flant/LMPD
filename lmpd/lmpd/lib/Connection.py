@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 #
-#       Postfix Protocol class for lmpd
+#       Postfix Protocol class for LMPD (http://flant.ru/projects/lmpd)
 #       Connection.py
 #       
-#       Copyright (C) 2009-2011 CJSC Flant (www.flant.ru)
+#       Copyright (C) 2009-2012 CJSC Flant (www.flant.ru)
 #       Written by Nikolay "GyRT" Bogdanov <nikolay.bogdanov@flant.ru>
 #       
 #       This program is free software; you can redistribute it and/or modify
@@ -66,7 +66,7 @@ class Connection(dict):
 			except:
 
 				if self.debug:
-					logging.error("Error, while reading socket. Traceback:\n{0}".format(traceback.format_exc()))
+					logging.error("Error in reading socket. Traceback:\n{0}".format(traceback.format_exc()))
 				logging.warn("Closing socket with error!")
 
 				return None
@@ -89,7 +89,7 @@ class Connection(dict):
 			self.socket.send("action={0}\n\n".format(data))
 		except:
 			if self.debug:
-				logging.error("Error, while reading socket. Traceback:\n{0}".format(traceback.format_exc()))
+				logging.error("Error in reading socket. Traceback:\n{0}".format(traceback.format_exc()))
 			logging.warn("Cannot send data though socket!")
 			return False
 
@@ -106,7 +106,7 @@ class Connection(dict):
 			self.socket.shutdown(socket.SHUT_RDWR)
 		except:
 			if self.debug:
-				logging.debug("Error, while cloasing socket. Tracaback: {0}".format(traceback.format_exc()))
+				logging.debug("Error in closing socket. Tracaback: {0}".format(traceback.format_exc()))
 
 		try:
 			if self.debug:
@@ -114,7 +114,7 @@ class Connection(dict):
 			self.socket.close()
 		except:
 			if self.debug:
-				logging.debug("Error, while cloasing socket. Tracaback: {0}".format(traceback.format_exc()))
+				logging.debug("Error in closing socket. Tracaback: {0}".format(traceback.format_exc()))
 
 	def get_message(self):
 

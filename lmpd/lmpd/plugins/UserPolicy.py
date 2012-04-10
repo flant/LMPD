@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 #
-#       Users filters for lmpd
+#       Users filters for LMPD (http://flant.ru/projects/lmpd)
 #       UserPolicy.py
 #       
-#       Copyright (C) 2009-2011 CJSC Flant (www.flant.ru)
+#       Copyright (C) 2009-2012 CJSC Flant (www.flant.ru)
 #       Written by Nikolay "GyRT" Bogdanov <nikolay.bogdanov@flant.ru>
 #       
 #       This program is free software; you can redistribute it and/or modify
@@ -95,7 +95,7 @@ class UserPolicy(Policy.Policy):
 		try:
 			post_alias = subprocess.Popen(["postalias -q {0} {1}".format(recipient, self._alias_maps )], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
 		except:
-			logging.warn("Error get alias data for User policy. Traceback: \n{0}\n".format(traceback.format_exc()))
+			logging.warn("Error in getting alias data for User policy. Traceback: \n{0}\n".format(traceback.format_exc()))
 			return None
 
 		output = post_alias.communicate()[0].strip().lower()
@@ -119,7 +119,7 @@ class UserPolicy(Policy.Policy):
 		try:
 			post_conf = subprocess.Popen(["postconf -h virtual_alias_maps alias_maps"], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
 		except:
-			logging.error("Error get postconf data for User policy. Traceback: \n{0}\n".format(traceback.format_exc()))
+			logging.error("Error in getting postconf data for User policy. Traceback: \n{0}\n".format(traceback.format_exc()))
 			raise BaseException('Postconf error')
 
 		conf = post_conf.communicate()[0].strip().replace("\n", " ").replace(",", "")
@@ -182,7 +182,7 @@ class UserPolicy(Policy.Policy):
 			return res
 		except:
 			if self._debug:
-				logging.debug("Error get sql data for User policy. Traceback: \n{0}\n".format(traceback.format_exc()))
+				logging.debug("Error in getting SQL data for User policy. Traceback: \n{0}\n".format(traceback.format_exc()))
 
 			return None
 
@@ -200,7 +200,7 @@ class UserPolicy(Policy.Policy):
 				query.Query(sql_2.format(tmp, data["recipient"], answer))
 				return True
 			except:
-				logging.warn("Error creating rule for UserLdap policy. Traceback: \n{0}\n".format(traceback.format_exc()))
+				logging.warn("Error in creating a rule for UserLdap policy. Traceback: \n{0}\n".format(traceback.format_exc()))
 				return False
 
 	def _delrule(self, data):
@@ -217,7 +217,7 @@ class UserPolicy(Policy.Policy):
 				query.Query(sql_2.format(tmp, data["recipient"]))
 				return True
 			except:
-				logging.warn("Error deleting rule for UserLdap policy. Traceback: \n{0}\n".format(traceback.format_exc()))
+				logging.warn("Error in deleting a rule for UserLdap policy. Traceback: \n{0}\n".format(traceback.format_exc()))
 				return False
 
 	def reload(self):

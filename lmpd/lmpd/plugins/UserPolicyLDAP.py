@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 #
-#		Users filters for lmpd
+#       Users filters for LMPD (http://flant.ru/projects/lmpd)
 #       UserPolicyLDAP.py
 #       
-#       Copyright (C) 2009-2011 CJSC Flant (www.flant.ru)
-#		Written by Nikolay "GyRT" Bogdanov <nikolay.bogdanov@flant.ru>
+#       Copyright (C) 2009-2012 CJSC Flant (www.flant.ru)
+#       Written by Nikolay "GyRT" Bogdanov <nikolay.bogdanov@flant.ru>
 #       
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
@@ -105,7 +105,7 @@ class UserPolicyLDAP(Policy.Policy):
 		try:
 			post_alias = subprocess.Popen(["postalias -q {0} {1}".format(recipient, self._alias_maps )], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
 		except:
-			logging.warn("Error get alias data for UserLdap policy. Traceback: \n{0}\n".format(traceback.format_exc()))
+			logging.warn("Error in getting alias data for UserLdap policy. Traceback: \n{0}\n".format(traceback.format_exc()))
 			return None
 
 		output = post_alias.communicate()[0].strip().lower()
@@ -129,7 +129,7 @@ class UserPolicyLDAP(Policy.Policy):
 		try:
 			post_conf = subprocess.Popen(["postconf -h virtual_alias_maps alias_maps"], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
 		except:
-			logging.error("Error get postconf data for UserLdap policy. Traceback: \n{0}\n".format(traceback.format_exc()))
+			logging.error("Error in getting postconf data for UserLdap policy. Traceback: \n{0}\n".format(traceback.format_exc()))
 			raise BaseException('Postconf error')
 
 		conf = post_conf.communicate()[0].strip().replace("\n", " ").replace(",", "")
@@ -205,7 +205,7 @@ class UserPolicyLDAP(Policy.Policy):
 			return res
 		except:
 			if self._debug:
-				logging.debug("Error get sql data for UserLdap policy. Traceback: \n{0}\n".format(traceback.format_exc()))
+				logging.debug("Error in getting SQL data for UserLdap policy. Traceback: \n{0}\n".format(traceback.format_exc()))
 			return None
 
 	def _loadldap(self):
@@ -217,7 +217,7 @@ class UserPolicyLDAP(Policy.Policy):
 			ldap_conn.simple_bind_s(self._ldap_user, self._ldap_pass)
 		except:
 			if self._debug:
-				logging.debug("Error create ldap connection for UserLdap policy. Traceback: \n{0}\n".format(traceback.format_exc()))
+				logging.debug("Error in creating LDAP connection for UserLdap policy. Traceback: \n{0}\n".format(traceback.format_exc()))
 			return None, None
 
 		try:
@@ -232,7 +232,7 @@ class UserPolicyLDAP(Policy.Policy):
 						result_uid_set[result_data[0][1][self._ldap_mail_attr][0].lower()] = result_data[0][1][self._ldap_id_attr][0]
 		except:
 			if self._debug:
-				logging.debug("Error get ldap data for UserLdap policy. Traceback: \n{0}\n".format(traceback.format_exc()))
+				logging.debug("Error in getting LDAP data for UserLdap policy. Traceback: \n{0}\n".format(traceback.format_exc()))
 			return None, None
 
 		ldap_conn.unbind_s()
@@ -249,13 +249,13 @@ class UserPolicyLDAP(Policy.Policy):
 				if self._uid_users.has_key(data["sasl_username"]):
 					tmp = self._uid_users[data["sasl_username"]]
 					if self._debug:
-						logging.debug("Add sql request: " + sql_1.format(tmp, data["recipient"], answer))
+						logging.debug("Adding SQL request: " + sql_1.format(tmp, data["recipient"], answer))
 					query.Query(sql_1.format(tmp, data["recipient"], answer))
 					return True
 				else:
 					return False
 			except:
-				logging.warn("Error creating rule for UserLdap policy. Traceback: \n{0}\n".format(traceback.format_exc()))
+				logging.warn("Error in creating a rule for UserLdap policy. Traceback: \n{0}\n".format(traceback.format_exc()))
 				return False
 
 	def _delrule(self, data):
@@ -268,13 +268,13 @@ class UserPolicyLDAP(Policy.Policy):
 				if self._uid_users.has_key(data["sasl_username"]):
 					tmp = self._uid_users[data["sasl_username"]]
 					if self._debug:
-						logging.debug("Del sql request: " + sql_1.format(tmp, data["recipient"]))
+						logging.debug("Deleting SQL request: " + sql_1.format(tmp, data["recipient"]))
 					query.Query(sql_1.format(tmp, data["recipient"]))
 					return True
 				else:
 					return False
 			except:
-				logging.warn("Error deleting rule for UserLdap policy. Traceback: \n{0}\n".format(traceback.format_exc()))
+				logging.warn("Error in deleting a rule for UserLdap policy. Traceback: \n{0}\n".format(traceback.format_exc()))
 				return False
 
 	def reload(self):

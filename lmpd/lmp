@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#		Main process(connection manager) for lmpd
+#       Main process (connection manager) for LMPD (http://flant.ru/projects/lmpd)
 #       server.py
 #       
-#       Copyright (C) 2009-2011 CJSC Flant (www.flant.ru)
-#		Written by Nikolay "GyRT" Bogdanov <nikolay.bogdanov@flant.ru>
+#       Copyright (C) 2009-2012 CJSC Flant (www.flant.ru)
+#       Written by Nikolay "GyRT" Bogdanov <nikolay.bogdanov@flant.ru>
 #       
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@
 
 import os, sys, signal, site, optparse, traceback, logging
 
-#Importing our modules
+# Importing our modules
 site.addsitedir("/usr/lib/lmpd/lib", known_paths=None)
 site.addsitedir("/usr/lib/lmpd/plugins", known_paths=None)
 import Config, Init, Connection, Policy, Worker, PySQLPool, Reloader
@@ -32,8 +32,8 @@ import Config, Init, Connection, Policy, Worker, PySQLPool, Reloader
 
 def main():
 	parser = optparse.OptionParser(description='SMTP policy whitelisting daemon.')
-	parser.add_option('-c', '--config', help='Path to a config file', default='/etc/postfix/lmpd.yaml')
-	parser.add_option('-p', '--pid', help='Path to a PID file', default='/tmp/lmpd.pid')
+	parser.add_option('-c', '--config', help='Path to the config file', default='/etc/postfix/lmpd.yaml')
+	parser.add_option('-p', '--pid', help='Path to the PID file', default='/tmp/lmpd.pid')
 	parser.add_option('-d', dest='is_daemon', action='store_true', help='Become a daemon', default=False)
 	(args, options) = parser.parse_args()	
 
@@ -68,8 +68,8 @@ def main():
 	if mysql_config:
 		PySQLPool.getNewPool().maxActiveConnections = config.get("mysql_pool", 10)
 		sql_pool = PySQLPool.getNewConnection(username=config.get("mysql_user", "root"), password=config.get("mysql_password", ""), host=config.get("mysql_host", "localhost"), db=config.get("mysql_dbname", "postfix"), port=config.get("mysql_port", 3306))
-	else:
-		logging.error("Lost fields in mysql config. Exiting...")
+	else:	
+		logging.error("Lost fields in the mysql config. Exiting...")
 		sys.exit(1)
 
 	# loading filters names from config
@@ -84,14 +84,14 @@ def main():
 			globals()[flt_name] = locals()[flt_name] = __import__(flt_name, globals(), locals(), [], -1)
 			flt = getattr(locals()[flt_name], flt_name)(config, sql_pool, debug)
 		except:
-			logging.warning("Error, while loading module. Traceback:\n{0}".format(traceback.format_exc()))
+			logging.warning("Error while loading module. Traceback:\n{0}".format(traceback.format_exc()))
 			continue
 		flts.append(flt)
 
 	# Loading default answer for postfix
 	default_answer = config.get("filters_default", False)
 	if not default_answer:
-		logging.info("Lost fields in filter config. Exiting...")
+		logging.info("Lost fields in the filter config. Exiting...")
 		sys.exit(1)
 
 	signal.signal(signal.SIGTERM, lambda x, y: Init.SIGINT_handler(args.pid, socket, sql_pool, x, y))
@@ -108,7 +108,7 @@ def main():
 	try:
 		reload_proc.start()
 	except:
-		logging.error("Spawned threads : %s. Can not spawn other one" % threading.active_count())
+		logging.error("Spawned threads : %s. Can't spawn another one" % threading.active_count())
 		sys.exit(1)
 
 	while 1:
@@ -120,7 +120,7 @@ def main():
 			try:
 				proc.start()
 			except(thread.error):
-				logging.error("Spawned threads : %s. Can not spawn other one" % threading.active_count())
+				logging.error("Spawned threads : %s. Can't spawn another one" % threading.active_count())
 				sys.exit(1)
 
 

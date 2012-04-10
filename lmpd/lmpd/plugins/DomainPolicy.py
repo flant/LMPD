@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 #
-#		Domain filters for lmpd
+#       Domain filters for LMPD (http://flant.ru/projects/lmpd)
 #       DomainPolicy.py
 #       
-#       Copyright (C) 2009-2011 CJSC Flant (www.flant.ru)
-#		Written by Nikolay "GyRT" Bogdanov <nikolay.bogdanov@flant.ru>
+#       Copyright (C) 2009-2012 CJSC Flant (www.flant.ru)
+#       Written by Nikolay "GyRT" Bogdanov <nikolay.bogdanov@flant.ru>
 #       
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
@@ -57,7 +57,7 @@ class DomainPolicy(Policy.Policy):
 
 		except:
 			if self._debug:
-				logging.warn("Error get sql data for Domain policy. Traceback: \n{0}\n".format(traceback.format_exc()))
+				logging.warn("Error in getting SQL data for Domain policy. Traceback: \n{0}\n".format(traceback.format_exc()))
 			return None
 
 	def reload(self):

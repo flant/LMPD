@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 #
-#		Address filters for lmpd
+#       Address filters for LMPD (http://flant.ru/projects/lmpd)
 #       AddressPolicy.py
 #       
-#       Copyright (C) 2009-2011 CJSC Flant (www.flant.ru)
-#		Written by Nikolay "GyRT" Bogdanov <nikolay.bogdanov@flant.ru>
+#       Copyright (C) 2009-2012 CJSC Flant (www.flant.ru)
+#       Written by Nikolay "GyRT" Bogdanov <nikolay.bogdanov@flant.ru>
 #       
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
@@ -55,7 +55,7 @@ class AddressPolicy(Policy.Policy):
 			return res
 		except:
 			if self._debug:
-				logging.warn("Error get sql data for Address policy. Traceback: \n{0}\n".format(traceback.format_exc()))
+				logging.warn("Error in getting SQL data for Address policy. Traceback: \n{0}\n".format(traceback.format_exc()))
 
 			return None
 

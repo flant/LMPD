@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 #
-#       Config for lmpd
+#       Config for LMPD (http://flant.ru/projects/lmpd)
 #       Config.py
 #       
-#       Copyright (C) 2009-2011 CJSC Flant (www.flant.ru)
+#       Copyright (C) 2009-2012 CJSC Flant (www.flant.ru)
 #       Written by Dmitry Stolyarov <dmitry.stolyarov@flant.ru>
-#       Modified by Nikolay "GyRT" Bogdanov <nikolay.bogdanov@@flant.ru>
+#       Modified by Nikolay "GyRT" Bogdanov <nikolay.bogdanov@flant.ru>
 #       
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@ class Config(dict):
 				self.update(yaml.load(stream))
 				stream.close
 		else:
-			print "Cound not find config file. Exiting..."
+			print "Couldn't find config file. Exiting..."
 			sys.exit(1)
 
 	def _split_key(self, key):

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 #
-#       System functions for lmpd
+#       System functions for LMPD (http://flant.ru/projects/lmpd)
 #       Init.py
 #       
-#       Copyright (C) 2009-2011 CJSC Flant (www.flant.ru)
+#       Copyright (C) 2009-2012 CJSC Flant (www.flant.ru)
 #       Written by Nikolay "GyRT" Bogdanov <nikolay.bogdanov@flant.ru>
 #       
 #       This program is free software; you can redistribute it and/or modify
@@ -25,7 +25,7 @@ import os, pwd, grp, socket, sys, PySQLPool, logging, traceback
 
 def check_clone(pid_file):
 	if os.path.exists(pid_file):
-		logging.error("Another policyd works. Exiting...")
+		logging.error("Another LMPD process is in work. Exiting...")
 		sys.exit(1)
 
 def limits():
@@ -40,7 +40,7 @@ def baseinit(config):
 		except KeyError:
 			logging.warn("Using existing group")
 		except:
-			logging.error("Error, while get GID. Traceback: \n{0}\n".format(traceback.format_exc()))
+			logging.error("Error in getting GID. Traceback: \n{0}\n".format(traceback.format_exc()))
 			sys.exit(1)
 
 	if os.getuid() == 0:
@@ -49,7 +49,7 @@ def baseinit(config):
 		except KeyError:
 			logging.warn("Using existing user")
 		except OSErroras as (errno, strerror):
-			logging.error("Error, while get UID. Traceback: \n{0}\n".format(traceback.format_exc()))
+			logging.error("Error in getting UID. Traceback: \n{0}\n".format(traceback.format_exc()))
 			sys.exit(1)
 
 def createsock(config):
@@ -61,14 +61,14 @@ def createsock(config):
 			try:
 				os.remove(sockname)
 			except:
-				logging.error("Error, removing socket file. Traceback: \n{0}\n".format(traceback.format_exc()))
+				logging.error("Error in removing socket file. Traceback: \n{0}\n".format(traceback.format_exc()))
 				sys.exit(1)
 
 		try:
 			socket_fd.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 			socket_fd.bind(sockname)
 		except:
-			logging.error("Error, creating socket file. Traceback: \n{0}\n".format(traceback.format_exc()))
+			logging.error("Error in creating socket file. Traceback: \n{0}\n".format(traceback.format_exc()))
 			sys.exit(1)
 
 	elif net_type == "tcp":
@@ -77,7 +77,7 @@ def createsock(config):
 			socket_fd.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 			socket_fd.bind((config.get("network_address","127.0.0.1"), int(config.get("network_port","7000"))))
 		except:
-			logging.error("Error, creating socket file. Traceback: \n{0}\n".format(traceback.format_exc()))
+			logging.error("Error in creating socket file. Traceback: \n{0}\n".format(traceback.format_exc()))
 			sys.exit(1)
 
 	try:
@@ -85,7 +85,7 @@ def createsock(config):
 		socket_fd.settimeout(None)
 		socket_fd.listen(1)
 	except:
-		logging.error("Error, setting socket flags. Traceback: \n{0}\n".format(traceback.format_exc()))
+		logging.error("Error in setting socket flags. Traceback: \n{0}\n".format(traceback.format_exc()))
 		sys.exit(1)
 	return socket_fd
 
@@ -93,7 +93,7 @@ def demonize():
 	try: 
 		pid = os.fork()
         except:
-		logging.error("Error while first fork. Traceback: \n{0}\n".format(traceback.format_exc()))
+		logging.error("Error in first forking. Traceback: \n{0}\n".format(traceback.format_exc()))
 		sys.exit(1)
 
 	if pid > 0:
@@ -106,13 +106,13 @@ def demonize():
 		sys.stderr = open("/dev/null","w")
 		sys.stdout = open("/dev/null", "w")
 	except:
-		logging.error("Error while dropping control term. Traceback: \n{0}\n".format(traceback.format_exc()))
+		logging.error("Error in dropping control term. Traceback: \n{0}\n".format(traceback.format_exc()))
 		sys.exit(1)
 
 	try:
 		pid = os.fork()
 	except:
-		logging.error("Error while second fork. Traceback: \n{0}\n".format(traceback.format_exc()))
+		logging.error("Error in second forking. Traceback: \n{0}\n".format(traceback.format_exc()))
 		sys.exit(1)
 
 	if pid > 0:
@@ -126,7 +126,7 @@ def write_pid(pid_file):
 		pid_file_desc.write(str(pid))
 		pid_file_desc.close()
 	except:
-		logging.error("Error while creating pid file. Traceback: \n{0}\n".format(traceback.format_exc()))
+		logging.error("Error in creating pid file. Traceback: \n{0}\n".format(traceback.format_exc()))
 		sys.exit(1)
 
 def SIGINT_handler(pid_file, socket_fd, sql_pool, signum, frame):
@@ -136,17 +136,17 @@ def SIGINT_handler(pid_file, socket_fd, sql_pool, signum, frame):
 		try:
 			os.remove(pid_file)
 		except:
-			logging.error("Error while first fork. Traceback: \n{0}\n".format(traceback.format_exc()))
+			logging.error("Error in first forking. Traceback: \n{0}\n".format(traceback.format_exc()))
 
 
 	try:
 		socket_fd.shutdown(socket.SHUT_RDWR)
 		socket_fd.close()
 	except:
-		logging.error("Error closing master socket. Traceback: \n{0}\n".format(traceback.format_exc()))
+		logging.error("Error in closing master socket. Traceback: \n{0}\n".format(traceback.format_exc()))
 
 	try:
 		PySQLPool.terminatePool()
 	except:
-		logging.error("Error terminating SQL pool. Traceback: \n{0}\n".format(traceback.format_exc()))
+		logging.error("Error in terminating SQL pool. Traceback: \n{0}\n".format(traceback.format_exc()))
 	sys.exit(0)
