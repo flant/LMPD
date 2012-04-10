@@ -22,13 +22,15 @@
 #       MA 02110-1301, USA.
 
 import Policy, PySQLPool, subprocess, traceback, logging
+from string import lower
 
 class UserPolicy(Policy.Policy):
 	def __init__(self, config, sql_pool, debug = False):
 		Policy.Policy.__init__(self, config, sql_pool, debug)
 		self._alias_maps  = self._postconf()
 		self._keep_rules = config.get("filters_keep", True)
-		self._exclude_mails = config.get("filters_exclude", list())
+                self._exclude_mails = config.get("filters_exclude", list())
+		map(lower, self._exclude_mails)
 
 		tmp_data = self._loadsql()
 		if tmp_data:
@@ -37,6 +39,8 @@ class UserPolicy(Policy.Policy):
 			self._data = {}
 
 	def check(self, data):
+		if (data["sender"] in self._exclude_mails) or (data["recipient"] in self._exclude_mails):
+			return None
 		if data["request"] == "smtpd_access_policy":
 			if data["sasl_username"] == "":
 				sender = data["sender"]
@@ -128,9 +132,6 @@ class UserPolicy(Policy.Policy):
 		recipient = data["recipient"]
 		sender = data["sender"]
 
-		if sender in self._exclude_mails:
-			return None
-
 		if recipient != "" and sender != "":
 			if not self._data.has_key(sender): self._data[sender] = {}
 
@@ -155,33 +156,29 @@ class UserPolicy(Policy.Policy):
 
 	def _loadsql(self):
 		try:
-			sql_1 = 'SELECT users.username, white_list_mail.user_id, white_list_mail.mail, white_list_mail.accept FROM users RIGHT JOIN white_list_mail ON users.id = white_list_mail.user_id'
-			sql_2 = "DELETE FROM `white_list_mail` WHERE `user_id` = '{0}'"
+			sql_1 = 'SELECT white_list_mail.id_wl_mail, users.username, white_list_mail.mail, white_list_mail.accept FROM users RIGHT JOIN white_list_mail ON users.id = white_list_mail.user_id'
+			sql_2 = 'DELETE FROM white_list_mail WHERE id_wl_mail = {0}'
+
 			res={}
 			users={}
 			rules={}
-			clean_rules=list()
+			clean_rulse=list()
 
 			query = PySQLPool.getNewQuery(self._sql_pool, True)
 
 			query.Query(sql_1)
-			for row in query.record:	
-				if not self._keep_rules:
-					if not row["username"]:
-						clean_rules.append(row['user_id'])
-						continue
-				if self._exclude_mails:
-					if row["username"] in self._exclude_mails:
-						continue
+			for row in query.record:
+				if not self._keep_rules and row["username"] == "None":
+					clean_rulse.append(int(row["id_wl_mail"]))
+				if row["username"].lower() in self._exclude_mails:
+					continue
 				if not res.has_key(row["username"].lower()):
 					res[row["username"].lower()] = dict()
 				res[row["username"].lower()][row["mail"].lower()] = row["accept"]
-			
-			if not self._keep_rules:
-				clean_rules = list(set(clean_rules))
-				for id in clean_rules:
-					query.Query(sql_2.format(id))
-			
+
+			for iter in clean_rulse:
+				query.Query(sql_2.format(iter))
+
 			return res
 		except:
 			if self._debug:

@@ -101,7 +101,16 @@ class Connection(dict):
 			stop_time = time.time()
 			logging.debug("Connection started {0}, stopped in {1}. Last message in {2}. Processe messages - {3}. Working {4} seconds.".format(time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.start_time)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(stop_time)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.last_message_time)), self.processed_messages, (stop_time - self.start_time)))
 		try:
+			if self.debug:
+				logging.debug("Closing socket pair")
 			self.socket.shutdown(socket.SHUT_RDWR)
+		except:
+			if self.debug:
+				logging.debug("Error, while cloasing socket. Tracaback: {0}".format(traceback.format_exc()))
+
+		try:
+			if self.debug:
+				logging.debug("Closing socket descriptor")
 			self.socket.close()
 		except:
 			if self.debug:
