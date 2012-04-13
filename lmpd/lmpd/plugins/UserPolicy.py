@@ -168,7 +168,7 @@ class UserPolicy(Policy.Policy):
 
 			query.Query(sql_1)
 			for row in query.record:
-				if not self._keep_rules and row["username"] == "None":
+				if not self._keep_rules and row["username"] == None:
 					clean_rulse.append(int(row["id_wl_mail"]))
 				if row["username"].lower() in self._exclude_mails:
 					continue
