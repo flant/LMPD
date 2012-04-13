@@ -1,3 +1,9 @@
+dovecot-antispam (1.4.2-changeme4) changeme; urgency=low
+
+  * Fix
+
+ -- Nikolay Bogdanov <nikolay.bogdanov@flant.ru>  Fri, 13 Apr 2012 14:45:34 +0400
+
 dovecot-antispam (1.4.2-changeme3) changeme; urgency=low
 
   * Minor release
