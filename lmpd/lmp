@@ -43,8 +43,8 @@ def main():
 	config = Config.Config(args.config)
 
 	# get workers limits
-	limit = config.get('limit', Init.limits())
-	softlimit = config.get('softlimit', int(limit * 0,05))
+	limit = int(config.get('limit', Init.limits()))
+	softlimit = int(config.get('softlimit', 10))
 
 	# getting debug options
 	debug = config.get('debug', False)
@@ -116,7 +116,7 @@ def main():
 		proc = Worker.WorkerTread(conn, flts, default_answer, sql_pool, debug)
 		if threading.active_count() <= (limit + softlimit):
 			if threading.active_count() > limit:
-				logging.warning("")
+				logging.warning("Process limit reached.")
 			try:
 				proc.start()
 			except(thread.error):
