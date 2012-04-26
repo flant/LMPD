@@ -35,6 +35,7 @@ class AddressPolicy(Policy.Policy):
 
 	def check(self, data):
 		addr = data["client_address"]
+		raddr = data["reverse_client_name"]
 		result = None
 		if self._data.has_key(addr):
 			result = self._data[addr]
@@ -43,7 +44,8 @@ class AddressPolicy(Policy.Policy):
 
 	def _loadsql(self):
 		try:
-			sql_1 = "SELECT `mx_addr`, `accept` FROM `white_list_addr`"
+			sql_1 = "SELECT `token`, `rule` FROM `white_list_addr`"
+
 			res = {}
 
 			query = PySQLPool.getNewQuery(self._sql_pool, True)

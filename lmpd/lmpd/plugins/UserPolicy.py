@@ -190,7 +190,7 @@ class UserPolicy(Policy.Policy):
 		if data["sasl_username"] != "" and data["sender"] != "" and data["recipient"] != "":
 			try:
 				sql_1 = "SELECT `id` FROM `users` WHERE `username` LIKE '{0}'"
-				sql_2 = "INSERT IGNORE INTO `white_list_mail` VALUES(NULL, {0}, '{1}', '{2}')"
+				sql_2 = "INSERT IGNORE INTO `white_list_users` VALUES(NULL, {0}, '{1}', '{2}')"
 
 				query = PySQLPool.getNewQuery(self._sql_pool, True)
 

@@ -18,26 +18,26 @@ CREATE TABLE IF NOT EXISTS `users` (
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
 CREATE TABLE IF NOT EXISTS `white_list_addr` (
-  `id_wl_arrd` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `mx_addr` varchar(255) NOT NULL,
-  `accept` varchar(255) NOT NULL DEFAULT 'OK',
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `token` varchar(255) NOT NULL,
+  `action` varchar(255) NOT NULL DEFAULT 'OK',
   PRIMARY KEY (`id_wl_arrd`),
   UNIQUE KEY `mx_addr` (`mx_addr`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
-CREATE TABLE IF NOT EXISTS `white_list_dns` (
-  `id_wl_dns` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `dns` varchar(255) NOT NULL,
-  `accept` varchar(255) NOT NULL DEFAULT 'OK',
+CREATE TABLE IF NOT EXISTS `white_list_email` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `token` varchar(255) NOT NULL,
+  `action` varchar(255) NOT NULL DEFAULT 'OK',
   PRIMARY KEY (`id_wl_dns`),
   UNIQUE KEY `dns` (`dns`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
-CREATE TABLE IF NOT EXISTS `white_list_mail` (
-  `id_wl_mail` int(10) unsigned NOT NULL AUTO_INCREMENT,
+CREATE TABLE IF NOT EXISTS `white_list_users` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `user_id` int(10) unsigned NOT NULL,
   `mail` varchar(255) NOT NULL,
-  `accept` varchar(255) NOT NULL DEFAULT 'OK',
+  `action` varchar(255) NOT NULL DEFAULT 'OK',
   PRIMARY KEY (`id_wl_mail`),
   UNIQUE (`user_id`, `mail`),
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE

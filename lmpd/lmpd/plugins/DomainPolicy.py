@@ -35,16 +35,24 @@ class DomainPolicy(Policy.Policy):
 			self._data = {}
 
 	def check(self, data):
-		domain = data["helo_name"]
-		result = None
-		if self._data.has_key(domain):
-			result = self._data[domain]
-
-		return result
+		subj = data["sender"]
+		if self._data.has_key(data):
+			return self._data[subj]
+		else:
+			tmp_dns = subj.split('@')[-1]
+			tmp_arr = tmp_dns.split('.')
+			tmp_str = ""
+			if self._data.has_key(tmp_dns):
+					return self._data[tmp_dns]
+			for iter in xrange(0, len(tmp_arr) + 1):
+				check_dns = '.'.join(tmp_arr[iter:])
+				if iter > 0 and self._data.has_key("."+check_dns):
+					return self._data["."+check_dns]
+		return None
 
 	def _loadsql(self):
 		try:
-			sql_1 = "SELECT `dns`, `accept` FROM `white_list_dns`"
+			sql_1 = "SELECT `token`, `action` FROM `white_list_email`"
 			res = {}
 
 			query = PySQLPool.getNewQuery(self._sql_pool, True)
