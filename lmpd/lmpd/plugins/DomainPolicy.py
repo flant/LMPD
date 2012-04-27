@@ -59,7 +59,7 @@ class DomainPolicy(Policy.Policy):
 			query.Query(sql_1)
 			
 			for row in query.record:
-				res[row[0]] = row[1].lower()
+				res[row["token"]] = row["action"].lower()
 
 			return res
 

@@ -156,8 +156,8 @@ class UserPolicy(Policy.Policy):
 
 	def _loadsql(self):
 		try:
-			sql_1 = 'SELECT white_list_mail.id_wl_mail, users.username, white_list_mail.mail, white_list_mail.accept FROM users RIGHT JOIN white_list_mail ON users.id = white_list_mail.user_id'
-			sql_2 = 'DELETE FROM white_list_mail WHERE id_wl_mail = {0}'
+			sql_1 = 'SELECT white_list_users.id, users.username, white_list_users.token, white_list_users.action FROM users RIGHT JOIN white_list_users ON users.id = white_list_mail.user_id'
+			sql_2 = 'DELETE FROM white_list_users WHERE id = {0}'
 
 			res={}
 			users={}
@@ -169,12 +169,12 @@ class UserPolicy(Policy.Policy):
 			query.Query(sql_1)
 			for row in query.record:
 				if not self._keep_rules and row["username"] == None:
-					clean_rulse.append(int(row["id_wl_mail"]))
+					clean_rulse.append(int(row["id"]))
 				if row["username"].lower() in self._exclude_mails:
 					continue
 				if not res.has_key(row["username"].lower()):
 					res[row["username"].lower()] = dict()
-				res[row["username"].lower()][row["mail"].lower()] = row["accept"]
+				res[row["username"].lower()][row["token"].lower()] = row["action"]
 
 			for iter in clean_rulse:
 				query.Query(sql_2.format(iter))
@@ -205,7 +205,7 @@ class UserPolicy(Policy.Policy):
 
 	def _delrule(self, data):
 		sql_1 = "SELECT `id` FROM `users` WHERE `username` LIKE '{0}'"
-		sql_2 = "DELETE FROM `white_list_mail` WHERE `user_id` = '{0}' AND `mail` = '{1}'"
+		sql_2 = "DELETE FROM `white_list_users` WHERE `user_id` = '{0}' AND `mail` = '{1}'"
 
 		if data["sender"] != "" and data["recipient"] != "":
 			try:

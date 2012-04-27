@@ -57,7 +57,7 @@ class UserPolicyLDAP(Policy.Policy):
 				sender = data["sender"]
 				answer = self._check_one(data["recipient"], sender)
 				if answer:
-					return answer				
+					return answer
 				else:
 					array_of_recipients = self._postalias(data["recipient"])
 					if array_of_recipients:
@@ -174,8 +174,8 @@ class UserPolicyLDAP(Policy.Policy):
 
 	def _loadsql(self, users):
 		try:
-			sql_1 = "SELECT `user_id`, `mail`, `accept` FROM `white_list_mail`"
-			sql_2 = "DELETE FROM `white_list_mail` WHERE `user_id` = '{0}'"
+			sql_1 = "SELECT `user_id`, `token`, `action` FROM `white_list_users`"
+			sql_2 = "DELETE FROM `white_list_users` WHERE `user_id` = '{0}'"
 
 			res={}
 			rules={}
@@ -191,7 +191,7 @@ class UserPolicyLDAP(Policy.Policy):
 			query.Query(sql_1)
 			for row in query.record:
 				tmp = {}
-				tmp[row["mail"].lower()] = row["accept"]
+				tmp[row["token"].lower()] = row["action"]
 				if users.has_key(str(int(row["user_id"]))):
 					res[users[str(int(row["user_id"]))]].update(tmp)
 				else:
@@ -242,7 +242,7 @@ class UserPolicyLDAP(Policy.Policy):
 	def _addrule(self, data, answer = "dspam_innocent"):
 		if data["sasl_username"] != "" and data["sender"] != "" and data["recipient"] != "":
 
-			sql_1 = "INSERT IGNORE INTO `white_list_mail` VALUES(NULL, {0}, '{1}', '{2}')"
+			sql_1 = "INSERT IGNORE INTO `white_list_users` VALUES(NULL, {0}, '{1}', '{2}')"
 			try:
 				query = PySQLPool.getNewQuery(self._sql_pool, True)
 
@@ -259,7 +259,7 @@ class UserPolicyLDAP(Policy.Policy):
 				return False
 
 	def _delrule(self, data):
-		sql_1 = "DELETE FROM `white_list_mail` WHERE `user_id` = '{0}' AND `mail` = '{1}'"
+		sql_1 = "DELETE FROM `white_list_users` WHERE `user_id` = '{0}' AND `mail` = '{1}'"
 
 		if data["sasl_username"] != "" and data["sender"] != "" and data["recipient"] != "":
 			try:

@@ -29,37 +29,117 @@ class AddressPolicy(Policy.Policy):
 
 		tmp_data = self._loadsql()
 		if tmp_data:
-			self._data = tmp_data
+			self._data_ipv4 = tmp_data[0]
+			self._res_ipv4_sort_reversed = tmp_data[1]
+			self._data_ipv6 = tmp_data[2]
+			self._res_ipv6_sort_reversed = tmp_data[3]
+			self._data_rdns = tmp_data[4]
 		else:
-			self._data = {}
+			self._data_ipv4 = dict()
+			self._res_ipv4_sort_reversed = list()
+			self._data_ipv6 = dict()
+			self._res_ipv6_sort_reversed = list()
+			self._data_rdns = dict()
 
 	def check(self, data):
 		addr = data["client_address"]
-		raddr = data["reverse_client_name"]
-		result = None
-		if self._data.has_key(addr):
-			result = self._data[addr]
+		rdns = data["reverse_client_name"]
 
-		return result
+		tmp = self._check_ip(addr)
+		if tmp:
+			return tmp
+
+		tmp = self._check_rdns(rdns)
+		if tmp:
+			return tmp
+
+		return None
 
 	def _loadsql(self):
 		try:
 			sql_1 = "SELECT `token`, `rule` FROM `white_list_addr`"
 
-			res = {}
+			res_ipv4 = {}
+			res_ipv6 = {}
+			res_rdns = {}
 
 			query = PySQLPool.getNewQuery(self._sql_pool, True)
-			query.Query(sql_1)		
+			query.Query(sql_1)
 
 			for row in query.record:
-				res[row[0]] = row[1].lower()
+				rdns = False
+				ip = None
+				try:
+					ip = ipcalc.IP(row["token"])
+				except:
+					rdns = True
 
-			return res
+				if rdns:
+					res_rdns[row["token"]] = row["action"].lower()
+				else:
+					if ip == None:
+						logging.warn("Error in data. Strange row: {0}\n".format(row["token"]))
+						continue
+					mask = self._digest(ip.mask)
+					if ip.v == 4:
+						if not res_ipv4.has_key(mask):
+							res_ipv4[mask] = dict()
+						res_ipv4[mask][int(ip.bin(),2) & mask] = row["action"]
+					elif ip.v == 6:
+						if not res_ipv6.has_key(mask):
+							res_ipv6[mask] = dict()
+						res_ipv6[mask][int(ip.bin(),2) & mask] = row["action"]
+					else:
+						logging.warn("Error in data. Strange row: {0}\n".format(row["token"]))
+						continue
+
+			return res_ipv4, sorted(res_ipv4.keys(), reverse=True), res_ipv6, sorted(res_ipv6.keys(), reverse=True), res_rdns
 		except:
 			if self._debug:
 				logging.warn("Error in getting SQL data for Address policy. Traceback: \n{0}\n".format(traceback.format_exc()))
 
 			return None
+
+	def _check_ip(self, data):
+		version = ipcalc.IP(data).v
+		if version == 4:
+			return self._check_ipv4(data)
+		elif version == 6:
+			return self._check_ipv6(data)
+		else:
+			return None
+
+	def _check_ipv4(self, data):
+		int_ip = int(ipcalc.IP(ip_test).bin(), 2)
+		for mask in self._res_ipv4_sort_reversed:
+			net = int_ip & mask
+			if self._data_ipv4[mask].has_key(net):
+				return self._data_ipv4[mask][net]
+		return None
+
+	def _check_ipv6(self, data):
+		int_ip = int(ipcalc.IP(ip_test).bin(), 2)
+		for mask in self._res_ipv6_sort_reversed:
+			net = int_ip & mask
+			if self._data_ipv6[mask].has_key(net):
+				return self._data_ipv6[mask][net]
+		return None
+
+	def _check_rdns(self, subj):
+		if self._data_rdns.has_key(data):
+			return self._data_rdns[subj]
+		else:
+			for iter in xrange(0, len(tmp_arr) + 1):
+				check_dns = '.'.join(tmp_arr[iter:])
+				if iter > 0 and self._data_rdns.has_key("."+check_dns):
+					return self._data_rdns["."+check_dns]
+		return None
+
+	def _bits(self, i,n):
+		return ''.join(map(str, list(tuple((0,1)[i>>j & 1] for j in xrange(n-1,-1,-1)))))
+
+	def _digest(self, num):
+		return int('1'*num+'0'*(32-num),2)
 
 	def reload(self):
 
