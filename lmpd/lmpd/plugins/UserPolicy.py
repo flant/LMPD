@@ -170,6 +170,8 @@ class UserPolicy(Policy.Policy):
 			for row in query.record:
 				if not self._keep_rules and row["username"] == None:
 					clean_rulse.append(int(row["id"]))
+				if row["username"] == None:
+					continue					
 				if row["username"].lower() in self._exclude_mails:
 					continue
 				if not res.has_key(row["username"].lower()):
