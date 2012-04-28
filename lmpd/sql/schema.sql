@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS `white_list_users` (
   `token` varchar(255) NOT NULL,
   `action` varchar(255) NOT NULL DEFAULT 'OK',
   PRIMARY KEY (`id`),
-  UNIQUE (`user_id`, `token`),
+  UNIQUE (`user_id`, `token`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

@@ -156,7 +156,7 @@ class UserPolicy(Policy.Policy):
 
 	def _loadsql(self):
 		try:
-			sql_1 = 'SELECT white_list_users.id, users.username, white_list_users.token, white_list_users.action FROM users RIGHT JOIN white_list_users ON users.id = white_list_mail.user_id'
+			sql_1 = 'SELECT white_list_users.id, users.username, white_list_users.token, white_list_users.action FROM users RIGHT JOIN white_list_users ON users.id = white_list_users.user_id'
 			sql_2 = 'DELETE FROM white_list_users WHERE id = {0}'
 
 			res={}

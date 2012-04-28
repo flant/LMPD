@@ -57,7 +57,7 @@ class AddressPolicy(Policy.Policy):
 
 	def _loadsql(self):
 		try:
-			sql_1 = "SELECT `token`, `rule` FROM `white_list_addr`"
+			sql_1 = "SELECT `token`, `action` FROM `white_list_addr`"
 
 			res_ipv4 = {}
 			res_ipv6 = {}
