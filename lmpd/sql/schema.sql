@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS `white_list_addr` (
   `action` varchar(255) NOT NULL DEFAULT 'OK',
   PRIMARY KEY (`id`),
   UNIQUE KEY `token` (`token`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `white_list_email` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS `white_list_email` (
   `action` varchar(255) NOT NULL DEFAULT 'OK',
   PRIMARY KEY (`id`),
   UNIQUE KEY `token` (`token`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `white_list_users` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS `white_list_users` (
   `action` varchar(255) NOT NULL DEFAULT 'OK',
   PRIMARY KEY (`id`),
   UNIQUE (`user_id`, `token`),
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
