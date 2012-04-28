@@ -1,3 +1,9 @@
+lmpd (0.4.2-changeme4) changeme; urgency=low
+
+  * New release with bugfixes
+
+ -- Nikolay Bogdanov <nikolay.bogdanov@flant.ru>  Sat, 28 Apr 2012 12:42:18 +0400
+
 lmpd (0.4.2-changeme3) changeme; urgency=low
 
   * Fix in user policy 
