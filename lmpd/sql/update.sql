@@ -1,0 +1,11 @@
+ALTER TABLE white_list_mail RENAME TO white_list_users;
+ALTER TABLE white_list_users CHANGE accept action varchar(255) NOT NULL DEFAULT 'OK';
+ALTER TABLE white_list_users CHANGE id_wl_mail id int(10) unsigned NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE white_list_dns RENAME TO white_list_email;
+ALTER TABLE white_list_email CHANGE id_wl_dns id int(10) unsigned NOT NULL AUTO_INCREMENT;
+ALTER TABLE white_list_email CHANGE accept action varchar(255) NOT NULL DEFAULT 'OK';
+ALTER TABLE white_list_email CHANGE dns token varchar(255) NOT NULL;
+
+ALTER TABLE white_list_addr CHANGE id_wl_arrd id int(10) unsigned NOT NULL AUTO_INCREMENT;
+ALTER TABLE white_list_addr CHANGE accept action varchar(255) NOT NULL DEFAULT 'OK';
