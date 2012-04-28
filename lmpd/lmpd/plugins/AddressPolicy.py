@@ -21,7 +21,7 @@
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 
-import Policy, PySQLPool, traceback, logging
+import Policy, PySQLPool, traceback, logging, ipcalc
 
 class AddressPolicy(Policy.Policy):
 	def __init__(self, config, sql_pool, debug = False):
@@ -110,7 +110,7 @@ class AddressPolicy(Policy.Policy):
 			return None
 
 	def _check_ipv4(self, data):
-		int_ip = int(ipcalc.IP(ip_test).bin(), 2)
+		int_ip = int(ipcalc.IP(data).bin(), 2)
 		for mask in self._res_ipv4_sort_reversed:
 			net = int_ip & mask
 			if self._data_ipv4[mask].has_key(net):
@@ -118,7 +118,7 @@ class AddressPolicy(Policy.Policy):
 		return None
 
 	def _check_ipv6(self, data):
-		int_ip = int(ipcalc.IP(ip_test).bin(), 2)
+		int_ip = int(ipcalc.IP(data).bin(), 2)
 		for mask in self._res_ipv6_sort_reversed:
 			net = int_ip & mask
 			if self._data_ipv6[mask].has_key(net):
@@ -126,9 +126,10 @@ class AddressPolicy(Policy.Policy):
 		return None
 
 	def _check_rdns(self, subj):
-		if self._data_rdns.has_key(data):
+		if self._data_rdns.has_key(subj):
 			return self._data_rdns[subj]
 		else:
+			tmp_arr = subj.split('.')
 			for iter in xrange(0, len(tmp_arr) + 1):
 				check_dns = '.'.join(tmp_arr[iter:])
 				if iter > 0 and self._data_rdns.has_key("."+check_dns):
@@ -146,7 +147,16 @@ class AddressPolicy(Policy.Policy):
 		tmp_data = self._loadsql()
 
 		if tmp_data:
-			self._data.clear()
-			self._data.update(tmp_data)
+			self._data_ipv4 = tmp_data[0]
+			self._res_ipv4_sort_reversed = tmp_data[1]
+			self._data_ipv6 = tmp_data[2]
+			self._res_ipv6_sort_reversed = tmp_data[3]
+			self._data_rdns = tmp_data[4]
+		else:
+			self._data_ipv4 = dict()
+			self._res_ipv4_sort_reversed = list()
+			self._data_ipv6 = dict()
+			self._res_ipv6_sort_reversed = list()
+			self._data_rdns = dict()
 
 		return None

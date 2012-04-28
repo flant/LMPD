@@ -36,7 +36,7 @@ class DomainPolicy(Policy.Policy):
 
 	def check(self, data):
 		subj = data["sender"]
-		if self._data.has_key(data):
+		if self._data.has_key(subj):
 			return self._data[subj]
 		else:
 			tmp_dns = subj.split('@')[-1]

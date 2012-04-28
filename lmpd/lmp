@@ -22,7 +22,7 @@
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 
-import os, sys, signal, site, optparse, traceback, logging
+import os, sys, signal, site, optparse, traceback, logging, threading
 
 # Importing our modules
 site.addsitedir("/usr/lib/lmpd/lib", known_paths=None)
