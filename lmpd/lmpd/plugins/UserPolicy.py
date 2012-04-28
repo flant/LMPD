@@ -189,32 +189,25 @@ class UserPolicy(Policy.Policy):
 	def _addrule(self, data, answer = "dspam_innocent"):
 		if data["sasl_username"] != "" and data["sender"] != "" and data["recipient"] != "":
 			try:
-				sql_1 = "SELECT `id` FROM `users` WHERE `username` LIKE '{0}'"
-				sql_2 = "INSERT IGNORE INTO `white_list_users` VALUES(NULL, {0}, '{1}', '{2}')"
+				sql = 'INSERT IGNORE INTO white_list_users (white_list_users.user_id, white_list_users.token, white_list_users.action) SELECT id as userid, \'{0}\' as token, \'{1}\' as action FROM users WHERE users.username LIKE \'{2}\';'
 
 				query = PySQLPool.getNewQuery(self._sql_pool, True)
 
-				query.Query(sql_1.format(data["sasl_username"]))
-				tmp = str(int(query.record[0]["id"]))
-
-				query.Query(sql_2.format(tmp, data["recipient"], answer))
+				query.Query(sql.format(data["recipient"], answer, data["sasl_username"]))
 				return True
 			except:
 				logging.warn("Error in creating a rule for UserLdap policy. Traceback: \n{0}\n".format(traceback.format_exc()))
 				return False
 
 	def _delrule(self, data):
-		sql_1 = "SELECT `id` FROM `users` WHERE `username` LIKE '{0}'"
-		sql_2 = "DELETE FROM `white_list_users` WHERE `user_id` = '{0}' AND `mail` = '{1}'"
+
+		sql = 'DELETE FROM white_list_users where token like \'{0}\' and user_id in (SELECT id as user_id FROM users WHERE username like \'{1}\' )'
 
 		if data["sender"] != "" and data["recipient"] != "":
 			try:
 				query = PySQLPool.getNewQuery(self._sql_pool, True)
 
-				query.Query(sql_1.format(data["sender"]))
-				tmp = str(int(query.record[0]["id"]))
-
-				query.Query(sql_2.format(tmp, data["recipient"]))
+				query.Query(sql.format(data["sender"], data["recipient"]))
 				return True
 			except:
 				logging.warn("Error in deleting a rule for UserLdap policy. Traceback: \n{0}\n".format(traceback.format_exc()))
