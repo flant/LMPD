@@ -2,20 +2,20 @@
 #
 #       Worker class for LMPD (http://flant.ru/projects/lmpd)
 #       Worker.py
-#       
+#
 #       Copyright (C) 2009-2012 CJSC Flant (www.flant.ru)
 #       Written by Nikolay "GyRT" Bogdanov <nikolay.bogdanov@flant.ru>
-#       
+#
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
 #       the Free Software Foundation; either version 2 of the License, or
 #       any later version.
-#       
+#
 #       This program is distributed in the hope that it will be useful,
 #       but WITHOUT ANY WARRANTY; without even the implied warranty of
 #       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #       GNU General Public License for more details.
-#       
+#
 #       You should have received a copy of the GNU General Public License
 #       along with this program; if not, write to the Free Software
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
@@ -38,7 +38,7 @@ class WorkerTread(threading.Thread):
 			self.start_time = time.time()
 
 	def run(self):
-		
+
 		with Connection.Connection(self.socket, self.name, self.debug) as conn:
 			while conn.get_message():
 
@@ -67,7 +67,7 @@ class WorkerTread(threading.Thread):
 				try:
 					PySQLPool.cleanupPool()
 				except:
-					logging.warn('Error in cleaning SQL pool! Traceback: \n{0}\n'.format(traceback.format_exc()))
+					logging.warn('Error in cleaning SQL pool. Traceback: \n{0}\n'.format(traceback.format_exc()))
 		if self.debug:
 			stop_time = time.time()
 			logging.debug("Process named {0} started {1}, stopped {2}. Working {3} seconds.".format(self.name, time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(self.start_time)), time.strftime("%d.%m.%y - %H:%M:%S", time.localtime(stop_time)), (stop_time - self.start_time)))

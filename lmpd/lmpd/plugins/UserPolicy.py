@@ -2,20 +2,20 @@
 #
 #       Users filters for LMPD (http://flant.ru/projects/lmpd)
 #       UserPolicy.py
-#       
+#
 #       Copyright (C) 2009-2012 CJSC Flant (www.flant.ru)
 #       Written by Nikolay "GyRT" Bogdanov <nikolay.bogdanov@flant.ru>
-#       
+#
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
 #       the Free Software Foundation; either version 2 of the License, or
 #       any later version.
-#       
+#
 #       This program is distributed in the hope that it will be useful,
 #       but WITHOUT ANY WARRANTY; without even the implied warranty of
 #       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #       GNU General Public License for more details.
-#       
+#
 #       You should have received a copy of the GNU General Public License
 #       along with this program; if not, write to the Free Software
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
@@ -156,8 +156,8 @@ class UserPolicy(Policy.Policy):
 
 	def _loadsql(self):
 		try:
-			sql_1 = 'SELECT white_list_users.id, users.username, white_list_users.token, white_list_users.action FROM users RIGHT JOIN white_list_users ON users.id = white_list_users.user_id'
-			sql_2 = 'DELETE FROM white_list_users WHERE id = {0}'
+			sql_1 = 'SELECT `white_list_users`.`id`, `users`.`username`, `white_list_users`.`token`, `white_list_users`.`action` FROM `users` RIGHT JOIN `white_list_users` ON `users`.`id` = `white_list_users`.`user_id`'
+			sql_2 = 'DELETE FROM `white_list_users` WHERE `id` = {0}'
 
 			res={}
 			users={}
@@ -171,7 +171,7 @@ class UserPolicy(Policy.Policy):
 				if not self._keep_rules and row["username"] == None:
 					clean_rulse.append(int(row["id"]))
 				if row["username"] == None:
-					continue					
+					continue
 				if row["username"].lower() in self._exclude_mails:
 					continue
 				if not res.has_key(row["username"].lower()):
@@ -191,7 +191,7 @@ class UserPolicy(Policy.Policy):
 	def _addrule(self, data, answer = "dspam_innocent"):
 		if data["sasl_username"] != "" and data["sender"] != "" and data["recipient"] != "":
 			try:
-				sql = 'INSERT IGNORE INTO white_list_users (white_list_users.user_id, white_list_users.token, white_list_users.action) SELECT id as userid, \'{0}\' as token, \'{1}\' as action FROM users WHERE users.username LIKE \'{2}\';'
+				sql = 'INSERT IGNORE INTO `white_list_users` (`white_list_users`.`user_id`, `white_list_users`.`token`, `white_list_users`.`action`) SELECT `id` AS `userid`, \'{0}\' AS `token`, \'{1}\' AS `action` FROM `users` WHERE `users`.`username` LIKE \'{2}\';'
 
 				query = PySQLPool.getNewQuery(self._sql_pool, True)
 
@@ -203,7 +203,7 @@ class UserPolicy(Policy.Policy):
 
 	def _delrule(self, data):
 
-		sql = 'DELETE FROM white_list_users where token like \'{0}\' and user_id in (SELECT id as user_id FROM users WHERE username like \'{1}\' )'
+		sql = 'DELETE FROM `white_list_users` WHERE `token` LIKE \'{0}\' AND `user_id` IN (SELECT `id` AS `user_id` FROM `users` WHERE `username` LIKE \'{1}\' )'
 
 		if data["sender"] != "" and data["recipient"] != "":
 			try:
