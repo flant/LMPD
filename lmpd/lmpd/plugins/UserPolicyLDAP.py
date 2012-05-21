@@ -212,7 +212,10 @@ class UserPolicyLDAP(Policy.Policy):
 		result_mail_set = {}
 		result_uid_set = {}
 		try:
-			ldap_conn = ldap.open(self._ldap_uri)
+			if "://" in self._ldap_uri:
+				ldap_conn = ldap.initialize(self._ldap_uri)
+			else:
+				ldap_conn = ldap.open(self._ldap_uri)
 			ldap_conn.protocol_version = ldap.VERSION3
 			ldap_conn.simple_bind_s(self._ldap_user, self._ldap_pass)
 		except:

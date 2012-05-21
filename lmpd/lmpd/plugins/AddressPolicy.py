@@ -42,6 +42,8 @@ class AddressPolicy(Policy.Policy):
 			self._data_rdns = dict()
 
 	def check(self, data):
+		if data["request"] != "smtpd_access_policy":
+			return None
 		addr = data["client_address"]
 		rdns = data["reverse_client_name"]
 

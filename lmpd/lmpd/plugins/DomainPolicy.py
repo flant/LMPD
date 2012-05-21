@@ -36,6 +36,8 @@ class DomainPolicy(Policy.Policy):
 
 	def check(self, data):
 		subj = data["sender"]
+		if data["request"] != "smtpd_access_policy":
+			return None
 		if self._data.has_key(subj):
 			return self._data[subj]
 		else:

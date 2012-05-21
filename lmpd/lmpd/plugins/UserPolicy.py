@@ -209,7 +209,8 @@ class UserPolicy(Policy.Policy):
 			try:
 				query = PySQLPool.getNewQuery(self._sql_pool, True)
 
-				query.Query(sql.format(data["sender"], data["recipient"]))
+				query.Query(sql.format(data["recipient"], data["sender"]))
+
 				return True
 			except:
 				logging.warn("Error in deleting a rule for UserLdap policy. Traceback: \n{0}\n".format(traceback.format_exc()))
