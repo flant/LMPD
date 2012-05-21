@@ -1,0 +1,7 @@
+Lightweight Modular Policy Daemon (http://flant.ru/projects/lmpd)
+
+LMPD is a simple whitelisting daemon for Postfix written on Python.
+
+This project hosts the LMPD itself (in lmpd/ directory) and plugin
+for Dovecot mail server (dovecot-plugin/). Please, refer to the relevant
+README files for further information.

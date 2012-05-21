@@ -5,28 +5,36 @@ LMPD (Lightweight Modular Policy Daemon)
 
 
 Summary:
-LMPD is a simple whitelisting daemon for Postfix written on Python. For more information, please have a look at the man page lmpd(7).
+LMPD is a simple whitelisting daemon for Postfix written on Python.
+For more information, please have a look at the man page lmpd(7).
 
 
 Authors & credits:
-The original version of LMPD was written by Nikolay Bogdanov <nikolay.bogdanov@flant.ru> from CJSC Flant (www.flant.ru).
+The original version of LMPD was written by Nikolay Bogdanov 
+<nikolay.bogdanov@flant.ru> from CJSC Flant (www.flant.ru).
 
-The development of LMPD was sponsored by Andrey Putin from Mattino (http://mattino.ru/).
+The development of LMPD was sponsored by Andrey Putin from Mattino 
+(http://mattino.ru/).
 
 
 Links:
-The LMPD project homepage is http://flant.ru/projects/lmpd
-The source code of LMPD can be found on GitHub: https://github.com/flant/LMPD
+* The LMPD project homepage: http://flant.ru/projects/lmpd
+* The source code on GitHub: https://github.com/flant/LMPD
 
 
 -----
 
 
-LMPD -- это простой и легковесный демон для ведения белых и черных списков в Postfix, написанный на Python.
+LMPD -- это простой и легковесный демон для ведения белых и черных
+списков в Postfix, написанный на Python.
 
-Автор оригинальной версии LMPD -- Николай Богданов <nikolay.bogdanov@flant.ru> из компании "Флант" (www.flant.ru).
 
-Разработка первой версии LMPD была профинансирована из компании "Маттино" (http://mattino.ru/).
+Автор оригинальной версии LMPD -- Николай Богданов
+<nikolay.bogdanov@flant.ru> из компании "Флант" (www.flant.ru).
 
-Страница проекта LMPD: http://flant.ru/projects/lmpd
-Исходный код на GitHub: https://github.com/flant/LMPD
+Разработка первой версии LMPD была  профинансирована Андреем Путиным
+из компании "Маттино" (http://mattino.ru/).
+
+
+* Страница проекта LMPD: http://flant.ru/projects/lmpd
+* Исходный код на GitHub: https://github.com/flant/LMPD
